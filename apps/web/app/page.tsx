@@ -1,3 +1,9 @@
+"use client";
+
+import { trpc } from "../trpc/client";
+
 export default function Home() {
-	return <h1>Home</h1>;
+	const { data } = trpc.todo.getAllTodos.useQuery();
+	console.log(data);
+	return data?.map((todo) => <div key={todo.id}>{todo.name}</div>);
 }
