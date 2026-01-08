@@ -28,6 +28,11 @@ model Folder {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
+  parentId String?
+  parent   Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children Folder[] @relation("FolderHierarchy")
+  isRoot   Boolean  @default(false)
+
   photos Photo[]
 
   createdAt DateTime @default(now())
