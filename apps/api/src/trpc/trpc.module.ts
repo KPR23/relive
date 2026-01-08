@@ -4,7 +4,7 @@ import { TRPCModule } from 'nestjs-trpc';
 @Module({
   imports: [
     TRPCModule.forRoot({
-      autoSchemaFile: 'src/trpc/@generated',
+      autoSchemaFile: '../../packages/trpc/src/server',
     }),
   ],
 })
