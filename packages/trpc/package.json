@@ -2,6 +2,9 @@
   "name": "@repo/trpc",
   "version": "0.1.0",
   "private": true,
+  "exports": {
+    "./router": "./src/server/server.ts"
+  },
   "peerDependencies": {
     "zod": "^3.25.76",
     "@trpc/server": "^10.45.4"
