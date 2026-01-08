@@ -13,6 +13,13 @@
     "turbo": "^2.7.3",
     "typescript": "5.9.2"
   },
+  "pnpm": {
+    "overrides": {
+      "@trpc/server": "10.45.4",
+      "@trpc/client": "10.45.4",
+      "@trpc/react-query": "10.45.4"
+    }
+  },
   "packageManager": "pnpm@10.23.0",
   "engines": {
     "node": ">=18"
