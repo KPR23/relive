@@ -10,7 +10,7 @@ export const authClient = createAuthClient({
 export const gitHubSignIn = async () => {
 	await authClient.signIn.social({
 		provider: "github",
-		callbackURL: "http://localhost:3000/",
+		callbackURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/",
 	});
 };
 

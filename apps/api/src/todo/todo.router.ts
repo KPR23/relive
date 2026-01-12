@@ -14,7 +14,9 @@ import {
   todoSchema,
 } from './todo.schema';
 import { AuthMiddleware } from 'src/middleware';
+import type { AuthContext } from 'src/trpc/context';
 
+@UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'todo' })
 export class TodoRouter {
   constructor(private readonly todoService: TodoService) {}
@@ -24,10 +26,8 @@ export class TodoRouter {
     return this.todoService.getTodoById(id);
   }
 
-  @UseMiddlewares(AuthMiddleware)
   @Query({ output: z.array(todoSchema) })
-  getAllTodos(@Ctx() ctx: any) {
-    console.log(ctx.user, ctx.session);
+  getAllTodos(@Ctx() ctx: AuthContext) {
     return this.todoService.getAllTodos();
   }
 

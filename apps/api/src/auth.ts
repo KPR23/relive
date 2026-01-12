@@ -2,20 +2,27 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from './db';
 import * as schema from './db/schema';
+import { env } from './env';
 
 export const auth = betterAuth({
+  secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+    minPasswordLength: 8,
   },
-  trustedOrigins: [process.env.FRONTEND_URL || 'http://localhost:3000'],
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-    },
-  },
+  trustedOrigins: [env.FRONTEND_URL],
+  ...(env.GITHUB_CLIENT_ID &&
+    env.GITHUB_CLIENT_SECRET && {
+      socialProviders: {
+        github: {
+          clientId: env.GITHUB_CLIENT_ID,
+          clientSecret: env.GITHUB_CLIENT_SECRET,
+        },
+      },
+    }),
 });
