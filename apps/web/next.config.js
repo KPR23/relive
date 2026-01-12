@@ -4,8 +4,8 @@ const nextConfig = {
 	rewrites: () => {
 		return [
 			{
-				source: "/trpc/:path*",
-				destination: `${process.env.TRPC_URL || "http://localhost:8000/trpc"}/:path*`,
+				source: "/api/:path*",
+				destination: `${process.env.API_URL || "http://localhost:8000"}/api/:path*`,
 			},
 		];
 	},

@@ -8,6 +8,10 @@ export const auth = betterAuth({
     provider: 'pg',
     schema,
   }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  trustedOrigins: [process.env.FRONTEND_URL || 'http://localhost:3000'],
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,

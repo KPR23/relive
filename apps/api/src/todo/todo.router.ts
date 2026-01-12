@@ -1,4 +1,11 @@
-import { Input, Mutation, Query, Router } from 'nestjs-trpc';
+import {
+  Ctx,
+  Input,
+  Mutation,
+  Query,
+  Router,
+  UseMiddlewares,
+} from 'nestjs-trpc';
 import { TodoService } from './todo.service';
 import z from 'zod';
 import {
@@ -6,6 +13,7 @@ import {
   createTodoSchema,
   todoSchema,
 } from './todo.schema';
+import { AuthMiddleware } from 'src/middleware';
 
 @Router({ alias: 'todo' })
 export class TodoRouter {
@@ -16,8 +24,10 @@ export class TodoRouter {
     return this.todoService.getTodoById(id);
   }
 
+  @UseMiddlewares(AuthMiddleware)
   @Query({ output: z.array(todoSchema) })
-  getAllTodos() {
+  getAllTodos(@Ctx() ctx: any) {
+    console.log(ctx.user, ctx.session);
     return this.todoService.getAllTodos();
   }
 
