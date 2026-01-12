@@ -15,7 +15,7 @@ export interface AuthContext extends BaseContext {
 
 @Injectable()
 export class AppContext implements TRPCContext {
-  async create(opts: ContextOptions): Promise<BaseContext> {
+  create(opts: ContextOptions): BaseContext {
     return {
       req: opts.req as Request,
       res: opts.res as Response,

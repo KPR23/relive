@@ -27,7 +27,8 @@ export class TodoRouter {
   }
 
   @Query({ output: z.array(todoSchema) })
-  getAllTodos(@Ctx() ctx: AuthContext) {
+  getAllTodos(@Ctx() _ctx: AuthContext) {
+    console.log(_ctx.user);
     return this.todoService.getAllTodos();
   }
 
