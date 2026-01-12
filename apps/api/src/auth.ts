@@ -12,7 +12,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    // requireEmailVerification: true,
     minPasswordLength: 8,
   },
   trustedOrigins: [env.FRONTEND_URL],
