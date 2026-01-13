@@ -19,7 +19,15 @@
       "@trpc/server": "10.45.4",
       "@trpc/client": "10.45.4",
       "@trpc/react-query": "10.45.4",
-      "typescript": "5.9.2"
+      "typescript": "5.9.2",
+      "zod": "^4.3.5",
+      "rxjs": "^7.8.2"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "nestjs-trpc>@nestjs/common": "11",
+        "nestjs-trpc>@nestjs/core": "11"
+      }
     }
   },
   "packageManager": "pnpm@10.23.0",
