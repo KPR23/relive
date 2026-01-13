@@ -37,6 +37,40 @@ const appRouter = t.router({
       completed: z.boolean(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     deleteTodo: publicProcedure.input(z.object({ id: z.string() })).output(z.boolean()).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  photo: t.router({
+    requestUpload: publicProcedure.input(createInsertSchema(pgTable(
+      'photo',
+      {
+        id: text('id').primaryKey(),
+        ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+        folderId: text('folder_id').notNull().references(() => folder.id, { onDelete: 'cascade' }),
+        filePath: text('file_path').notNull(),
+        thumbPath: text('thumb_path'),
+        originalName: text('original_name').notNull(),
+        mimeType: text('mime_type').notNull(),
+        size: text('size'),
+        takenAt: timestamp('taken_at'),
+        width: text('width'),
+        height: text('height'),
+        exif: text('exif'),
+        status: photoStatusEnum().notNull(),
+        createdAt: timestamp('created_at').defaultNow().notNull(),
+      },
+      (table) => [
+        index('photo_owner_idx').on(table.ownerId),
+        index('photo_folder_idx').on(table.folderId),
+      ],
+    ), {
+      folderId: z.uuid(),
+    }).pick({
+      folderId: true,
+      mimeType: true,
+      originalName: true,
+    })).output(z.object({
+      uploadUrl: z.string(),
+      photoId: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;
