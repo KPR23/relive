@@ -2,6 +2,6 @@ import { Module } from '@nestjs/common';
 import { FolderService } from './folder.service';
 
 @Module({
-  providers: [FolderService]
+  providers: [FolderService],
 })
 export class FolderModule {}
