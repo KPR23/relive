@@ -37,6 +37,16 @@ const appRouter = t.router({
       completed: z.boolean(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     deleteTodo: publicProcedure.input(z.object({ id: z.string() })).output(z.boolean()).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  photo: t.router({
+    requestUpload: publicProcedure.input(z.object({
+      folderId: z.string().uuid(),
+      mimeType: z.string(),
+      originalName: z.string(),
+    })).output(z.object({
+      uploadUrl: z.string(),
+      photoId: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;
