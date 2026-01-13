@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# test photo
+src/photo/test.png
+
 # Logs
 logs
 *.log

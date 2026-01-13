@@ -5,12 +5,10 @@ import { photo } from '../db/schema.js';
 export const photoSelectSchema = createSelectSchema(photo);
 export const photoInsertSchema = createInsertSchema(photo);
 
-export const requestUploadSchema = createInsertSchema(photo, {
-  folderId: z.uuid(),
-}).pick({
-  folderId: true,
-  mimeType: true,
-  originalName: true,
+export const requestUploadSchema = z.object({
+  folderId: z.string().uuid(),
+  mimeType: z.string(),
+  originalName: z.string(),
 });
 
 export const createPendingPhotoSchema = z.object({
