@@ -1,13 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { db } from 'src/db';
 import { folder } from 'src/db/schema';
 import { CreateFolderSchema, Folder } from './folder.schema';
 
+type Tx = Parameters<typeof db.transaction>[0] extends (tx: infer T) => any
+  ? T
+  : never;
 @Injectable()
 export class FolderService {
-  async getFolderById(userId: string, id: string) {
-    const [folderRecord] = await db
+  async getFolderById(userId: string, id: string, tx?: Tx) {
+    const client = tx ?? db;
+    const [folderRecord] = await client
       .select()
       .from(folder)
       .where(and(eq(folder.id, id), eq(folder.ownerId, userId)));
@@ -15,18 +25,18 @@ export class FolderService {
     return folderRecord;
   }
 
-  async getOwnedFolderOrThrow(userId: string, folderId: string) {
-    const folder = await this.getFolderById(userId, folderId);
+  async getOwnedFolderOrThrow(userId: string, folderId: string, tx?: Tx) {
+    const folder = await this.getFolderById(userId, folderId, tx);
 
-    if (!folder || folder.ownerId !== userId) {
-      throw new Error('Folder not found or not owned by user');
+    if (!folder) throw new NotFoundException('Folder not found');
+    if (folder.ownerId !== userId) {
+      throw new ForbiddenException('Folder not owned by user');
     }
 
     return folder;
   }
 
-  async getParent(userId: string, folderId: string) {
-    const folder = await this.getOwnedFolderOrThrow(userId, folderId);
+  async getParent(userId: string, folder: Folder, tx?: Tx) {
     if (!folder.parentId) {
       return null;
     }
@@ -34,33 +44,37 @@ export class FolderService {
     const parentFolder = await this.getOwnedFolderOrThrow(
       userId,
       folder.parentId,
+      tx,
     );
     return parentFolder;
   }
 
   async ensureRootFolder(userId: string) {
-    const [root] = await db
-      .select()
-      .from(folder)
-      .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)));
+    return db.transaction(async (tx) => {
+      const root = await tx
+        .select()
+        .from(folder)
+        .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)));
 
-    if (root) return root;
+      if (root) return root;
 
-    const [created] = await db
-      .insert(folder)
-      .values({
-        ownerId: userId,
-        name: 'My Photos',
-        isRoot: true,
-        parentId: null,
-      })
-      .returning();
+      const created = await tx
+        .insert(folder)
+        .values({
+          ownerId: userId,
+          name: 'My Photos',
+          isRoot: true,
+          parentId: null,
+        })
+        .returning();
 
-    return created;
+      return created;
+    });
   }
 
-  async getFolderChildren(userId: string, parentId: string) {
-    return db
+  async getFolderChildren(userId: string, parentId: string, tx?: Tx) {
+    const client = tx ?? db;
+    return client
       .select()
       .from(folder)
       .where(and(eq(folder.ownerId, userId), eq(folder.parentId, parentId)));
@@ -68,13 +82,11 @@ export class FolderService {
 
   async createFolder(userId: string, data: CreateFolderSchema) {
     await this.ensureRootFolder(userId);
+
     if (!data.parentId) {
-      throw new Error('Parent folder ID not provided');
+      throw new BadRequestException('Parent folder ID not provided');
     }
-    const parentFolder = await this.getOwnedFolderOrThrow(
-      userId,
-      data.parentId,
-    );
+    await this.getOwnedFolderOrThrow(userId, data.parentId);
 
     return db
       .insert(folder)
@@ -87,48 +99,56 @@ export class FolderService {
     movingFolderId: string,
     targetParentId: string,
   ) {
-    const movingFolder = await this.getOwnedFolderOrThrow(
-      userId,
-      movingFolderId,
-    );
-    const targetFolder = await this.getOwnedFolderOrThrow(
-      userId,
-      targetParentId,
-    );
+    return db.transaction(async (tx) => {
+      const movingFolder = await this.getOwnedFolderOrThrow(
+        userId,
+        movingFolderId,
+        tx,
+      );
+      const targetFolder = await this.getOwnedFolderOrThrow(
+        userId,
+        targetParentId,
+        tx,
+      );
 
-    if (targetParentId === movingFolderId || movingFolder.isRoot === true) {
-      throw new Error('Cannot move this folder');
-    }
+      if (targetParentId === movingFolderId)
+        throw new BadRequestException('Cannot move this folder');
 
-    let current = targetFolder;
-    while (current.parentId) {
-      const parent = await this.getParent(userId, current.parentId);
-      if (!parent) break;
-      if (parent.id === movingFolder.id) {
-        throw new Error('Cannot move this folder');
+      if (movingFolder.isRoot === true)
+        throw new ForbiddenException('Cannot move root folder');
+
+      let current = targetFolder;
+      while (current.parentId) {
+        const parent = await this.getParent(userId, current, tx);
+        if (!parent) break;
+        if (parent.id === movingFolder.id) {
+          throw new ConflictException('Cannot move this folder');
+        }
+        current = parent;
       }
-      current = parent;
-    }
 
-    return db
-      .update(folder)
-      .set({ parentId: targetParentId })
-      .where(eq(folder.id, movingFolderId));
+      return tx
+        .update(folder)
+        .set({ parentId: targetParentId })
+        .where(eq(folder.id, movingFolderId));
+    });
   }
 
   async deleteFolder(userId: string, id: string) {
-    const targetFolder = await this.getOwnedFolderOrThrow(userId, id);
+    return db.transaction(async (tx) => {
+      const targetFolder = await this.getOwnedFolderOrThrow(userId, id, tx);
 
-    if (targetFolder.isRoot) {
-      throw new Error('Cannot delete root folder');
-    }
+      if (targetFolder.isRoot) {
+        throw new ForbiddenException('Cannot delete root folder');
+      }
 
-    const children = await this.getFolderChildren(userId, id);
+      const children = await this.getFolderChildren(userId, id, tx);
 
-    if (children.length > 0) {
-      throw new Error('Cannot delete folder with children');
-    }
+      if (children.length > 0) {
+        throw new ConflictException('Cannot delete folder with children');
+      }
 
-    return db.delete(folder).where(eq(folder.id, id));
+      return tx.delete(folder).where(eq(folder.id, id));
+    });
   }
 }
