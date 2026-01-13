@@ -5,6 +5,11 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
 
+  // Arcjet
+  ARCJET_KEY: z
+    .string()
+    .startsWith('ajkey_', 'ARCJET_KEY must start with "ajkey_"'),
+
   // Better Auth
   BETTER_AUTH_SECRET: z
     .string()
