@@ -15,6 +15,7 @@ import { TestController } from './test/test.controller';
 import { env } from './env';
 import { PhotoModule } from './photo/photo.module';
 import { PhotoService } from './photo/photo.service';
+import { FolderModule } from './folder/folder.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PhotoService } from './photo/photo.service';
     TodoModule,
     AuthModule.forRoot({ auth }),
     PhotoModule,
+    FolderModule,
   ],
   providers: [
     {

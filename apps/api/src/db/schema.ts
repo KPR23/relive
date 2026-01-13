@@ -112,7 +112,9 @@ export const accountRelations = relations(account, ({ one }) => ({
 export const folder = pgTable(
   'folder',
   {
-    id: text('id').primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     name: text('name').notNull(),
     description: text('description'),
     ownerId: text('owner_id')
@@ -132,7 +134,9 @@ export const folder = pgTable(
 export const photo = pgTable(
   'photo',
   {
-    id: text('id').primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     ownerId: text('owner_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
