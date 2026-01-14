@@ -39,6 +39,22 @@ const appRouter = t.router({
     deleteTodo: publicProcedure.input(z.object({ id: z.string() })).output(z.boolean()).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
   photo: t.router({
+    listPhotos: publicProcedure.input(z.object({
+      folderId: z.uuid(),
+    })).output(z.array(
+      z.object({
+        photoId: z.string(),
+        originalName: z.string(),
+        createdAt: z.date(),
+        takenAt: z.date().nullable(),
+        width: z.number().nullable(),
+        height: z.number().nullable(),
+      }),
+    )).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getPhotoUrl: publicProcedure.input(z.object({ photoId: z.string().uuid() })).output(z.object({
+      signedUrl: z.string(),
+      expiresAt: z.date(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     requestUpload: publicProcedure.input(z.object({
       folderId: z.uuid(),
       mimeType: z.string(),
@@ -46,7 +62,17 @@ const appRouter = t.router({
     })).output(z.object({
       uploadUrl: z.string(),
       photoId: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    confirmUpload: publicProcedure.input(z.object({ photoId: z.string() })).output(z.object({
+      status: z.string(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  folder: t.router({
+    getRootFolder: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getFolderChildren: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createFolder: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    moveFolder: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    deleteFolder: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;

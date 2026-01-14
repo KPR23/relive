@@ -1,10 +1,22 @@
-import { Ctx, Input, Mutation, Router, UseMiddlewares } from 'nestjs-trpc';
+import {
+  Ctx,
+  Input,
+  Mutation,
+  Query,
+  Router,
+  UseMiddlewares,
+} from 'nestjs-trpc';
 import { AuthMiddleware } from 'src/middleware';
 import { B2Storage } from 'src/storage/b2.storage';
 import type { AuthContext } from 'src/trpc/context';
-import { PhotoService } from './photo.service';
 import z from 'zod';
-import { type RequestUploadSchema, requestUploadSchema } from './photo.schema';
+import {
+  listPhotosSchema,
+  type ListPhotosSchema,
+  type RequestUploadSchema,
+  requestUploadSchema,
+} from './photo.schema';
+import { PhotoService } from './photo.service';
 
 @UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'photo' })
@@ -13,6 +25,37 @@ export class PhotoRouter {
     private readonly storage: B2Storage,
     private readonly photoService: PhotoService,
   ) {}
+
+  @Query({
+    input: listPhotosSchema,
+    output: z.array(
+      z.object({
+        photoId: z.string(),
+        originalName: z.string(),
+        createdAt: z.date(),
+        takenAt: z.date().nullable(),
+        width: z.number().nullable(),
+        height: z.number().nullable(),
+      }),
+    ),
+  })
+  async listPhotos(@Ctx() ctx: AuthContext, @Input() data: ListPhotosSchema) {
+    return this.photoService.listPhotos(ctx.user.id, data.folderId);
+  }
+
+  @Query({
+    input: z.object({ photoId: z.string().uuid() }),
+    output: z.object({
+      signedUrl: z.string(),
+      expiresAt: z.date(),
+    }),
+  })
+  async getPhotoUrl(
+    @Ctx() ctx: AuthContext,
+    @Input() data: { photoId: string },
+  ) {
+    return this.photoService.getPhotoUrl(ctx.user.id, data.photoId);
+  }
 
   @Mutation({
     input: requestUploadSchema,
@@ -45,5 +88,21 @@ export class PhotoRouter {
       uploadUrl,
       photoId,
     };
+  }
+
+  @Mutation({
+    input: z.object({ photoId: z.string() }),
+    output: z.object({
+      status: z.string(),
+    }),
+  })
+  async confirmUpload(
+    @Ctx() ctx: AuthContext,
+    @Input() data: { photoId: string },
+  ) {
+    return this.photoService.confirmUpload({
+      photoId: data.photoId,
+      ownerId: ctx.user.id,
+    });
   }
 }

@@ -12,9 +12,8 @@ import { TodoModule } from './todo/todo.module';
 import { auth } from './auth';
 import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { TestController } from './test/test.controller';
-import { env } from './env';
+import { env } from './env.server';
 import { PhotoModule } from './photo/photo.module';
-import { PhotoService } from './photo/photo.service';
 import { FolderModule } from './folder/folder.module';
 
 @Module({
@@ -50,7 +49,6 @@ import { FolderModule } from './folder/folder.module';
       provide: APP_GUARD,
       useClass: ArcjetGuard,
     },
-    PhotoService,
   ],
   controllers: [TestController],
 })
