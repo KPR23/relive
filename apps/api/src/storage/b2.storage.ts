@@ -8,6 +8,9 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { env } from 'src/env';
 
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
 export class B2Storage {
   private client: S3Client;
   private bucket: string;
