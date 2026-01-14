@@ -1,11 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { trpc } from '../trpc/client';
 
 export default function Home() {
   const router = useRouter();
-  const mutation = trpc.photo.requestUpload.useMutation();
 
   return (
     <div>
