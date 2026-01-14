@@ -44,13 +44,21 @@ export class B2Storage {
     );
   }
 
-  async getSignedUrl(key: string, expiresIn = 600): Promise<string> {
+  async getSignedUrl(
+    key: string,
+    expiresIn = 600,
+  ): Promise<{ signedUrl: string; expiresAt: Date }> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
     });
 
-    return getSignedUrl(this.client, command, { expiresIn });
+    const signedUrl = await getSignedUrl(this.client, command, { expiresIn });
+
+    return {
+      signedUrl,
+      expiresAt: new Date(Date.now() + expiresIn * 1000),
+    };
   }
 
   // TODO: Implement thumbnail generation later
