@@ -4,7 +4,8 @@ const nextConfig = {
 	images: {
 		remotePatterns: [
 			{
-				hostname: process.env.STORAGE_HOSTNAME,
+				hostname: process.env.STORAGE_HOSTNAME || "localhost",
+				protocol: "https",
 			},
 		],
 	},

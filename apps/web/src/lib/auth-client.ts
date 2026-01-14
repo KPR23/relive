@@ -1,7 +1,8 @@
 import { createAuthClient } from "better-auth/react";
+import { env } from "../env.client";
 
 export const authClient = createAuthClient({
-	baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+	baseURL: env.NEXT_PUBLIC_API_URL,
 	fetchOptions: {
 		credentials: "include",
 	},
@@ -10,7 +11,7 @@ export const authClient = createAuthClient({
 export const gitHubSignIn = async () => {
 	await authClient.signIn.social({
 		provider: "github",
-		callbackURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/",
+		callbackURL: env.NEXT_PUBLIC_APP_URL,
 	});
 };
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalEnv": ["TRPC_URL", "NEXT_PUBLIC_TRPC_URL", "API_URL"],
+  "globalEnv": ["TRPC_URL", "NEXT_PUBLIC_TRPC_URL", "API_URL", "STORAGE_HOSTNAME"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

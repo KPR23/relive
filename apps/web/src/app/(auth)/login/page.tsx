@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn, gitHubSignIn, useSession } from "@/src/lib/auth-client";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
 	const router = useRouter();
@@ -12,6 +12,12 @@ export default function LoginPage() {
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
+
+	useEffect(() => {
+		if (session.data) {
+			router.push("/home");
+		}
+	}, [session.data, router]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -36,11 +42,8 @@ export default function LoginPage() {
 		}
 	};
 
-	if (session.data) {
-		return redirect("/home");
-	}
 	return (
-		<div className="">
+		<div className="flex min-h-screen items-center justify-center from-slate-900 via-purple-900 to-slate-900">
 			<div className="w-full max-w-md p-8 space-y-6 bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20">
 				<div className="text-center">
 					<h1 className="text-3xl font-bold text-white">Welcome Back</h1>
@@ -90,7 +93,11 @@ export default function LoginPage() {
 						/>
 					</div>
 
-					<button type="submit" disabled={loading} className="">
+					<button
+						type="submit"
+						disabled={loading}
+						className="w-full py-3 px-4 from-purple-600 to-pink-600 text-white font-semibold rounded-lg shadow-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+					>
 						{loading ? "Signing in..." : "Sign In"}
 					</button>
 				</form>

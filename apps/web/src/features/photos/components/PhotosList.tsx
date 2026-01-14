@@ -7,6 +7,7 @@ export const PhotosList = ({ folderId }: { folderId: string }) => {
 
 	if (isLoading) return <p>Loading…</p>;
 	if (error) return <p>{error.message}</p>;
+	if (!data) return <p>No photos found</p>;
 
 	return (
 		<div>

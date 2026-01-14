@@ -27,7 +27,7 @@ const envSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().optional(),
 
   // Frontend
-  FRONTEND_URL: z.string().url().optional().default('http://localhost:3000'),
+  FRONTEND_URL: z.string().optional().default('http://localhost:3000'),
 
   // Server
   PORT: z.coerce.number().optional().default(8000),

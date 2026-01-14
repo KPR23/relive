@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { authClient } from "@/src/lib/auth-client";
+import { authClient } from "./lib/auth-client";
 
 export async function proxy(request: NextRequest) {
-	const session = await authClient.getSession({
-		fetchOptions: {
-			headers: await headers(),
-		},
-	});
+	let session = null;
+
+	try {
+		const response = await authClient.getSession({
+			fetchOptions: {
+				headers: await headers(),
+			},
+		});
+		session = response;
+	} catch (error) {
+		console.warn(
+			"⚠️ Backend connection failed in proxy:",
+			error instanceof Error ? error.message : error
+		);
+	}
 
 	if (!session) {
 		return NextResponse.redirect(new URL("/login", request.url));
@@ -17,5 +27,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-	matcher: ["/home, /f/:folderId"],
+	matcher: ["/home", "/f/:folderId"],
 };

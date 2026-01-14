@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { usePhotoUrl } from "../hooks";
+import { Photo } from "../../types";
 
-export function PhotoItem({ photo }: { photo: any }) {
+export function PhotoItem({ photo }: { photo: Photo }) {
 	const { data, isLoading } = usePhotoUrl(photo.photoId);
 
 	if (isLoading) return <div>Loading image…</div>;
