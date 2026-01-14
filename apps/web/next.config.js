@@ -1,22 +1,26 @@
 /* global process */
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	images: {
-		remotePatterns: [
-			{
-				hostname: process.env.STORAGE_HOSTNAME || "localhost",
-				protocol: "https",
-			},
-		],
-	},
-	rewrites: () => {
-		return [
-			{
-				source: "/api/:path*",
-				destination: `${process.env.API_URL || "http://localhost:8000"}/api/:path*`,
-			},
-		];
-	},
+  images: {
+    remotePatterns: [
+      {
+        hostname: process.env.STORAGE_HOSTNAME || 'localhost',
+        protocol: 'https',
+      },
+      {
+        hostname: process.env.STORAGE_HOSTNAME_2 || 'localhost',
+        protocol: 'https',
+      },
+    ],
+  },
+  rewrites: () => {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.API_URL || 'http://localhost:8000'}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
