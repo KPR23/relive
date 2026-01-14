@@ -1,13 +1,5 @@
 'use client';
 
-import { redirect } from 'next/navigation';
-
-export default function Home() {
-  return (
-    <div>
-      <h1>Relive</h1>
-'use client';
-
 import { useRouter } from 'next/navigation';
 import { trpc } from '../trpc/client';
 
@@ -24,9 +16,6 @@ export default function Home() {
       >
         Home folder
       </button>
-    </div>
-  );
-}
     </div>
   );
 }
