@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, gitHubSignIn } from "@/src/lib/auth-client";
+import { signIn, gitHubSignIn, useSession } from "@/src/lib/auth-client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 export default function LoginPage() {
 	const router = useRouter();
+	const session = useSession();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
@@ -35,8 +36,11 @@ export default function LoginPage() {
 		}
 	};
 
+	if (session.data) {
+		return redirect("/home");
+	}
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+		<div className="">
 			<div className="w-full max-w-md p-8 space-y-6 bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20">
 				<div className="text-center">
 					<h1 className="text-3xl font-bold text-white">Welcome Back</h1>
@@ -86,11 +90,7 @@ export default function LoginPage() {
 						/>
 					</div>
 
-					<button
-						type="submit"
-						disabled={loading}
-						className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg shadow-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-					>
+					<button type="submit" disabled={loading} className="">
 						{loading ? "Signing in..." : "Sign In"}
 					</button>
 				</form>

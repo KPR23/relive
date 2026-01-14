@@ -51,14 +51,14 @@ export class FolderService {
 
   async ensureRootFolder(userId: string) {
     return db.transaction(async (tx) => {
-      const root = await tx
+      const [root] = await tx
         .select()
         .from(folder)
         .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)));
 
       if (root) return root;
 
-      const created = await tx
+      const [created] = await tx
         .insert(folder)
         .values({
           ownerId: userId,

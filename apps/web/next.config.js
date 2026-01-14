@@ -1,6 +1,13 @@
 /* global process */
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	images: {
+		remotePatterns: [
+			{
+				hostname: process.env.STORAGE_HOSTNAME,
+			},
+		],
+	},
 	rewrites: () => {
 		return [
 			{

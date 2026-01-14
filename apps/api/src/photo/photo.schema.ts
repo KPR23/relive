@@ -25,7 +25,12 @@ export const confirmUploadPhotoSchema = z.object({
   ownerId: z.string(),
 });
 
+export const listPhotosSchema = z.object({
+  folderId: z.uuid(),
+});
+
 export type Photo = z.infer<typeof photoSelectSchema>;
 export type RequestUploadSchema = z.infer<typeof requestUploadSchema>;
 export type CreatePendingPhoto = z.infer<typeof createPendingPhotoSchema>;
 export type ConfirmUploadPhoto = z.infer<typeof confirmUploadPhotoSchema>;
+export type ListPhotosSchema = z.infer<typeof listPhotosSchema>;
