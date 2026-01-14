@@ -37,11 +37,8 @@ export class PhotoRouter {
       ownerId: _ctx.user.id,
       folderId: data.folderId,
       filePath: key,
-      thumbPath: '',
       originalName: data.originalName,
       mimeType: data.mimeType,
-      size: '0',
-      status: 'pending',
     });
 
     return {

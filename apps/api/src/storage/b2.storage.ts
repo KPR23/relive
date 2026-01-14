@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -42,14 +43,20 @@ export class B2Storage {
     );
   }
 
-  // async getSignedUrl(key: string, expiresIn = 3600): Promise<string> {
-  //   const command = new GetObjectCommand({
-  //     Bucket: this.bucket,
-  //     Key: key,
-  //   });
+  // TODO: Implement thumbnail generation later
+  async getFileInfo(key: string) {
+    const result = await this.client.send(
+      new HeadObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      }),
+    );
 
-  //   return getSignedUrl(this.client, command, { expiresIn });
-  // }
+    return {
+      size: result.ContentLength || 0,
+      thumbPath: null,
+    };
+  }
 
   async getUploadUrl(key: string, contentType: string) {
     const command = new PutObjectCommand({

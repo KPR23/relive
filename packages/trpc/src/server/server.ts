@@ -40,7 +40,7 @@ const appRouter = t.router({
   }),
   photo: t.router({
     requestUpload: publicProcedure.input(z.object({
-      folderId: z.string().uuid(),
+      folderId: z.uuid(),
       mimeType: z.string(),
       originalName: z.string(),
     })).output(z.object({

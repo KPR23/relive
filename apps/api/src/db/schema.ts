@@ -8,12 +8,6 @@ import {
   index,
 } from 'drizzle-orm/pg-core';
 
-export const photoStatusEnum = pgEnum('photo_status', [
-  'PENDING',
-  'READY',
-  'FAILED',
-]);
-
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -131,6 +125,21 @@ export const folder = pgTable(
   (table) => [index('folder_owner_idx').on(table.ownerId)],
 );
 
+export const PhotoStatusEnum = {
+  PENDING: 'PENDING',
+  READY: 'READY',
+  FAILED: 'FAILED',
+} as const;
+
+export type PhotoStatus =
+  (typeof PhotoStatusEnum)[keyof typeof PhotoStatusEnum];
+
+export const photoStatus = pgEnum('photo_status', [
+  PhotoStatusEnum.PENDING,
+  PhotoStatusEnum.READY,
+  PhotoStatusEnum.FAILED,
+]);
+
 export const photo = pgTable(
   'photo',
   {
@@ -152,7 +161,7 @@ export const photo = pgTable(
     width: text('width'),
     height: text('height'),
     exif: text('exif'),
-    status: photoStatusEnum().notNull(),
+    status: photoStatus('status').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
