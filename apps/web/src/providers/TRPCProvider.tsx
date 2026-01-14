@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { PropsWithChildren } from "react";
-import { queryClient, trpc, trpcClient } from "../trpc/client";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PropsWithChildren } from 'react';
+import { queryClient, trpc, trpcClient } from '../trpc/client';
+import { QueryClientProvider } from '@tanstack/react-query';
 
 export default function TRPCProvider({ children }: PropsWithChildren) {
-	return (
-		<trpc.Provider client={trpcClient} queryClient={queryClient}>
-			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-		</trpc.Provider>
-	);
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </trpc.Provider>
+  );
 }

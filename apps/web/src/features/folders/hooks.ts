@@ -1,5 +1,5 @@
-import { trpc } from "@/src/trpc/client";
+import { trpc } from '@/src/trpc/client';
 
 export function useRootFolder() {
-	return trpc.folder.getRootFolder.useQuery();
+  return trpc.folder.getRootFolder.useQuery();
 }

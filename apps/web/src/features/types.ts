@@ -1,3 +1,3 @@
-import { RouterOutputs } from "../trpc/client";
+import { RouterOutputs } from '../trpc/client';
 
-export type Photo = RouterOutputs["photo"]["listPhotos"][number];
+export type Photo = RouterOutputs['photo']['listPhotos'][number];
