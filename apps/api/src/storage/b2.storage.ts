@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -41,6 +42,15 @@ export class B2Storage {
         Key: key,
       }),
     );
+  }
+
+  async getSignedUrl(key: string, expiresIn = 600): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    return getSignedUrl(this.client, command, { expiresIn });
   }
 
   // TODO: Implement thumbnail generation later
