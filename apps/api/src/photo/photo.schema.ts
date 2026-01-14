@@ -21,7 +21,7 @@ export const createPendingPhotoSchema = z.object({
 });
 
 export const confirmUploadPhotoSchema = z.object({
-  id: z.string(),
+  photoId: z.string(),
   ownerId: z.string(),
 });
 

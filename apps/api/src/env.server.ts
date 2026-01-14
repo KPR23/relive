@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   // Database
-  DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
+  DATABASE_URL: z.url('DATABASE_URL must be a valid URL'),
 
   // Arcjet
   ARCJET_KEY: z
@@ -11,7 +11,7 @@ const envSchema = z.object({
     .startsWith('ajkey_', 'ARCJET_KEY must start with "ajkey_"'),
 
   // Backblaze B2
-  BACKBLAZE_ENDPOINT: z.string().url('BACKBLAZE_ENDPOINT must be a valid URL'),
+  BACKBLAZE_ENDPOINT: z.url('BACKBLAZE_ENDPOINT must be a valid URL'),
   BACKBLAZE_REGION: z.string().min(1, 'BACKBLAZE_REGION is required'),
   BACKBLAZE_BUCKET: z.string().min(1, 'BACKBLAZE_BUCKET is required'),
   BACKBLAZE_KEY_ID: z.string().min(1, 'BACKBLAZE_KEY_ID is required'),
@@ -27,7 +27,10 @@ const envSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().optional(),
 
   // Frontend
-  FRONTEND_URL: z.string().optional().default('http://localhost:3000'),
+  FRONTEND_URL: z
+    .url('FRONTEND_URL must be a valid URL')
+    .optional()
+    .default('http://localhost:3000'),
 
   // Server
   PORT: z.coerce.number().optional().default(8000),

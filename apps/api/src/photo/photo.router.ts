@@ -91,14 +91,17 @@ export class PhotoRouter {
   }
 
   @Mutation({
-    input: z.object({ id: z.string() }),
+    input: z.object({ photoId: z.string() }),
     output: z.object({
       status: z.string(),
     }),
   })
-  async confirmUpload(@Ctx() ctx: AuthContext, @Input() data: { id: string }) {
+  async confirmUpload(
+    @Ctx() ctx: AuthContext,
+    @Input() data: { photoId: string },
+  ) {
     return this.photoService.confirmUpload({
-      id: data.id,
+      photoId: data.photoId,
       ownerId: ctx.user.id,
     });
   }

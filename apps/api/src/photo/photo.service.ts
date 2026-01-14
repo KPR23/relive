@@ -42,7 +42,7 @@ export class PhotoService {
       const [photoRecord] = await tx
         .select()
         .from(photo)
-        .where(and(eq(photo.id, data.id), eq(photo.ownerId, data.ownerId)))
+        .where(and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)))
         .limit(1);
 
       if (!photoRecord) {
@@ -64,7 +64,9 @@ export class PhotoService {
             size: size.toString(),
             thumbPath,
           })
-          .where(and(eq(photo.id, data.id), eq(photo.ownerId, data.ownerId)));
+          .where(
+            and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)),
+          );
 
         return {
           status: PhotoStatusEnum.READY,
@@ -73,7 +75,9 @@ export class PhotoService {
         await tx
           .update(photo)
           .set({ status: PhotoStatusEnum.FAILED })
-          .where(and(eq(photo.id, data.id), eq(photo.ownerId, data.ownerId)));
+          .where(
+            and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)),
+          );
 
         return {
           status: PhotoStatusEnum.FAILED,

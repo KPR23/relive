@@ -2,15 +2,15 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   STORAGE_HOSTNAME: z.string().min(1).optional().default('localhost'),
-  API_URL: z.string().url().optional().default('http://localhost:8000'),
-  TRPC_URL: z.string().optional().default('http://localhost:8000/api/trpc'),
+  API_URL: z.url().optional().default('http://localhost:8000'),
+  TRPC_URL: z.url().optional().default('http://localhost:8000/api/trpc'),
 
   NEXT_PUBLIC_TRPC_URL: z
     .string()
     .optional()
     .default('http://localhost:8000/api/trpc'),
-  NEXT_PUBLIC_API_URL: z.string().optional().default('http://localhost:8000'),
-  NEXT_PUBLIC_APP_URL: z.string().optional().default('http://localhost:3000'),
+  NEXT_PUBLIC_API_URL: z.url().optional().default('http://localhost:8000'),
+  NEXT_PUBLIC_APP_URL: z.url().optional().default('http://localhost:3000'),
 });
 
 const processEnv = {
