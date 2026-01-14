@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from 'src/db';
 import { photo, PhotoStatusEnum } from 'src/db/schema';
 import { FolderService } from 'src/folder/folder.service';
@@ -81,4 +81,51 @@ export class PhotoService {
       }
     });
   }
+
+  async listPhotos(userId: string, folderId: string) {
+    await this.folderService.getOwnedFolderOrThrow(userId, folderId);
+
+    const photos = await db
+      .select()
+      .from(photo)
+      .where(
+        and(
+          eq(photo.folderId, folderId),
+          eq(photo.ownerId, userId),
+          eq(photo.status, PhotoStatusEnum.READY),
+        ),
+      )
+      .orderBy(desc(photo.createdAt));
+
+    return photos.map((photo) => ({
+      photoId: photo.id,
+      originalName: photo.originalName,
+      createdAt: photo.createdAt,
+      takenAt: photo.takenAt,
+      width: photo.width,
+      height: photo.height,
+    }));
+  }
+
+  async getPhotoUrl(userId: string, photoId: string) {
+    const [photoRecord] = await db
+      .select()
+      .from(photo)
+      .where(
+        and(
+          eq(photo.id, photoId),
+          eq(photo.ownerId, userId),
+          eq(photo.status, PhotoStatusEnum.READY),
+        ),
+      )
+      .limit(1);
+
+    if (!photoRecord) {
+      throw new NotFoundException('Photo not found');
+    }
+
+    return this.storage.getSignedUrl(photoRecord.filePath);
+  }
+
+  // async getThumbnailUrl(photoId: string) {}
 }
