@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   STORAGE_HOSTNAME: z.string().min(1).optional().default('localhost'),
+  STORAGE_HOSTNAME_2: z.string().min(1).optional().default('localhost'),
   API_URL: z.url().optional().default('http://localhost:8000'),
   TRPC_URL: z.url().optional().default('http://localhost:8000/api/trpc'),
 
