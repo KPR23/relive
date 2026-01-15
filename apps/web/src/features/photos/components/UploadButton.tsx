@@ -6,14 +6,18 @@ import { startUpload } from '../upload';
 export function UploadButton({ folderId }: { folderId: string }) {
   const { requestUpload, confirmUpload, utils } = usePhotoUploadActions();
 
-  const onFileSelected = async (file: File) => {
-    await startUpload({
-      file,
-      folderId,
-      requestUpload,
-      confirmUpload,
-      utils,
-    });
+  const onPhotoSelected = async (photo: File) => {
+    try {
+      await startUpload({
+        photo,
+        folderId,
+        requestUpload,
+        confirmUpload,
+        utils,
+      });
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
   };
 
   return (
@@ -21,9 +25,9 @@ export function UploadButton({ folderId }: { folderId: string }) {
       type="file"
       className="m-4 border border-dashed border-gray-500 p-2"
       onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-          onFileSelected(file);
+        const photo = e.target.files?.[0];
+        if (photo) {
+          onPhotoSelected(photo);
         }
       }}
     />

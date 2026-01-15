@@ -1,38 +1,46 @@
-import { trpc } from '@/src/trpc/client';
+'use client';
 
-type UploadDeps = {
-  file: File;
+import { PhotoFile, RequestUploadInput } from '../types';
+import { PhotoUploadActions } from './hooks';
+
+type UploadDeps = PhotoUploadActions & {
+  photo: File;
   folderId: string;
-  requestUpload: ReturnType<typeof trpc.photo.requestUpload.useMutation>;
-  confirmUpload: ReturnType<typeof trpc.photo.confirmUpload.useMutation>;
-  utils: ReturnType<typeof trpc.useUtils>;
   onProgress?: (percent: number) => void;
 };
 
 export async function startUpload({
-  file,
+  photo,
   folderId,
   requestUpload,
   confirmUpload,
   utils,
 }: UploadDeps) {
-  const { photoId, uploadUrl } = await requestUpload.mutateAsync({
+  const input: RequestUploadInput = {
     folderId,
-    mimeType: file.type,
-    originalName: file.name,
-  });
+    mimeType: photo.type,
+    originalName: photo.name,
+  };
 
-  const response = await fetch(uploadUrl, {
+  const { photoId, uploadUrl } = await requestUpload.mutateAsync(input);
+
+  const uploadInfo: PhotoFile = {
+    ...input,
+    photoId,
+    uploadUrl,
+  };
+
+  const response = await fetch(uploadInfo.uploadUrl, {
     method: 'PUT',
-    headers: { 'Content-Type': file.type },
-    body: file,
+    headers: { 'Content-Type': uploadInfo.mimeType },
+    body: photo,
   });
 
   if (!response.ok) {
     throw new Error('Failed to upload file to storage');
   }
 
-  await confirmUpload.mutateAsync({ photoId: photoId });
+  await confirmUpload.mutateAsync({ photoId: uploadInfo.photoId });
 
   await utils.photo.listPhotos.invalidate({ folderId });
 }

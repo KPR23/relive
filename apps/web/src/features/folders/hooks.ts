@@ -1,3 +1,5 @@
+'use client';
+
 import { trpc } from '@/src/trpc/client';
 
 export function useRootFolder() {
