@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import { usePhotoUrl } from '../hooks';
 import { Photo } from '../../types';
