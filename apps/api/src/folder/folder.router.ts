@@ -47,6 +47,20 @@ export class FolderRouter {
     return this.folderService.getFolderChildren(_ctx.user.id, data.parentId);
   }
 
+  @Query({
+    input: z.object({ folderId: z.string() }),
+    output: z.array(folderSchema),
+  })
+  async getAllParentsForFolder(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: { folderId: string },
+  ) {
+    return this.folderService.getAllParentsForFolder(
+      _ctx.user.id,
+      data.folderId,
+    );
+  }
+
   @Mutation({
     input: createFolderSchema,
     output: folderSchema,

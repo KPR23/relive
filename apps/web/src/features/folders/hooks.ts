@@ -16,6 +16,12 @@ export function useFoldersByParentId(parentId: string) {
   });
 }
 
+export function useAllParentsForFolder(folderId: string) {
+  return trpc.folder.getAllParentsForFolder.useQuery({
+    folderId,
+  });
+}
+
 export function useCreateFolder() {
   const utils = trpc.useUtils();
   return trpc.folder.createFolder.useMutation({

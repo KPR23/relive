@@ -54,6 +54,33 @@ export class FolderService {
     return parentFolder;
   }
 
+  async getAllParentsForFolder(userId: string, folderId: string, tx?: Tx) {
+    const client = tx ?? db;
+    const [folderRecord] = await client
+      .select()
+      .from(folder)
+      .where(and(eq(folder.id, folderId), eq(folder.ownerId, userId)));
+
+    if (!folderRecord) throw new NotFoundException('Folder not found');
+    if (folderRecord.ownerId !== userId) {
+      throw new ForbiddenException('Folder not owned by user');
+    }
+
+    const parents: Folder[] = [];
+    let current = folderRecord;
+    while (current.parentId) {
+      const parentFolder = await this.getOwnedFolderOrThrow(
+        userId,
+        current.parentId,
+        tx,
+      );
+      parents.unshift(parentFolder);
+      current = parentFolder;
+    }
+
+    return parents;
+  }
+
   async ensureRootFolder(userId: string) {
     return db.transaction(async (tx) => {
       const [root] = await tx

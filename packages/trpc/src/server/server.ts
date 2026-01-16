@@ -116,6 +116,22 @@ const appRouter = t.router({
         z.date(),
       ),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getAllParentsForFolder: publicProcedure.input(z.object({ folderId: z.string() })).output(z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createFolder: publicProcedure.input(z.object({
       name: z.string(),
       description: z.string().optional().nullable(),
