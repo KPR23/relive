@@ -119,8 +119,7 @@ const appRouter = t.router({
     createFolder: publicProcedure.input(z.object({
       name: z.string(),
       description: z.string().optional().nullable(),
-      parentId: z.string().optional().nullable(),
-      isRoot: z.boolean().optional(),
+      parentId: z.string(),
     })).output(z.object({
       id: z.string(),
       name: z.string(),

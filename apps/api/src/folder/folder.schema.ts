@@ -28,8 +28,7 @@ export const folderSchema = z.object({
 export const createFolderSchema = z.object({
   name: z.string(),
   description: z.string().optional().nullable(),
-  parentId: z.string().optional().nullable(),
-  isRoot: z.boolean().optional(),
+  parentId: z.string(),
 });
 
 export type FolderSchema = z.infer<typeof folderSchema>;

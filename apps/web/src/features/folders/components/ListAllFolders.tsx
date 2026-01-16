@@ -3,6 +3,7 @@
 import { Folder } from '@/src/features/types';
 import RemoveFolderButton from './RemoveFolderButton';
 import { useFoldersByParentId } from '../hooks';
+import Link from 'next/link';
 
 export function ListAllFolders({ parentId }: { parentId: string }) {
   const { data: folders } = useFoldersByParentId(parentId);
@@ -11,7 +12,7 @@ export function ListAllFolders({ parentId }: { parentId: string }) {
     <div>
       {folders?.map((folder: Folder) => (
         <div className="flex items-center" key={folder.id}>
-          <a href={`/folder/${folder.id}`}>{folder.name}</a>
+          <Link href={`/folder/${folder.id}`}>{folder.name}</Link>
           <RemoveFolderButton folderId={folder.id} />
         </div>
       ))}

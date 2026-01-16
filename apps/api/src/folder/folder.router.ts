@@ -8,7 +8,7 @@ import {
 } from 'nestjs-trpc';
 import { AuthMiddleware } from 'src/middleware';
 import { type AuthContext } from 'src/trpc/context';
-import z from 'zod';
+import { z } from 'zod';
 import {
   type CreateFolderSchema,
   createFolderSchema,
