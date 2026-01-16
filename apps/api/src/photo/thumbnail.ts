@@ -1,0 +1,53 @@
+import sharp from 'sharp';
+import { B2Storage } from 'src/storage/b2.storage';
+import { PassThrough } from 'stream';
+import { pipeline } from 'stream/promises';
+
+function createThumbnailStream() {
+  return sharp()
+    .resize({
+      width: 300,
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 80 });
+}
+
+export async function generateAndUploadThumbnail({
+  storage,
+  originalKey,
+  thumbKey,
+}: {
+  storage: B2Storage;
+  originalKey: string;
+  thumbKey: string;
+}): Promise<{ width: number; height: number }> {
+  const inputStream = await storage.downloadStream(originalKey);
+
+  const transformer = sharp()
+    .resize({
+      width: 300,
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 80 });
+
+  const outputStream = new PassThrough();
+
+  const uploadPromise = storage.uploadStream(
+    thumbKey,
+    outputStream,
+    'image/jpeg',
+  );
+
+  const metadataPromise = transformer.metadata();
+
+  await pipeline(inputStream, transformer, outputStream);
+
+  await uploadPromise;
+
+  const metadata = await metadataPromise;
+
+  return {
+    width: metadata.width ?? 0,
+    height: metadata.height ?? 0,
+  };
+}

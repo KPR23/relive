@@ -26,6 +26,19 @@ export function usePhotoUrl(photoId: string) {
   );
 }
 
+export function useThumbnailUrl(photoId: string) {
+  return trpc.photo.getThumbnailUrl.useQuery(
+    { photoId },
+    {
+      staleTime: 60_000,
+    },
+  );
+}
+
+export function useFolderThumbnailUrls(folderId: string) {
+  return trpc.photo.getFolderThumbnailUrls.useQuery({ folderId });
+}
+
 export function usePhotoUploadActions(): PhotoUploadActions {
   const requestUpload = trpc.photo.requestUpload.useMutation();
   const confirmUpload = trpc.photo.confirmUpload.useMutation();

@@ -18,6 +18,20 @@ const appRouter = t.router({
         height: z.number().nullable(),
       }),
     )).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getThumbnailUrl: publicProcedure.input(z.object({ photoId: z.string().uuid() })).output(z.object({
+      signedUrl: z.string(),
+      expiresAt: z.date(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getFolderThumbnailUrls: publicProcedure.input(z.object({ folderId: z.string().uuid() })).output(z.array(
+      z.object({
+        photoId: z.string(),
+        originalName: z.string(),
+        createdAt: z.date(),
+        takenAt: z.date().nullable(),
+        width: z.number().nullable(),
+        height: z.number().nullable(),
+      }),
+    )).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getPhotoUrl: publicProcedure.input(z.object({ photoId: z.string().uuid() })).output(z.object({
       signedUrl: z.string(),
       expiresAt: z.date(),

@@ -36,7 +36,12 @@ export function UploadButton({ folderId }: { folderId: string }) {
 
   return (
     <div>
-      <input type="file" disabled={uploading} onChange={onFileChange} />
+      <input
+        type="file"
+        className="m-4 cursor-pointer rounded-lg bg-amber-600 p-4"
+        disabled={uploading}
+        onChange={onFileChange}
+      />
 
       {uploading && (
         <>

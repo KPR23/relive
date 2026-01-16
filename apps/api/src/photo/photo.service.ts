@@ -9,7 +9,7 @@ import { photo, PhotoStatusEnum } from 'src/db/schema';
 import { FolderService } from 'src/folder/folder.service';
 import { B2Storage } from 'src/storage/b2.storage';
 import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema';
-
+import { generateAndUploadThumbnail } from './thumbnail';
 @Injectable()
 export class PhotoService {
   constructor(
@@ -53,16 +53,25 @@ export class PhotoService {
         throw new ConflictException('Photo not pending');
       }
 
+      const thumbPath = `photos/${photoRecord.ownerId}/${photoRecord.id}_thumb.jpg`;
+
       try {
-        const { size, thumbPath } = await this.storage.getFileInfo(
-          photoRecord.filePath,
-        );
+        const { size } = await this.storage.getFileInfo(photoRecord.filePath);
+
+        const { width, height } = await generateAndUploadThumbnail({
+          storage: this.storage,
+          originalKey: photoRecord.filePath,
+          thumbKey: thumbPath,
+        });
+
         await tx
           .update(photo)
           .set({
             status: PhotoStatusEnum.READY,
-            size: size.toString(),
+            size,
             thumbPath,
+            width,
+            height,
           })
           .where(
             and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)),
@@ -71,10 +80,12 @@ export class PhotoService {
         return {
           status: PhotoStatusEnum.READY,
         };
-      } catch {
+      } catch (err) {
         await tx
           .update(photo)
-          .set({ status: PhotoStatusEnum.FAILED })
+          .set({
+            status: PhotoStatusEnum.FAILED,
+          })
           .where(
             and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)),
           );
@@ -96,6 +107,61 @@ export class PhotoService {
         and(
           eq(photo.folderId, folderId),
           eq(photo.ownerId, userId),
+          eq(photo.status, PhotoStatusEnum.READY),
+        ),
+      )
+      .orderBy(desc(photo.createdAt));
+
+    return photos.map((photo) => ({
+      photoId: photo.id,
+      originalName: photo.originalName,
+      createdAt: photo.createdAt,
+      takenAt: photo.takenAt,
+      width: photo.width,
+      height: photo.height,
+    }));
+  }
+
+  async getThumbnailUrl(userId: string, photoId: string) {
+    const [photoRecord] = await db
+      .select()
+      .from(photo)
+      .where(
+        and(
+          eq(photo.id, photoId),
+          eq(photo.ownerId, userId),
+          eq(photo.status, PhotoStatusEnum.READY),
+        ),
+      )
+      .limit(1);
+
+    if (!photoRecord) {
+      throw new NotFoundException('Photo not found');
+    }
+
+    if (!photoRecord.thumbPath) {
+      throw new NotFoundException('Thumbnail not found');
+    }
+
+    const { signedUrl, expiresAt } = await this.storage.getSignedUrl(
+      photoRecord.thumbPath,
+      60 * 60 * 24 * 7,
+    );
+
+    return {
+      signedUrl,
+      expiresAt,
+    };
+  }
+
+  async getFolderThumbnailUrls(userId: string, folderId: string) {
+    const photos = await db
+      .select()
+      .from(photo)
+      .where(
+        and(
+          eq(photo.ownerId, userId),
+          eq(photo.folderId, folderId),
           eq(photo.status, PhotoStatusEnum.READY),
         ),
       )

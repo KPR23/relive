@@ -1,9 +1,9 @@
 'use client';
-import { usePhotos } from '../hooks';
+import { useFolderThumbnailUrls } from '../hooks';
 import { PhotoItem } from './PhotoItem';
 
 export const PhotosList = ({ folderId }: { folderId: string }) => {
-  const { data, isLoading, error } = usePhotos(folderId);
+  const { data, isLoading, error } = useFolderThumbnailUrls(folderId);
 
   if (isLoading) return <p>Loading…</p>;
   if (error) return <p>{error.message}</p>;
