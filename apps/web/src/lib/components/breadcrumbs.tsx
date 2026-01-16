@@ -7,7 +7,7 @@ export function Breadcrumbs({ folderId }: { folderId: string }) {
 
   return (
     <div className="flex">
-      {folder?.map((folder, index) => (
+      {folder?.map((folder) => (
         <div key={folder.id}>
           {'/'}
           <Link href={`/folder/${folder.id}`}>{folder.name}</Link>

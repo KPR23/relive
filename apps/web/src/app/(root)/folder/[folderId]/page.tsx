@@ -1,5 +1,7 @@
 import CreateFolderButton from '@/src/features/folders/components/CreateFolderButton';
 import { ListAllFolders } from '@/src/features/folders/components/ListAllFolders';
+import { PhotosList } from '@/src/features/photos/components/PhotosList';
+import { UploadButton } from '@/src/features/photos/components/UploadButton';
 import { Breadcrumbs } from '@/src/lib/components/breadcrumbs';
 
 export default async function FolderPage(props: {
@@ -13,6 +15,8 @@ export default async function FolderPage(props: {
       <Breadcrumbs folderId={folderId} />
       <CreateFolderButton parentId={folderId} />
       <ListAllFolders parentId={folderId} />
+      <UploadButton folderId={folderId} />
+      <PhotosList folderId={folderId} />
     </div>
   );
 }
