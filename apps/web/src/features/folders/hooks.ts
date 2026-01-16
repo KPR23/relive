@@ -10,6 +10,12 @@ export function useFolders() {
   return trpc.folder.getAllFolders.useQuery();
 }
 
+export function useFoldersByParentId(parentId: string) {
+  return trpc.folder.getFolderChildren.useQuery({
+    parentId,
+  });
+}
+
 export function useCreateFolder() {
   const utils = trpc.useUtils();
   return trpc.folder.createFolder.useMutation({

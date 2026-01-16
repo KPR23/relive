@@ -52,7 +52,7 @@ export default function Root() {
       </button>
       {folders?.map((folder: Folder) => (
         <div className="flex items-center" key={folder.id}>
-          <h2>{folder.name}</h2>
+          <a href={`/folder/${folder.id}`}>{folder.name}</a>
           <RemoveFolderButton folderId={folder.id} />
         </div>
       ))}
