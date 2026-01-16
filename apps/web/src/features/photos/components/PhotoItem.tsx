@@ -15,8 +15,8 @@ export function PhotoItem({ photo }: { photo: Photo }) {
     <Image
       src={data.signedUrl}
       alt={photo.originalName}
-      width={100}
-      height={100}
+      width={300}
+      height={300}
     />
   );
 }

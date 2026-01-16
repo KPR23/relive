@@ -7,25 +7,39 @@ import {
   UseMiddlewares,
 } from 'nestjs-trpc';
 import { AuthMiddleware } from 'src/middleware';
-import { B2Storage } from 'src/storage/b2.storage';
-import { FolderService } from './folder.service';
 import { type AuthContext } from 'src/trpc/context';
-import { type CreateFolderSchema } from './folder.schema';
+import { z } from 'zod';
+import {
+  type CreateFolderSchema,
+  createFolderSchema,
+  type Folder,
+  folderSchema,
+} from './folder.schema';
+import { FolderService } from './folder.service';
 
 @UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'folder' })
 export class FolderRouter {
-  constructor(
-    private readonly storage: B2Storage,
-    private readonly folderService: FolderService,
-  ) {}
+  constructor(private readonly folderService: FolderService) {}
 
-  @Query()
+  @Query({
+    output: folderSchema,
+  })
   async getRootFolder(@Ctx() _ctx: AuthContext) {
     return this.folderService.ensureRootFolder(_ctx.user.id);
   }
 
-  @Query()
+  @Query({
+    output: z.array(folderSchema),
+  })
+  async getAllFolders(@Ctx() _ctx: AuthContext) {
+    return this.folderService.getAllFolders(_ctx.user.id);
+  }
+
+  @Query({
+    input: z.object({ parentId: z.string() }),
+    output: z.array(folderSchema),
+  })
   async getFolderChildren(
     @Ctx() _ctx: AuthContext,
     @Input() data: { parentId: string },
@@ -33,15 +47,34 @@ export class FolderRouter {
     return this.folderService.getFolderChildren(_ctx.user.id, data.parentId);
   }
 
-  @Mutation()
+  @Query({
+    input: z.object({ folderId: z.string() }),
+    output: z.array(folderSchema),
+  })
+  async getAllParentsForFolder(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: { folderId: string },
+  ) {
+    return this.folderService.getAllParentsForFolder(
+      _ctx.user.id,
+      data.folderId,
+    );
+  }
+
+  @Mutation({
+    input: createFolderSchema,
+    output: folderSchema,
+  })
   async createFolder(
     @Ctx() _ctx: AuthContext,
     @Input() data: CreateFolderSchema,
-  ) {
-    if (data.id) return this.folderService.createFolder(_ctx.user.id, data);
+  ): Promise<Folder> {
+    return this.folderService.createFolder(_ctx.user.id, data);
   }
 
-  @Mutation()
+  @Mutation({
+    input: z.object({ movingFolderId: z.string(), targetParentId: z.string() }),
+  })
   async moveFolder(
     @Ctx() _ctx: AuthContext,
     @Input() data: { movingFolderId: string; targetParentId: string },
@@ -53,7 +86,9 @@ export class FolderRouter {
     );
   }
 
-  @Mutation()
+  @Mutation({
+    input: z.object({ id: z.string() }),
+  })
   async deleteFolder(@Ctx() _ctx: AuthContext, @Input() data: { id: string }) {
     return this.folderService.deleteFolder(_ctx.user.id, data.id);
   }
