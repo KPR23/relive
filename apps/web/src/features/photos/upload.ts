@@ -15,6 +15,7 @@ export async function startUpload({
   requestUpload,
   confirmUpload,
   utils,
+  onProgress,
 }: UploadDeps) {
   const input: RequestUploadInput = {
     folderId,
@@ -24,23 +25,44 @@ export async function startUpload({
 
   const { photoId, uploadUrl } = await requestUpload.mutateAsync(input);
 
-  const uploadInfo: PhotoFile = {
-    ...input,
-    photoId,
-    uploadUrl,
-  };
+  await uploadWithProgress(uploadUrl, photo, onProgress);
 
-  const response = await fetch(uploadInfo.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': uploadInfo.mimeType },
-    body: photo,
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to upload file to storage');
-  }
-
-  await confirmUpload.mutateAsync({ photoId: uploadInfo.photoId });
+  await confirmUpload.mutateAsync({ photoId });
 
   await utils.photo.listPhotos.invalidate({ folderId });
+}
+
+function uploadWithProgress(
+  uploadUrl: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('PUT', uploadUrl);
+    xhr.setRequestHeader('Content-Type', file.type);
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+
+      const percent = Math.round((event.loaded / event.total) * 100);
+
+      onProgress?.(percent);
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(`Upload failed (${xhr.status})`));
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('Upload failed'));
+    };
+
+    xhr.send(file);
+  });
 }
