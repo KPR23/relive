@@ -154,29 +154,6 @@ export class PhotoService {
     };
   }
 
-  async getFolderThumbnailUrls(userId: string, folderId: string) {
-    const photos = await db
-      .select()
-      .from(photo)
-      .where(
-        and(
-          eq(photo.ownerId, userId),
-          eq(photo.folderId, folderId),
-          eq(photo.status, PhotoStatusEnum.READY),
-        ),
-      )
-      .orderBy(desc(photo.createdAt));
-
-    return photos.map((photo) => ({
-      photoId: photo.id,
-      originalName: photo.originalName,
-      createdAt: photo.createdAt,
-      takenAt: photo.takenAt,
-      width: photo.width,
-      height: photo.height,
-    }));
-  }
-
   async getPhotoUrl(userId: string, photoId: string) {
     const [photoRecord] = await db
       .select()

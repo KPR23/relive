@@ -35,10 +35,6 @@ export function useThumbnailUrl(photoId: string) {
   );
 }
 
-export function useFolderThumbnailUrls(folderId: string) {
-  return trpc.photo.getFolderThumbnailUrls.useQuery({ folderId });
-}
-
 export function usePhotoUploadActions(): PhotoUploadActions {
   const requestUpload = trpc.photo.requestUpload.useMutation();
   const confirmUpload = trpc.photo.confirmUpload.useMutation();
