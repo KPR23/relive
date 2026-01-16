@@ -80,7 +80,7 @@ export class PhotoService {
         return {
           status: PhotoStatusEnum.READY,
         };
-      } catch (err) {
+      } catch {
         await tx
           .update(photo)
           .set({

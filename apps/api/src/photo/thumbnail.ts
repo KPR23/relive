@@ -23,12 +23,7 @@ export async function generateAndUploadThumbnail({
 }): Promise<{ width: number; height: number }> {
   const inputStream = await storage.downloadStream(originalKey);
 
-  const transformer = sharp()
-    .resize({
-      width: 300,
-      withoutEnlargement: true,
-    })
-    .jpeg({ quality: 80 });
+  const transformer = createThumbnailStream();
 
   const outputStream = new PassThrough();
 

@@ -3,14 +3,21 @@
 import Image from 'next/image';
 import { usePhotoUrl } from '../hooks';
 import { Photo } from '../../types';
+import { useState } from 'react';
 
 interface PhotoLightboxProps {
   photo: Photo;
+  thumbnailUrl: string;
   onClose: () => void;
 }
 
-export function PhotoLightbox({ photo, onClose }: PhotoLightboxProps) {
-  const { data, isLoading } = usePhotoUrl(photo.photoId);
+export function PhotoLightbox({
+  photo,
+  thumbnailUrl,
+  onClose,
+}: PhotoLightboxProps) {
+  const [isFullLoaded, setIsFullLoaded] = useState(false);
+  const { data } = usePhotoUrl(photo.photoId);
 
   return (
     <div
@@ -26,24 +33,28 @@ export function PhotoLightbox({ photo, onClose }: PhotoLightboxProps) {
       </button>
 
       <div
-        className="relative max-h-[90vh] max-w-[90vw]"
+        className="relative h-[90vh] w-[90vw]"
         onClick={(e) => e.stopPropagation()}
       >
-        {isLoading ? (
-          <div className="flex h-64 w-64 items-center justify-center text-white">
-            Loading full image…
-          </div>
-        ) : data ? (
+        <Image
+          src={thumbnailUrl}
+          alt={photo.originalName}
+          fill
+          className="object-contain"
+          sizes="90vw"
+        />
+
+        {data && (
           <Image
             src={data.signedUrl}
             alt={photo.originalName}
-            width={photo.width ?? 1200}
-            height={photo.height ?? 800}
-            className="max-h-[90vh] w-auto object-contain"
+            fill
+            className="object-contain transition-opacity duration-300"
+            style={{ opacity: isFullLoaded ? 1 : 0 }}
+            onLoad={() => setIsFullLoaded(true)}
+            sizes="90vw"
             priority
           />
-        ) : (
-          <div className="text-white">Failed to load image</div>
         )}
       </div>
     </div>

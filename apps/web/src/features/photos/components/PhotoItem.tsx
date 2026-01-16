@@ -43,7 +43,11 @@ export function PhotoItem({ photo }: { photo: Photo }) {
       </button>
 
       {isOpen && (
-        <PhotoLightbox photo={photo} onClose={() => setIsOpen(false)} />
+        <PhotoLightbox
+          thumbnailUrl={data.signedUrl}
+          photo={photo}
+          onClose={() => setIsOpen(false)}
+        />
       )}
     </>
   );
