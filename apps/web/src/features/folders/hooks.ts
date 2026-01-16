@@ -9,3 +9,21 @@ export function useRootFolder() {
 export function useFolders() {
   return trpc.folder.getAllFolders.useQuery();
 }
+
+export function useCreateFolder() {
+  const utils = trpc.useUtils();
+  return trpc.folder.createFolder.useMutation({
+    onSuccess: () => {
+      utils.folder.invalidate();
+    },
+  });
+}
+
+export function useDeleteFolder() {
+  const utils = trpc.useUtils();
+  return trpc.folder.deleteFolder.useMutation({
+    onSuccess: () => {
+      utils.folder.invalidate();
+    },
+  });
+}

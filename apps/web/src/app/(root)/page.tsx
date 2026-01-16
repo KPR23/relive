@@ -1,5 +1,7 @@
 'use client';
 
+import CreateFolderButton from '@/src/features/folders/components/CreateFolderButton';
+import RemoveFolderButton from '@/src/features/folders/components/RemoveFolderButton';
 import { useFolders, useRootFolder } from '@/src/features/folders/hooks';
 import { PhotosList } from '@/src/features/photos/components/PhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
@@ -49,8 +51,12 @@ export default function Root() {
         Log out
       </button>
       {folders?.map((folder: Folder) => (
-        <div key={folder.id}>{folder.name}</div>
+        <div className="flex items-center" key={folder.id}>
+          <h2>{folder.name}</h2>
+          <RemoveFolderButton folderId={folder.id} />
+        </div>
       ))}
+      <CreateFolderButton />
       <UploadButton folderId={rootFolder?.id} />
       <PhotosList folderId={rootFolder?.id} />
     </div>
