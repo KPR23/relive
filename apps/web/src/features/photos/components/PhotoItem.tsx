@@ -6,26 +6,39 @@ import { useThumbnailUrl } from '../hooks';
 import { Photo } from '../../types';
 import { PhotoLightbox } from './PhotoLightbox';
 
+const ROW_HEIGHT = 120;
+
 export function PhotoItem({ photo }: { photo: Photo }) {
   const { data, isLoading } = useThumbnailUrl(photo.photoId);
   const [isOpen, setIsOpen] = useState(false);
 
-  if (isLoading) return <div>Loading image…</div>;
+  const aspectRatio = (photo.width ?? 1) / (photo.height ?? 1);
+  const calculatedWidth = Math.round(ROW_HEIGHT * aspectRatio);
 
-  if (!data) return <div>Image not found</div>;
+  if (isLoading) {
+    return (
+      <div
+        className="animate-pulse rounded bg-gray-700"
+        style={{ width: calculatedWidth, height: ROW_HEIGHT }}
+      />
+    );
+  }
+
+  if (!data) return null;
 
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="overflow-hidden rounded-lg transition-transform hover:scale-105 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        className="cursor-pointer overflow-hidden rounded transition-opacity hover:opacity-90 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        style={{ height: ROW_HEIGHT, width: calculatedWidth }}
       >
         <Image
           src={data.signedUrl}
           alt={photo.originalName}
-          width={300}
-          height={300}
-          className="h-auto w-full object-cover"
+          width={calculatedWidth}
+          height={ROW_HEIGHT}
+          className="h-full w-full object-cover"
         />
       </button>
 
