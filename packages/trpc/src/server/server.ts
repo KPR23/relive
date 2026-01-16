@@ -68,11 +68,77 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
   folder: t.router({
-    getRootFolder: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    getFolderChildren: publicProcedure.query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    createFolder: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    moveFolder: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    deleteFolder: publicProcedure.mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    getRootFolder: publicProcedure.output(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getAllFolders: publicProcedure.output(z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getFolderChildren: publicProcedure.input(z.object({ parentId: z.string() })).output(z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createFolder: publicProcedure.input(z.object({
+      name: z.string(),
+      description: z.string().optional().nullable(),
+      parentId: z.string().optional().nullable(),
+      isRoot: z.boolean().optional(),
+    })).output(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    moveFolder: publicProcedure.input(z.object({ movingFolderId: z.string(), targetParentId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    deleteFolder: publicProcedure.input(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;

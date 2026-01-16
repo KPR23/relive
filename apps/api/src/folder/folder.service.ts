@@ -36,6 +36,11 @@ export class FolderService {
     return folder;
   }
 
+  async getAllFolders(userId: string, tx?: Tx) {
+    const client = tx ?? db;
+    return client.select().from(folder).where(eq(folder.ownerId, userId));
+  }
+
   async getParent(userId: string, folder: Folder, tx?: Tx) {
     if (!folder.parentId) {
       return null;
@@ -88,10 +93,11 @@ export class FolderService {
     }
     await this.getOwnedFolderOrThrow(userId, data.parentId);
 
-    return db
+    const [created] = await db
       .insert(folder)
       .values({ ...data, ownerId: userId })
       .returning();
+    return created;
   }
 
   async moveFolder(
