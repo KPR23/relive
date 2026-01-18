@@ -5,10 +5,12 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { env } from 'src/env.server';
 
 import { Injectable } from '@nestjs/common';
+import { Readable } from 'stream';
 
 @Injectable()
 export class B2Storage {
@@ -47,24 +49,60 @@ export class B2Storage {
     );
   }
 
+  async downloadStream(key: string): Promise<Readable> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    const response = await this.client.send(command);
+
+    if (!response.Body) {
+      throw new Error('Empty object body');
+    }
+
+    return response.Body as Readable;
+  }
+
+  async uploadStream(
+    key: string,
+    body: Readable,
+    contentType: string,
+  ): Promise<void> {
+    const upload = new Upload({
+      client: this.client,
+      params: {
+        Bucket: this.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+      },
+    });
+
+    await upload.done();
+  }
+
   async getSignedUrl(
     key: string,
-    expiresIn = 600,
+    expiresIn?: number,
   ): Promise<{ signedUrl: string; expiresAt: Date }> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
     });
 
-    const signedUrl = await getSignedUrl(this.client, command, { expiresIn });
+    const ttl = expiresIn ?? 600;
+
+    const signedUrl = await getSignedUrl(this.client, command, {
+      expiresIn: ttl,
+    });
 
     return {
       signedUrl,
-      expiresAt: new Date(Date.now() + expiresIn * 1000),
+      expiresAt: new Date(Date.now() + ttl * 1000),
     };
   }
 
-  // TODO: Implement thumbnail generation later
   async getFileInfo(key: string) {
     const result = await this.client.send(
       new HeadObjectCommand({
@@ -75,7 +113,6 @@ export class B2Storage {
 
     return {
       size: result.ContentLength || 0,
-      thumbPath: null,
     };
   }
 

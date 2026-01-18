@@ -15,7 +15,15 @@ export default function Root() {
   const { data: rootFolder, isLoading: isRootFolderLoading } = useRootFolder();
   const { data: folders, isLoading: isFoldersLoading } = useFolders();
 
-  if (!session?.data?.user) {
+  if (session.isPending) {
+    return (
+      <div className="flex h-screen items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!session.data?.user) {
     return (
       <div>
         Unauthorized <br />
@@ -29,7 +37,7 @@ export default function Root() {
     );
   }
 
-  if (session.isPending || isRootFolderLoading || isFoldersLoading) {
+  if (isRootFolderLoading || isFoldersLoading) {
     return (
       <div className="flex h-screen items-center justify-center text-white">
         Loading...
@@ -40,7 +48,6 @@ export default function Root() {
   if (!rootFolder?.id) {
     return <div>Photos not found</div>;
   }
-
   return (
     <div>
       <h1 className="text-2xl font-bold text-blue-800">Relive</h1>

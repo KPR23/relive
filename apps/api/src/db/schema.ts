@@ -1,11 +1,12 @@
 import { relations } from 'drizzle-orm';
 import {
-  pgTable,
-  pgEnum,
-  text,
-  timestamp,
   boolean,
   index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
@@ -156,10 +157,10 @@ export const photo = pgTable(
     thumbPath: text('thumb_path'),
     originalName: text('original_name').notNull(),
     mimeType: text('mime_type').notNull(),
-    size: text('size'),
+    size: integer('size'),
     takenAt: timestamp('taken_at'),
-    width: text('width'),
-    height: text('height'),
+    width: integer('width'),
+    height: integer('height'),
     exif: text('exif'),
     status: photoStatus('status').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),

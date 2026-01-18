@@ -10,7 +10,7 @@ export const PhotosList = ({ folderId }: { folderId: string }) => {
   if (!data || data.length === 0) return <p>No photos found</p>;
 
   return (
-    <div>
+    <div className="flex flex-wrap gap-1">
       {data.map((photo) => (
         <PhotoItem key={photo.photoId} photo={photo} />
       ))}

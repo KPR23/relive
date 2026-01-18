@@ -50,6 +50,20 @@ export class PhotoRouter {
       expiresAt: z.date(),
     }),
   })
+  async getThumbnailUrl(
+    @Ctx() ctx: AuthContext,
+    @Input() data: { photoId: string },
+  ) {
+    return this.photoService.getThumbnailUrl(ctx.user.id, data.photoId);
+  }
+
+  @Query({
+    input: z.object({ photoId: z.string().uuid() }),
+    output: z.object({
+      signedUrl: z.string(),
+      expiresAt: z.date(),
+    }),
+  })
   async getPhotoUrl(
     @Ctx() ctx: AuthContext,
     @Input() data: { photoId: string },
