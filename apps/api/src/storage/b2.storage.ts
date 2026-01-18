@@ -91,11 +91,15 @@ export class B2Storage {
       Key: key,
     });
 
-    const signedUrl = await getSignedUrl(this.client, command, { expiresIn });
+    const ttl = expiresIn ?? 600;
+
+    const signedUrl = await getSignedUrl(this.client, command, {
+      expiresIn: ttl,
+    });
 
     return {
       signedUrl,
-      expiresAt: new Date(Date.now() + (expiresIn || 600) * 1000),
+      expiresAt: new Date(Date.now() + ttl * 1000),
     };
   }
 

@@ -9,11 +9,12 @@ import { PhotoLightbox } from './PhotoLightbox';
 const ROW_HEIGHT = 120;
 
 export function PhotoItem({ photo }: { photo: Photo }) {
-  const { data, isLoading } = useThumbnailUrl(photo.photoId);
   const [isOpen, setIsOpen] = useState(false);
+  const { data, isLoading } = useThumbnailUrl(photo.photoId);
 
-  const aspectRatio = (photo.width ?? 1) / (photo.height ?? 1);
-  const calculatedWidth = Math.round(ROW_HEIGHT * aspectRatio);
+  const safeWidth = Math.max(photo.width ?? 0, 1);
+  const safeHeight = Math.max(photo.height ?? 0, 1);
+  const calculatedWidth = Math.round(ROW_HEIGHT * (safeWidth / safeHeight));
 
   if (isLoading) {
     return (

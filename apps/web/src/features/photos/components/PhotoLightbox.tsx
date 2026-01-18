@@ -26,7 +26,10 @@ export function PhotoLightbox({
     >
       <button
         className="absolute top-4 right-4 text-3xl text-white hover:text-gray-300"
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         aria-label="Close"
       >
         ✕
