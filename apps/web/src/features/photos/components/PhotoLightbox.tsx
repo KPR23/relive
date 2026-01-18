@@ -23,6 +23,9 @@ export function PhotoLightbox({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photo preview"
     >
       <button
         className="absolute top-4 right-4 text-3xl text-white hover:text-gray-300"
