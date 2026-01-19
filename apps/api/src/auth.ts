@@ -15,6 +15,14 @@ export const auth = betterAuth({
     // requireEmailVerification: true,
     minPasswordLength: 8,
   },
+  callbackURL: env.FRONTEND_URL,
+  cookies: {
+    session: {
+      sameSite: 'none',
+      secure: true,
+      domain: '.vercel.app',
+    },
+  },
   trustedOrigins: [env.FRONTEND_URL],
   ...(env.GITHUB_CLIENT_ID &&
     env.GITHUB_CLIENT_SECRET && {
