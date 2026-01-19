@@ -7,9 +7,9 @@ const isProduction = env.NODE_ENV === 'production';
 @Module({
   imports: [
     TRPCModule.forRoot({
-      autoSchemaFile: isProduction
-        ? undefined
-        : '../../packages/trpc/src/server',
+      ...(isProduction
+        ? {}
+        : { autoSchemaFile: '../../packages/trpc/src/server' }),
       basePath: '/api/trpc',
       context: AppContext,
     }),
