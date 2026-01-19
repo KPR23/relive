@@ -1,7 +1,7 @@
 import sharp from 'sharp';
-import { B2Storage } from 'src/storage/b2.storage';
 import { PassThrough } from 'stream';
 import { pipeline } from 'stream/promises';
+import { B2Storage } from '../storage/b2.storage.js';
 
 function createThumbnailStream() {
   return sharp()

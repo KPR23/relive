@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AuthMiddleware } from 'src/middleware';
-import { PhotoService } from './photo.service';
-import { PhotoRouter } from './photo.router';
-import { B2Storage } from 'src/storage/b2.storage';
-import { FolderModule } from 'src/folder/folder.module';
+import { FolderModule } from '../folder/folder.module.js';
+import { PhotoService } from './photo.service.js';
+import { PhotoRouter } from './photo.router.js';
+import { AuthMiddleware } from '../middleware.js';
+import { B2Storage } from '../storage/b2.storage.js';
 
 @Module({
   imports: [FolderModule],

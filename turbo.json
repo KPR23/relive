@@ -1,7 +1,20 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalEnv": ["TRPC_URL", "NEXT_PUBLIC_TRPC_URL", "API_URL", "STORAGE_HOSTNAME", "STORAGE_HOSTNAME_2"],
+  "globalEnv": [
+    "TRPC_URL",
+    "NEXT_PUBLIC_TRPC_URL",
+    "API_URL",
+    "STORAGE_HOSTNAME",
+    "STORAGE_HOSTNAME_2",
+    "DATABASE_URL",
+    "DATABASE_PGDATABASE",
+    "DATABASE_PGHOST_UNPOOLED",
+    "DATABASE_PGUSER",
+    "DATABASE_POSTGRES_URL_NO_SSL",
+    "DATABASE_POSTGRES_HOST",
+    "DATABASE_NEON_PROJECT_ID"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

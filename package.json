@@ -29,6 +29,9 @@
         "nestjs-trpc>@nestjs/common": "11",
         "nestjs-trpc>@nestjs/core": "11"
       }
+    },
+    "patchedDependencies": {
+      "nestjs-trpc@1.6.1": "patches/nestjs-trpc@1.6.1.patch"
     }
   },
   "packageManager": "pnpm@10.23.0",

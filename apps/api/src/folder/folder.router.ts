@@ -6,16 +6,16 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
-import { AuthMiddleware } from 'src/middleware';
-import { type AuthContext } from 'src/trpc/context';
+import { AuthMiddleware } from '../middleware.js';
+import { type AuthContext } from '../trpc/context.js';
 import { z } from 'zod';
 import {
   type CreateFolderSchema,
   createFolderSchema,
   type Folder,
   folderSchema,
-} from './folder.schema';
-import { FolderService } from './folder.service';
+} from './folder.schema.js';
+import { FolderService } from './folder.service.js';
 
 @UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'folder' })
