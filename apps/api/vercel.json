@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "pnpm run build:prod",
+  "buildCommand": "pnpm run build",
   "functions": {
-    "dist/src/main.js": {
-      "includeFiles": "dist/**/*"
+    "api/index.js": {
+      "includeFiles": "dist/**"
     }
   },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/dist/src/main.js"
+      "destination": "api/index.js"
     }
   ]
 }
