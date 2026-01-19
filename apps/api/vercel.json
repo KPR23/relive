@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pnpm run build",
+  "buildCommand": "pnpm run build:prod",
   "functions": {
     "dist/src/main.js": {
       "includeFiles": "dist/**/*"
