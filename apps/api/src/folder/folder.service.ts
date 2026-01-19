@@ -6,9 +6,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
-import { db } from 'src/db';
-import { folder } from 'src/db/schema';
-import { CreateFolderSchema, Folder } from './folder.schema';
+import { db } from '../db/index.js';
+import { folder } from '../db/schema.js';
+import { CreateFolderSchema, Folder } from './folder.schema.js';
 
 type Tx = Parameters<typeof db.transaction>[0] extends (tx: infer T) => any
   ? T

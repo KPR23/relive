@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ContextOptions, TRPCContext } from 'nestjs-trpc';
 import { Request, Response } from 'express';
-import * as schema from '../db/schema';
+import * as schema from '../db/schema.js';
 
 export interface BaseContext extends Record<string, unknown> {
   req: Request;

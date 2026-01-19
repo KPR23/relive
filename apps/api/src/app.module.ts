@@ -7,12 +7,12 @@ import {
   fixedWindow,
   shield,
 } from '@arcjet/nest';
-import { TrpcModule } from './trpc/trpc.module';
-import { auth } from './auth';
+import { TrpcModule } from './trpc/trpc.module.js';
+import { auth } from './auth.js';
 import { AuthModule } from '@thallesp/nestjs-better-auth';
-import { env } from './env.server';
-import { PhotoModule } from './photo/photo.module';
-import { FolderModule } from './folder/folder.module';
+import { env } from './env.server.js';
+import { PhotoModule } from './photo/photo.module.js';
+import { FolderModule } from './folder/folder.module.js';
 
 @Module({
   imports: [

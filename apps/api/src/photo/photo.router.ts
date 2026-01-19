@@ -6,17 +6,17 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
-import { AuthMiddleware } from 'src/middleware';
-import { B2Storage } from 'src/storage/b2.storage';
-import type { AuthContext } from 'src/trpc/context';
+import { AuthMiddleware } from '../middleware.js';
+import { B2Storage } from '../storage/b2.storage.js';
+import type { AuthContext } from '../trpc/context.js';
 import z from 'zod';
 import {
   listPhotosSchema,
   type ListPhotosSchema,
   type RequestUploadSchema,
   requestUploadSchema,
-} from './photo.schema';
-import { PhotoService } from './photo.service';
+} from './photo.schema.js';
+import { PhotoService } from './photo.service.js';
 
 @UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'photo' })

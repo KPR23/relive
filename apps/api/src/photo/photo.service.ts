@@ -4,12 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
-import { db } from 'src/db';
-import { photo, PhotoStatusEnum } from 'src/db/schema';
-import { FolderService } from 'src/folder/folder.service';
-import { B2Storage } from 'src/storage/b2.storage';
-import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema';
-import { generateAndUploadThumbnail } from './thumbnail';
+import { db } from '../db/index.js';
+import { photo, PhotoStatusEnum } from '../db/schema.js';
+import { FolderService } from '../folder/folder.service.js';
+import { B2Storage } from '../storage/b2.storage.js';
+import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema.js';
+import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoService {
   constructor(
