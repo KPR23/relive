@@ -76,9 +76,6 @@ importers:
       nestjs-trpc:
         specifier: ^1.6.1
         version: 1.6.1(@nestjs/common@11.1.11(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.11)(@trpc/server@10.45.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(zod@4.3.5)
-      pg:
-        specifier: ^8.16.3
-        version: 8.16.3
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -119,9 +116,6 @@ importers:
       '@types/node':
         specifier: ^22.10.7
         version: 22.19.5
-      '@types/pg':
-        specifier: ^8.16.0
-        version: 8.16.0
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
@@ -10534,13 +10528,15 @@ snapshots:
   pg-cloudflare@1.2.7:
     optional: true
 
-  pg-connection-string@2.9.1: {}
+  pg-connection-string@2.9.1:
+    optional: true
 
   pg-int8@1.0.1: {}
 
   pg-pool@3.10.1(pg@8.16.3):
     dependencies:
       pg: 8.16.3
+    optional: true
 
   pg-protocol@1.10.3: {}
 
@@ -10561,10 +10557,12 @@ snapshots:
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.2.7
+    optional: true
 
   pgpass@1.0.5:
     dependencies:
       split2: 4.2.0
+    optional: true
 
   picocolors@1.1.1: {}
 
@@ -10932,7 +10930,8 @@ snapshots:
 
   source-map@0.7.6: {}
 
-  split2@4.2.0: {}
+  split2@4.2.0:
+    optional: true
 
   sprintf-js@1.0.3: {}
 

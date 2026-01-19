@@ -1,9 +1,9 @@
 import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { env } from '../env.server';
+import { env } from 'src/env.server.js';
 
 const pool = new Pool({
-  connectionString: env.DATABASE_URL!,
+  connectionString: env.DATABASE_URL,
 });
 
 export const db = drizzle(pool);
