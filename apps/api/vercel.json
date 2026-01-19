@@ -1,11 +1,15 @@
 {
   "version": 2,
   "buildCommand": "pnpm run build",
-  "outputDirectory": "dist",
+  "functions": {
+    "dist/src/main.js": {
+      "includeFiles": "dist/**/*"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/src/main.js"
+      "destination": "/dist/src/main.js"
     }
   ]
 }
