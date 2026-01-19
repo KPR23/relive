@@ -1,17 +1,11 @@
 {
   "version": 2,
-  "installCommand": "pnpm install",
   "buildCommand": "pnpm run build",
-  "functions": {
-    "dist/src/main.js": {
-      "runtime": "@vercel/node@3",
-      "includeFiles": "dist/**"
-    }
-  },
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/dist/src/main.js"
+      "destination": "/src/main.js"
     }
   ]
 }
