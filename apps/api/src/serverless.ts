@@ -57,3 +57,5 @@ export const handler = async (
   }
   return cachedHandler(event, context);
 };
+
+export default handler;
