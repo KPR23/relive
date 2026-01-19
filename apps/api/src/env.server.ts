@@ -4,7 +4,11 @@ import { z } from 'zod';
 const envSchema = z.object({
   // Environment
   NODE_ENV: z.enum(['development', 'production']).default('development'),
-  VERCEL: z.coerce.boolean().optional().default(false),
+  VERCEL: z
+    .string()
+    .optional()
+    .transform((value) => value === '1' || value === 'true')
+    .default(false),
 
   // Database
   DATABASE_URL: z.url('DATABASE_URL must be a valid URL'),
