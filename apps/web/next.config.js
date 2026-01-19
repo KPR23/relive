@@ -13,14 +13,12 @@ const nextConfig = {
       },
     ],
   },
-  rewrites: () => {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.API_URL || 'http://localhost:8000'}/api/:path*`,
-      },
-    ];
-  },
+  rewrites: () => [
+    {
+      source: '/api/:path*',
+      destination: `${process.env.API_URL}/api/:path*`,
+    },
+  ],
 };
 
 export default nextConfig;
