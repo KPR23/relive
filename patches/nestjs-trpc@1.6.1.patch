@@ -1,8 +1,8 @@
 diff --git a/dist/scanners/file.scanner.js b/dist/scanners/file.scanner.js
-index 3b68a867929e3a2aea4bb5e121d39fc4e4f14880..e4931c2fd0fc136ad81039bdd18054bd04bf4bf7 100644
+index 3b68a867929e3a2aea4bb5e121d39fc4e4f14880..ecb068edc2b73eb4532e46444aed4448fe5694bb 100644
 --- a/dist/scanners/file.scanner.js
 +++ b/dist/scanners/file.scanner.js
-@@ -1,55 +1,68 @@
+@@ -1,55 +1,71 @@
 -"use strict";
 -Object.defineProperty(exports, "__esModule", { value: true });
 +'use strict';
@@ -16,6 +16,7 @@ index 3b68a867929e3a2aea4bb5e121d39fc4e4f14880..e4931c2fd0fc136ad81039bdd18054bd
 +const common_1 = require('@nestjs/common');
 +const fs = tslib_1.__importStar(require('node:fs'));
 +const path = tslib_1.__importStar(require('node:path'));
++const { fileURLToPath } = require('node:url');
  /**
   * For this specific file, using a static reference is desirable since `getCallerFilePath` uses a stack-trace to figure out the caller.
   * If this clas is injected through dependency injection, that stack-trace will vary!
@@ -48,8 +49,9 @@ index 3b68a867929e3a2aea4bb5e121d39fc4e4f14880..e4931c2fd0fc136ad81039bdd18054bd
 -    normalizePath(p) {
 -        return path.resolve(p.replace(/\\/g, '/'));
 +    // Handle file:// URLs (ESM compatibility)
++    // Using fileURLToPath to properly decode percent-encoded characters
 +    if (jsFilePath.startsWith('file://')) {
-+      jsFilePath = new URL(jsFilePath).pathname;
++      jsFilePath = fileURLToPath(jsFilePath);
      }
 -    getPlatformPath(path) {
 -        const exec = /^\/(\w*):(.*)/.exec(path);
@@ -66,8 +68,9 @@ index 3b68a867929e3a2aea4bb5e121d39fc4e4f14880..e4931c2fd0fc136ad81039bdd18054bd
 +  }
 +  getPlatformPath(inputPath) {
 +    // Handle file:// URLs (ESM compatibility)
++    // Using fileURLToPath to properly decode percent-encoded characters
 +    if (inputPath.startsWith('file://')) {
-+      inputPath = new URL(inputPath).pathname;
++      inputPath = fileURLToPath(inputPath);
      }
 -    getSourceMapFromJSPath(sourcePath) {
 -        const SOURCE_MAP_REGEX = /\/\/# sourceMappingURL=(.*\.map)$/m;

@@ -14,7 +14,7 @@ overrides:
 
 patchedDependencies:
   nestjs-trpc@1.6.1:
-    hash: 25159e136b8102bf9ffb639e6a6a2f9164bf6d1d0a50cb6d42b80e6c2e534d03
+    hash: 0fcd09557880ff02d0fe253aaf51ebdb9d32323d8900eb73daf7dc4c6d0a3594
     path: patches/nestjs-trpc@1.6.1.patch
 
 importers:
@@ -80,7 +80,7 @@ importers:
         version: 0.8.3(drizzle-orm@0.45.1(@neondatabase/serverless@1.0.2)(@types/pg@8.16.0)(kysely@0.28.9)(pg@8.16.3))(zod@4.3.5)
       nestjs-trpc:
         specifier: ^1.6.1
-        version: 1.6.1(patch_hash=25159e136b8102bf9ffb639e6a6a2f9164bf6d1d0a50cb6d42b80e6c2e534d03)(@nestjs/common@11.1.11(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.11)(@trpc/server@10.45.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(zod@4.3.5)
+        version: 1.6.1(patch_hash=0fcd09557880ff02d0fe253aaf51ebdb9d32323d8900eb73daf7dc4c6d0a3594)(@nestjs/common@11.1.11(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.11)(@trpc/server@10.45.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(zod@4.3.5)
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -10346,7 +10346,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  nestjs-trpc@1.6.1(patch_hash=25159e136b8102bf9ffb639e6a6a2f9164bf6d1d0a50cb6d42b80e6c2e534d03)(@nestjs/common@11.1.11(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.11)(@trpc/server@10.45.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(zod@4.3.5):
+  nestjs-trpc@1.6.1(patch_hash=0fcd09557880ff02d0fe253aaf51ebdb9d32323d8900eb73daf7dc4c6d0a3594)(@nestjs/common@11.1.11(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.11)(@trpc/server@10.45.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(zod@4.3.5):
     dependencies:
       '@nestjs/common': 11.1.11(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.11(@nestjs/common@11.1.11(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.11)(reflect-metadata@0.2.2)(rxjs@7.8.2)

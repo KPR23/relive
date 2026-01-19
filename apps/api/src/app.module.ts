@@ -4,7 +4,7 @@ import {
   ArcjetGuard,
   ArcjetModule,
   detectBot,
-  fixedWindow,
+  slidingWindow,
   shield,
 } from '@arcjet/nest';
 import { TrpcModule } from './trpc/trpc.module.js';
@@ -13,6 +13,10 @@ import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { env } from './env.server.js';
 import { PhotoModule } from './photo/photo.module.js';
 import { FolderModule } from './folder/folder.module.js';
+import { AppService } from './app.service.js';
+import { AppController } from './app.controller.js';
+
+const isProduction = env.NODE_ENV === 'production';
 
 @Module({
   imports: [
@@ -21,18 +25,16 @@ import { FolderModule } from './folder/folder.module.js';
       key: env.ARCJET_KEY,
       rules: [
         shield({ mode: 'LIVE' }),
+
         detectBot({
           mode: 'LIVE',
-          allow: [
-            'CATEGORY:SEARCH_ENGINE',
-            // 'CATEGORY:MONITOR',
-            // 'CATEGORY:PREVIEW',
-          ],
+          allow: ['CATEGORY:SEARCH_ENGINE', 'CATEGORY:MONITOR'],
         }),
-        fixedWindow({
+
+        slidingWindow({
           mode: 'LIVE',
-          window: '60s',
-          max: 100,
+          interval: '60s',
+          max: isProduction ? 300 : 1000,
         }),
       ],
     }),
@@ -46,6 +48,8 @@ import { FolderModule } from './folder/folder.module.js';
       provide: APP_GUARD,
       useClass: ArcjetGuard,
     },
+    AppService,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}

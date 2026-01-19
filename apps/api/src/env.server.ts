@@ -2,6 +2,9 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const envSchema = z.object({
+  // Environment
+  NODE_ENV: z.enum(['development', 'production']).default('development'),
+
   // Database
   DATABASE_URL: z.url('DATABASE_URL must be a valid URL'),
 
