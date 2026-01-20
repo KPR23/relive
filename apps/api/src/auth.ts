@@ -16,17 +16,6 @@ export const auth = betterAuth({
     // requireEmailVerification: true,
     minPasswordLength: 8,
   },
-  callbacks: {
-    async redirect() {
-      return env.FRONTEND_URL;
-    },
-  },
-  cookies: {
-    session: {
-      sameSite: 'none',
-      secure: true,
-    },
-  },
   trustedOrigins: [env.FRONTEND_URL],
   ...(env.GITHUB_CLIENT_ID &&
     env.GITHUB_CLIENT_SECRET && {
