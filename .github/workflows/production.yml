@@ -1,11 +1,5 @@
 name: CI Production Deployment
 
-env:
-  NODE_ENV: production
-  NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-  BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
 on:
   push:
     branches: [main]
