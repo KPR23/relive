@@ -1,13 +1,13 @@
-name: CI
+name: CI Preview Deployment
 
 on:
   push:
-    branches: [main]
+    branches-ignore: [main]
   pull_request:
-    branches: [main]
+    branches-ignore: [main]
 
 jobs:
-  CI:
+  Deploy-Preview:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,13 +23,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: Prisma generate
-        run: pnpm --filter api prisma:generate
 
       - name: Typecheck
         run: pnpm check-types
