@@ -80,7 +80,12 @@ export class PhotoService {
         return {
           status: PhotoStatusEnum.READY,
         };
-      } catch {
+      } catch (err) {
+        console.error(
+          `Failed to confirm upload for photo ${photoRecord.id}`,
+          err,
+        );
+
         await tx
           .update(photo)
           .set({
@@ -95,6 +100,18 @@ export class PhotoService {
         };
       }
     });
+  }
+
+  async listAllPhotos(userId: string) {
+    const photos = await db
+      .select()
+      .from(photo)
+      .where(
+        and(eq(photo.ownerId, userId), eq(photo.status, PhotoStatusEnum.READY)),
+      )
+      .orderBy(desc(photo.createdAt));
+
+    return this.mapPhotosToResponse(photos);
   }
 
   async listPhotos(userId: string, folderId: string) {
@@ -112,11 +129,62 @@ export class PhotoService {
       )
       .orderBy(desc(photo.createdAt));
 
+    return this.mapPhotosToResponse(photos);
+  }
+
+  async getThumbnailUrl(userId: string, photoId: string) {
+    const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
+
+    if (!photoRecord.thumbPath) {
+      throw new NotFoundException('Thumbnail not found');
+    }
+
+    const { signedUrl, expiresAt } = await this.storage.getSignedUrl(
+      photoRecord.thumbPath,
+      60 * 60 * 24 * 6,
+    );
+
+    return {
+      signedUrl,
+      expiresAt,
+    };
+  }
+
+  async getPhotoUrl(userId: string, photoId: string) {
+    const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
+    return this.storage.getSignedUrl(photoRecord.filePath, 60 * 60);
+  }
+
+  private async getReadyPhotoOrThrow(userId: string, photoId: string) {
+    const [photoRecord] = await db
+      .select()
+      .from(photo)
+      .where(
+        and(
+          eq(photo.id, photoId),
+          eq(photo.ownerId, userId),
+          eq(photo.status, PhotoStatusEnum.READY),
+        ),
+      )
+      .limit(1);
+
+    if (!photoRecord) {
+      throw new NotFoundException('Photo not found');
+    }
+
+    return photoRecord;
+  }
+
+  private async mapPhotosToResponse(photos: (typeof photo.$inferSelect)[]) {
     const photosWithThumbnails = await Promise.all(
       photos.map(async (photo) => {
+        if (!photo.thumbPath) {
+          return null;
+        }
+
         const { signedUrl } = await this.storage.getSignedUrl(
-          photo.thumbPath!,
-          60 * 60 * 24,
+          photo.thumbPath,
+          60 * 60 * 24 * 6,
         );
 
         return {
@@ -131,58 +199,8 @@ export class PhotoService {
       }),
     );
 
-    return photosWithThumbnails;
-  }
-
-  async getThumbnailUrl(userId: string, photoId: string) {
-    const [photoRecord] = await db
-      .select()
-      .from(photo)
-      .where(
-        and(
-          eq(photo.id, photoId),
-          eq(photo.ownerId, userId),
-          eq(photo.status, PhotoStatusEnum.READY),
-        ),
-      )
-      .limit(1);
-
-    if (!photoRecord) {
-      throw new NotFoundException('Photo not found');
-    }
-
-    if (!photoRecord.thumbPath) {
-      throw new NotFoundException('Thumbnail not found');
-    }
-
-    const { signedUrl, expiresAt } = await this.storage.getSignedUrl(
-      photoRecord.thumbPath,
-      60 * 60 * 24 * 7,
+    return photosWithThumbnails.filter(
+      (item): item is NonNullable<typeof item> => item !== null,
     );
-
-    return {
-      signedUrl,
-      expiresAt,
-    };
-  }
-
-  async getPhotoUrl(userId: string, photoId: string) {
-    const [photoRecord] = await db
-      .select()
-      .from(photo)
-      .where(
-        and(
-          eq(photo.id, photoId),
-          eq(photo.ownerId, userId),
-          eq(photo.status, PhotoStatusEnum.READY),
-        ),
-      )
-      .limit(1);
-
-    if (!photoRecord) {
-      throw new NotFoundException('Photo not found');
-    }
-
-    return this.storage.getSignedUrl(photoRecord.filePath, 60 * 60);
   }
 }

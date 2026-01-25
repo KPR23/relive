@@ -9,7 +9,7 @@ export type PhotoUploadActions = {
 };
 
 export function usePhotos(folderId: string) {
-  return trpc.photo.listPhotos.useQuery(
+  return trpc.photo.listPhotosForFolder.useQuery(
     { folderId },
     {
       staleTime: 5 * 60 * 1000,
