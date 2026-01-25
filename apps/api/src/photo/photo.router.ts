@@ -36,6 +36,7 @@ export class PhotoRouter {
         takenAt: z.date().nullable(),
         width: z.number().nullable(),
         height: z.number().nullable(),
+        thumbnailUrl: z.string(),
       }),
     ),
   })

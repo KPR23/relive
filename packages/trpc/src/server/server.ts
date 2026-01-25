@@ -16,6 +16,7 @@ const appRouter = t.router({
         takenAt: z.date().nullable(),
         width: z.number().nullable(),
         height: z.number().nullable(),
+        thumbnailUrl: z.string(),
       }),
     )).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getThumbnailUrl: publicProcedure.input(z.object({ photoId: z.string().uuid() })).output(z.object({

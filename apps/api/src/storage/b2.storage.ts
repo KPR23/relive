@@ -86,12 +86,13 @@ export class B2Storage {
     key: string,
     expiresIn?: number,
   ): Promise<{ signedUrl: string; expiresAt: Date }> {
+    const ttl = expiresIn ?? 600;
+
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
+      ResponseCacheControl: `public, max-age=${ttl}, immutable`,
     });
-
-    const ttl = expiresIn ?? 600;
 
     const signedUrl = await getSignedUrl(this.client, command, {
       expiresIn: ttl,

@@ -112,14 +112,26 @@ export class PhotoService {
       )
       .orderBy(desc(photo.createdAt));
 
-    return photos.map((photo) => ({
-      photoId: photo.id,
-      originalName: photo.originalName,
-      createdAt: photo.createdAt,
-      takenAt: photo.takenAt,
-      width: photo.width,
-      height: photo.height,
-    }));
+    const photosWithThumbnails = await Promise.all(
+      photos.map(async (photo) => {
+        const { signedUrl } = await this.storage.getSignedUrl(
+          photo.thumbPath!,
+          60 * 60 * 24,
+        );
+
+        return {
+          photoId: photo.id,
+          originalName: photo.originalName,
+          createdAt: photo.createdAt,
+          takenAt: photo.takenAt,
+          width: photo.width,
+          height: photo.height,
+          thumbnailUrl: signedUrl,
+        };
+      }),
+    );
+
+    return photosWithThumbnails;
   }
 
   async getThumbnailUrl(userId: string, photoId: string) {
