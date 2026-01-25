@@ -183,8 +183,6 @@ export class PhotoService {
       throw new NotFoundException('Photo not found');
     }
 
-    return this.storage.getSignedUrl(photoRecord.filePath);
+    return this.storage.getSignedUrl(photoRecord.filePath, 60 * 60);
   }
-
-  // async getThumbnailUrl(photoId: string) {}
 }
