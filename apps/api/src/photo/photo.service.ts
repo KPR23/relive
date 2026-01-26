@@ -179,7 +179,9 @@ export class PhotoService {
     const photosWithThumbnails = await Promise.all(
       photos.map(async (photo) => {
         if (!photo.thumbPath) {
-          return null;
+          throw new ConflictException(
+            `READY photo ${photo.id} is missing thumbPath`,
+          );
         }
 
         const { signedUrl } = await this.storage.getSignedUrl(
@@ -199,8 +201,6 @@ export class PhotoService {
       }),
     );
 
-    return photosWithThumbnails.filter(
-      (item): item is NonNullable<typeof item> => item !== null,
-    );
+    return photosWithThumbnails;
   }
 }

@@ -11,7 +11,9 @@ import { useRouter } from 'next/navigation';
 export default function Root() {
   const router = useRouter();
   const session = useSession();
-  const { data: rootFolder, isLoading: isRootFolderLoading } = useRootFolder();
+  const { data: rootFolder, isLoading: isRootFolderLoading } = useRootFolder({
+    enabled: !!session.data?.user,
+  });
 
   if (session.isPending) {
     return (
@@ -43,9 +45,10 @@ export default function Root() {
     );
   }
 
-  if (!rootFolder?.id) {
-    return <div>Photos not found</div>;
+  if (!rootFolder || !rootFolder.id) {
+    return <div>Not found</div>;
   }
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-blue-800">Relive</h1>
@@ -55,10 +58,10 @@ export default function Root() {
       >
         Log out
       </button>
-      <ListAllFolders parentId={rootFolder?.id} />
+      <ListAllFolders parentId={rootFolder.id} />
       <CreateFolderButton />
-      <UploadButton folderId={rootFolder?.id} />
-      <PhotosList folderId={rootFolder?.id} />
+      <UploadButton folderId={rootFolder.id} />
+      <PhotosList folderId={rootFolder.id} />
     </div>
   );
 }

@@ -47,7 +47,19 @@ export class PhotoRouter {
     return this.photoService.listPhotos(ctx.user.id, data.folderId);
   }
 
-  @Query()
+  @Query({
+    output: z.array(
+      z.object({
+        photoId: z.string(),
+        originalName: z.string(),
+        createdAt: z.date(),
+        takenAt: z.date().nullable(),
+        width: z.number().nullable(),
+        height: z.number().nullable(),
+        thumbnailUrl: z.string(),
+      }),
+    ),
+  })
   async listAllPhotos(@Ctx() ctx: AuthContext) {
     return this.photoService.listAllPhotos(ctx.user.id);
   }
