@@ -29,7 +29,7 @@ export async function startUpload({
 
   await confirmUpload.mutateAsync({ photoId });
 
-  await utils.photo.listPhotos.invalidate({ folderId });
+  await utils.photo.listPhotosForFolder.invalidate({ folderId });
 }
 
 function uploadWithProgress(

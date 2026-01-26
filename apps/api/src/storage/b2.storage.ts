@@ -86,20 +86,34 @@ export class B2Storage {
     key: string,
     expiresIn?: number,
   ): Promise<{ signedUrl: string; expiresAt: Date }> {
+    const ttl = expiresIn ?? 600;
+
+    let signingDate = new Date();
+    let finalTtl = ttl;
+
+    if (ttl >= 3600) {
+      const now = new Date();
+      signingDate = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+      );
+
+      finalTtl = ttl + 24 * 60 * 60;
+    }
+
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,
+      ResponseCacheControl: `public, max-age=${ttl}, immutable`,
     });
 
-    const ttl = expiresIn ?? 600;
-
     const signedUrl = await getSignedUrl(this.client, command, {
-      expiresIn: ttl,
+      expiresIn: finalTtl,
+      signingDate,
     });
 
     return {
       signedUrl,
-      expiresAt: new Date(Date.now() + ttl * 1000),
+      expiresAt: new Date(signingDate.getTime() + finalTtl * 1000),
     };
   }
 

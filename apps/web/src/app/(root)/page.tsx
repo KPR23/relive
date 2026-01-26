@@ -1,19 +1,19 @@
 'use client';
 
 import CreateFolderButton from '@/src/features/folders/components/CreateFolderButton';
-import RemoveFolderButton from '@/src/features/folders/components/RemoveFolderButton';
-import { useFolders, useRootFolder } from '@/src/features/folders/hooks';
+import { ListAllFolders } from '@/src/features/folders/components/ListAllFolders';
+import { useRootFolder } from '@/src/features/folders/hooks';
 import { PhotosList } from '@/src/features/photos/components/PhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
-import { Folder } from '@/src/features/types';
 import { signOut, useSession } from '@/src/lib/auth-client';
 import { useRouter } from 'next/navigation';
 
 export default function Root() {
   const router = useRouter();
   const session = useSession();
-  const { data: rootFolder, isLoading: isRootFolderLoading } = useRootFolder();
-  const { data: folders, isLoading: isFoldersLoading } = useFolders();
+  const { data: rootFolder, isLoading: isRootFolderLoading } = useRootFolder({
+    enabled: !!session.data?.user,
+  });
 
   if (session.isPending) {
     return (
@@ -37,7 +37,7 @@ export default function Root() {
     );
   }
 
-  if (isRootFolderLoading || isFoldersLoading) {
+  if (isRootFolderLoading) {
     return (
       <div className="flex h-screen items-center justify-center text-white">
         Loading...
@@ -45,9 +45,10 @@ export default function Root() {
     );
   }
 
-  if (!rootFolder?.id) {
-    return <div>Photos not found</div>;
+  if (!rootFolder || !rootFolder.id) {
+    return <div>Not found</div>;
   }
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-blue-800">Relive</h1>
@@ -57,15 +58,10 @@ export default function Root() {
       >
         Log out
       </button>
-      {folders?.map((folder: Folder) => (
-        <div className="flex items-center" key={folder.id}>
-          <a href={`/folder/${folder.id}`}>{folder.name}</a>
-          <RemoveFolderButton folderId={folder.id} />
-        </div>
-      ))}
+      <ListAllFolders parentId={rootFolder.id} />
       <CreateFolderButton />
-      <UploadButton folderId={rootFolder?.id} />
-      <PhotosList folderId={rootFolder?.id} />
+      <UploadButton folderId={rootFolder.id} />
+      <PhotosList folderId={rootFolder.id} />
     </div>
   );
 }

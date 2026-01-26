@@ -2,8 +2,13 @@
 
 import { trpc } from '@/src/trpc/client';
 
-export function useRootFolder() {
-  return trpc.folder.getRootFolder.useQuery();
+export function useRootFolder(
+  options: { enabled?: boolean; staleTime?: number } = {},
+) {
+  return trpc.folder.getRootFolder.useQuery(undefined, {
+    staleTime: Infinity,
+    ...options,
+  });
 }
 
 export function useFolders() {

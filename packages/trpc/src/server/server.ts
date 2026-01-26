@@ -6,7 +6,7 @@ const publicProcedure = t.procedure;
 
 const appRouter = t.router({
   photo: t.router({
-    listPhotos: publicProcedure.input(z.object({
+    listPhotosForFolder: publicProcedure.input(z.object({
       folderId: z.uuid(),
     })).output(z.array(
       z.object({
@@ -16,6 +16,18 @@ const appRouter = t.router({
         takenAt: z.date().nullable(),
         width: z.number().nullable(),
         height: z.number().nullable(),
+        thumbnailUrl: z.string(),
+      }),
+    )).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listAllPhotos: publicProcedure.output(z.array(
+      z.object({
+        photoId: z.string(),
+        originalName: z.string(),
+        createdAt: z.date(),
+        takenAt: z.date().nullable(),
+        width: z.number().nullable(),
+        height: z.number().nullable(),
+        thumbnailUrl: z.string(),
       }),
     )).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getThumbnailUrl: publicProcedure.input(z.object({ photoId: z.string().uuid() })).output(z.object({

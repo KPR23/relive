@@ -9,25 +9,17 @@ export type PhotoUploadActions = {
 };
 
 export function usePhotos(folderId: string) {
-  return trpc.photo.listPhotos.useQuery(
+  return trpc.photo.listPhotosForFolder.useQuery(
     { folderId },
     {
-      staleTime: 60_000,
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 30 * 60 * 1000,
     },
   );
 }
 
 export function usePhotoUrl(photoId: string) {
   return trpc.photo.getPhotoUrl.useQuery(
-    { photoId },
-    {
-      staleTime: 60_000,
-    },
-  );
-}
-
-export function useThumbnailUrl(photoId: string) {
-  return trpc.photo.getThumbnailUrl.useQuery(
     { photoId },
     {
       staleTime: 60_000,

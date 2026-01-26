@@ -10,7 +10,9 @@ export function Breadcrumbs({ folderId }: { folderId: string }) {
       {folder?.map((folder) => (
         <div key={folder.id}>
           {'/'}
-          <Link href={`/folder/${folder.id}`}>{folder.name}</Link>
+          <Link href={folder.isRoot ? '/' : `/folder/${folder.id}`}>
+            {folder.name}
+          </Link>
         </div>
       ))}
     </div>
