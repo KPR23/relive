@@ -9,7 +9,13 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "STORAGE_HOSTNAME",
+        "STORAGE_HOSTNAME_2",
+        "API_URL",
+        "TRPC_URL"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
