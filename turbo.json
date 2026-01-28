@@ -2,26 +2,14 @@
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
   "globalEnv": [
-    "TRPC_URL",
-    "NEXT_PUBLIC_TRPC_URL",
-    "API_URL",
-    "STORAGE_HOSTNAME",
-    "STORAGE_HOSTNAME_2",
-    "DATABASE_URL",
-    "DATABASE_PGDATABASE",
-    "DATABASE_PGHOST_UNPOOLED",
-    "DATABASE_PGUSER",
-    "DATABASE_POSTGRES_URL_NO_SSL",
-    "DATABASE_POSTGRES_HOST",
-    "DATABASE_NEON_PROJECT_ID",
     "NEXT_PUBLIC_API_URL",
-    "BETTER_AUTH_SECRET"
+    "TRPC_URL",
+    "API_URL"
   ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "lint": {
       "dependsOn": ["^lint"]
