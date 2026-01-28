@@ -3,6 +3,12 @@
   "tasks": {
     "build": {
       "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "env": [
+        "STORAGE_HOSTNAME",
+        "STORAGE_HOSTNAME_2"
+      ]
     }
   }
 }
