@@ -2,10 +2,9 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": [".next/**", "!.next/cache/**"]
-    },
-    "lint": {
+      "outputs": [".next/**", "!.next/cache/**"],
       "env": [
+        "NEXT_PUBLIC_API_URL",
         "STORAGE_HOSTNAME",
         "STORAGE_HOSTNAME_2"
       ]
