@@ -56,7 +56,7 @@ export default function Root() {
         onClick={() => signOut()}
         className="m-4 cursor-pointer rounded-full bg-red-900 p-2 px-4 text-white"
       >
-        Logout
+        Log out
       </button>
       <ListAllFolders parentId={rootFolder.id} />
       <CreateFolderButton />
