@@ -5,6 +5,7 @@
       "outputs": ["dist/**"],
       "env": [
         "BETTER_AUTH_SECRET",
+        "NODE_ENV",
         "BETTER_AUTH_URL",
         "FRONTEND_URL",
         "ARCJET_ENV",
