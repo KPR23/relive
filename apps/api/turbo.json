@@ -2,7 +2,37 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "env": [
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "FRONTEND_URL",
+        "ARCJET_ENV",
+        "ARCJET_KEY",
+        "BACKBLAZE_ENDPOINT",
+        "BACKBLAZE_REGION",
+        "BACKBLAZE_BUCKET",
+        "BACKBLAZE_KEY_ID",
+        "BACKBLAZE_ACCESS_KEY",
+        "DATABASE_POSTGRES_URL",
+        "DATABASE_POSTGRES_PRISMA_URL",
+        "DATABASE_URL_UNPOOLED",
+        "DATABASE_POSTGRES_URL_NON_POOLING",
+        "DATABASE_PGHOST",
+        "DATABASE_POSTGRES_USER",
+        "DATABASE_URL",
+        "DATABASE_POSTGRES_PASSWORD",
+        "DATABASE_POSTGRES_DATABASE",
+        "DATABASE_PGPASSWORD",
+        "DATABASE_PGDATABASE",
+        "DATABASE_PGHOST_UNPOOLED",
+        "DATABASE_PGUSER",
+        "DATABASE_POSTGRES_URL_NO_SSL",
+        "DATABASE_POSTGRES_HOST",
+        "DATABASE_NEON_PROJECT_ID",
+        "API_URL",
+        "TRPC_URL"
+      ]
     }
   }
 }
