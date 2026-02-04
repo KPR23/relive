@@ -2,6 +2,8 @@ import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import TRPCProvider from '../providers/TRPCProvider';
+import ThemeProvider from '../providers/ThemeProvider';
+import { ThemeToggle } from '../components/ThemeToggle';
 import './globals.css';
 
 const geistSans = localFont({
@@ -25,15 +27,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
-        suppressHydrationWarning
-      >
-        <TRPCProvider>
-          {children}
-          <Analytics />
-        </TRPCProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TRPCProvider>
+            {children}
+            <ThemeToggle />
+            <Analytics />
+          </TRPCProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
