@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (session.data) {
-      router.push('/home');
+      router.push('/');
     }
   }, [session.data, router]);
 
