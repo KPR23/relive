@@ -17,7 +17,7 @@ export default function Root() {
 
   if (session.isPending) {
     return (
-      <div className="flex h-screen items-center justify-center text-white">
+      <div className="flex h-screen items-center justify-center bg-white text-black dark:bg-black dark:text-white">
         Loading...
       </div>
     );
@@ -39,7 +39,7 @@ export default function Root() {
 
   if (isRootFolderLoading) {
     return (
-      <div className="flex h-screen items-center justify-center text-white">
+      <div className="flex h-screen items-center justify-center bg-white text-black dark:bg-black dark:text-white">
         Loading...
       </div>
     );
@@ -50,18 +50,42 @@ export default function Root() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-blue-800">Relive</h1>
-      <button
-        onClick={() => signOut()}
-        className="m-4 cursor-pointer rounded-full bg-red-900 p-2 px-4 text-white"
-      >
-        Log out
-      </button>
-      <ListAllFolders parentId={rootFolder.id} />
-      <CreateFolderButton />
-      <UploadButton folderId={rootFolder.id} />
-      <PhotosList folderId={rootFolder.id} />
+    <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-950 dark:text-white">
+      <div className="m-4 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-400">
+          Relive
+        </h1>
+        <button
+          onClick={() => signOut()}
+          className="h-10 cursor-pointer rounded-full bg-red-900 p-2 px-4 text-white"
+        >
+          Log out
+        </button>
+      </div>
+      <div className="m-4">
+        <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
+          Folders
+        </h2>
+        <ListAllFolders parentId={rootFolder.id} />
+      </div>
+      <div className="m-4">
+        <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
+          Create folder
+        </h2>
+        <CreateFolderButton />
+      </div>
+      <div className="m-4">
+        <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
+          Upload photos
+        </h2>
+        <UploadButton folderId={rootFolder.id} />
+      </div>
+      <div className="m-4">
+        <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
+          Photos
+        </h2>
+        <PhotosList folderId={rootFolder.id} />
+      </div>
     </div>
   );
 }
