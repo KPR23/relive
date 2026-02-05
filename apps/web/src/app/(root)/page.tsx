@@ -55,7 +55,7 @@ export default function Root() {
     <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-950 dark:text-white">
       <div className="m-4 flex items-center gap-2">
         <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-400">
-          Relive
+          Relive {session.data.user.name} ({session.data.user.email})
         </h1>
         <button
           onClick={() => signOut()}
