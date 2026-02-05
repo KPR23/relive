@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { signIn, gitHubSignIn, useSession } from '@/src/lib/auth-client';
-import Link from 'next/link';
+import { signIn, useSession } from '@/src/lib/auth-client';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
