@@ -6,6 +6,7 @@ import { Session } from './lib/types';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const cookies = request.headers.get('cookie') || '';
 
   if (
     PUBLIC_ROUTES.some(
@@ -25,7 +26,8 @@ export async function proxy(request: NextRequest) {
       `${env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
       {
         headers: {
-          cookie: request.headers.get('cookie') || '',
+          cookie: cookies,
+          'Content-Type': 'application/json',
         },
         cache: 'no-store',
       },
