@@ -164,13 +164,30 @@ export class PhotoService {
         throw new ConflictException('Photo already in this folder');
       }
 
-      await tx
-        .update(photo)
-        .set({ folderId })
-        .where(eq(photo.id, photoId));
+      await tx.update(photo).set({ folderId }).where(eq(photo.id, photoId));
 
       return {
         status: 'moved',
+      };
+    });
+  }
+
+  async removePhotoFromFolder(userId: string, photoId: string) {
+    return db.transaction(async (tx) => {
+      const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId, tx);
+      const rootFolder = await this.folderService.ensureRootFolder(userId, tx);
+
+      if (photoRecord.folderId === rootFolder.id) {
+        throw new ConflictException('Photo is already in root folder');
+      }
+      const result = await tx
+        .update(photo)
+        .set({ folderId: rootFolder.id })
+        .where(eq(photo.id, photoId))
+        .returning();
+      console.log(result);
+      return {
+        status: 'removed from folder',
       };
     });
   }

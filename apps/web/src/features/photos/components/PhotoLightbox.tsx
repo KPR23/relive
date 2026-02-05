@@ -1,7 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { useMovePhotoToFolder, usePhotoUrl } from '../hooks';
+import {
+  useMovePhotoToFolder,
+  usePhotoUrl,
+  useRemovePhotoFromFolder,
+} from '../hooks';
 import { Photo } from '../../../lib/types';
 import { useState, useRef, useEffect } from 'react';
 import { useMoveableFolders } from '../../folders/hooks';
@@ -29,6 +33,7 @@ export function PhotoLightbox({
   );
 
   const movePhotoToFolder = useMovePhotoToFolder();
+  const removePhotoFromFolder = useRemovePhotoFromFolder();
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -72,6 +77,32 @@ export function PhotoLightbox({
       >
         ✕
       </button>
+      <button
+        onClick={() => removePhotoFromFolder.mutate({ photoId: photo.photoId })}
+        disabled={removePhotoFromFolder.isPending}
+        className="cursor-pointer rounded-md bg-red-500 px-4 py-2 text-red-950 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {removePhotoFromFolder.isPending ? 'Removing...' : 'Remove from folder'}
+      </button>
+      {removePhotoFromFolder.isSuccess && (
+        <p
+          className="mt-2 text-xs text-green-600 dark:text-green-400"
+          role="status"
+          aria-live="polite"
+        >
+          Photo removed from folder successfully!
+        </p>
+      )}
+      {removePhotoFromFolder.isError && (
+        <p
+          className="mt-2 text-xs text-red-600 dark:text-red-400"
+          role="alert"
+          aria-live="assertive"
+        >
+          Failed to remove photo from folder:{' '}
+          {removePhotoFromFolder.error?.message}
+        </p>
+      )}
 
       <div
         className="absolute top-16 left-4 z-10 rounded-lg bg-white/90 p-4 backdrop-blur-sm dark:bg-gray-800/90"

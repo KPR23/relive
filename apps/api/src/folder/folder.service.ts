@@ -99,16 +99,39 @@ export class FolderService {
     return parents;
   }
 
-  async ensureRootFolder(userId: string) {
-    return db.transaction(async (tx) => {
+  async ensureRootFolder(userId: string, tx?: Tx) {
+    if (tx) {
       const [root] = await tx
         .select()
         .from(folder)
-        .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)));
+        .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)))
+        .limit(1);
 
       if (root) return root;
 
       const [created] = await tx
+        .insert(folder)
+        .values({
+          ownerId: userId,
+          name: 'My Photos',
+          isRoot: true,
+          parentId: null,
+        })
+        .returning();
+
+      return created;
+    }
+
+    return db.transaction(async (transaction) => {
+      const [root] = await transaction
+        .select()
+        .from(folder)
+        .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)))
+        .limit(1);
+
+      if (root) return root;
+
+      const [created] = await transaction
         .insert(folder)
         .values({
           ownerId: userId,

@@ -1,5 +1,6 @@
 'use client';
 
+import { usePhotoUtils } from '@/src/lib/trpc-utils';
 import { trpc } from '@/src/trpc/client';
 
 export type PhotoUploadActions = {
@@ -35,7 +36,7 @@ export function usePhotoUrl(photoId: string) {
 }
 
 export function usePhotoUploadActions(): PhotoUploadActions {
-  const utils = trpc.useUtils();
+  const utils = usePhotoUtils();
   const requestUpload = trpc.photo.requestUpload.useMutation();
   const confirmUpload = trpc.photo.confirmUpload.useMutation();
 
@@ -47,8 +48,17 @@ export function usePhotoUploadActions(): PhotoUploadActions {
 }
 
 export function useMovePhotoToFolder() {
-  const utils = trpc.useUtils();
+  const utils = usePhotoUtils();
   return trpc.photo.movePhotoToFolder.useMutation({
+    onSuccess: () => {
+      utils.photo.invalidate();
+    },
+  });
+}
+
+export function useRemovePhotoFromFolder() {
+  const utils = usePhotoUtils();
+  return trpc.photo.removePhotoFromFolder.useMutation({
     onSuccess: () => {
       utils.photo.invalidate();
     },
