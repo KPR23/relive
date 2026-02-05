@@ -8,7 +8,6 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
-
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -30,8 +29,8 @@ export const session = pgTable(
     token: text('token').notNull().unique(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
-      .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
+      .defaultNow()
       .notNull(),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
@@ -60,8 +59,8 @@ export const account = pgTable(
     password: text('password'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
-      .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
+      .defaultNow()
       .notNull(),
   },
   (table) => [index('account_userId_idx').on(table.userId)],
@@ -105,6 +104,14 @@ export const passkey = pgTable(
     index('passkey_credentialID_idx').on(table.credentialID),
   ],
 );
+
+export const jwks = pgTable('jwks', {
+  id: text('id').primaryKey(),
+  publicKey: text('public_key').notNull(),
+  privateKey: text('private_key').notNull(),
+  createdAt: timestamp('created_at').notNull(),
+  expiresAt: timestamp('expires_at'),
+});
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),

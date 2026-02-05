@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import TRPCProvider from '../providers/TRPCProvider';
 import ThemeProvider from '../providers/ThemeProvider';
+import { JWTProvider } from '../providers/JWTProvider';
 import { ThemeToggle } from '../components/ThemeToggle';
 import './globals.css';
 
@@ -36,9 +37,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCProvider>
-            {children}
-            <ThemeToggle />
-            <Analytics />
+            <JWTProvider>
+              {children}
+              <ThemeToggle />
+              <Analytics />
+            </JWTProvider>
           </TRPCProvider>
         </ThemeProvider>
       </body>

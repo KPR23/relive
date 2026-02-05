@@ -1,10 +1,11 @@
 'use client';
 
 import {
-  gitHubSignIn,
-  passkeySignIn,
+  signInWithGitHub,
+  signInWithPasskey,
   signIn,
   useSession,
+  fetchAndStoreJWT,
 } from '@/src/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -38,6 +39,7 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error.message || 'Login failed');
       } else {
+        await fetchAndStoreJWT();
         router.push('/');
       }
     } catch {
@@ -140,13 +142,13 @@ export default function LoginPage() {
         </div>
         <button
           className="bg-primary rounded-md px-4 py-2 text-white"
-          onClick={() => gitHubSignIn()}
+          onClick={() => signInWithGitHub()}
         >
           Sign in with GitHub
         </button>
         <button
           className="bg-primary rounded-md px-4 py-2 text-white"
-          onClick={() => passkeySignIn()}
+          onClick={() => signInWithPasskey()}
         >
           Sign in with passkey
         </button>

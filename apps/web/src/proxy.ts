@@ -1,8 +1,15 @@
-import { getSessionCookie } from 'better-auth/cookies';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from './env.client';
-import { LOGIN_URL, PUBLIC_ROUTES } from './lib/constants';
-import { Session } from './lib/types';
+import { JWT_COOKIE_NAME, LOGIN_URL, PUBLIC_ROUTES } from './lib/constants';
+
+let jwksCache: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getJWKS(apiUrl: string) {
+  if (!jwksCache) {
+    jwksCache = createRemoteJWKSet(new URL(`${apiUrl}/api/auth/jwks`));
+  }
+  return jwksCache;
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,35 +22,37 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const sessionCookie = getSessionCookie(request);
-  if (!sessionCookie) {
+  const jwtToken = request.cookies.get(JWT_COOKIE_NAME)?.value;
+
+  if (!jwtToken) {
     return NextResponse.redirect(new URL(LOGIN_URL, request.url));
   }
 
   try {
-    const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
-      {
-        headers: {
-          cookie: request.headers.get('cookie') || '',
-        },
-        cache: 'no-store',
-      },
-    );
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    if (!response.ok) {
-      return NextResponse.redirect(new URL(LOGIN_URL, request.url));
-    }
+    const JWKS = getJWKS(apiUrl);
 
-    const data: Session = await response.json();
+    const { payload } = await jwtVerify(jwtToken, JWKS, {
+      issuer: appUrl,
+      audience: appUrl,
+    });
 
-    if (!data.session || !data.user) {
+    if (!payload.sub) {
       return NextResponse.redirect(new URL(LOGIN_URL, request.url));
     }
 
     return NextResponse.next();
-  } catch {
-    return NextResponse.redirect(new URL(LOGIN_URL, request.url));
+  } catch (error) {
+    console.error('JWT verification failed:', error);
+
+    const response = NextResponse.redirect(new URL(LOGIN_URL, request.url));
+    response.cookies.delete(JWT_COOKIE_NAME);
+
+    jwksCache = null;
+
+    return response;
   }
 }
 
