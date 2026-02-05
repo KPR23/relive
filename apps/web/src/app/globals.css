@@ -2,6 +2,20 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-primary: #4a6fa5;
+  --color-bg: #0f172a;
+  --color-off-white: #f6f8fb;
+  --color-gray: #d9d9d9;
+  --color-white: #ffffff;
+
+  --color-text-main: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-tertiary: #94a3b8;
+}
+
 body {
   font-family: 'Geist', sans-serif;
+  color: var(--color-text-main);
+  background-color: var(--color-off-white);
 }
