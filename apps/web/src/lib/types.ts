@@ -10,3 +10,25 @@ export type PhotoFile = RequestUploadInput & {
   photoId: string;
   uploadUrl: string;
 };
+
+export interface Session {
+  session: {
+    expiresAt: string;
+    token: string;
+    createdAt: string;
+    updatedAt: string;
+    ipAddress: string;
+    userAgent: string;
+    userId: string;
+    id: string;
+  } | null;
+  user: {
+    name: string;
+    email: string;
+    emailVerified: boolean;
+    image: string;
+    createdAt: string;
+    updatedAt: string;
+    id: string;
+  } | null;
+}

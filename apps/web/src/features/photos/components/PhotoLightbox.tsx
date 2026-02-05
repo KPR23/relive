@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { usePhotoUrl } from '../hooks';
-import { Photo } from '../../types';
+import { Photo } from '../../../lib/types';
 import { useState } from 'react';
 
 interface PhotoLightboxProps {

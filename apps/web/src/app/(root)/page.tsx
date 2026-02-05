@@ -1,11 +1,12 @@
 'use client';
 
+import { AddPasskey } from '@/src/components/AddPasskey';
 import CreateFolderButton from '@/src/features/folders/components/CreateFolderButton';
 import { ListAllFolders } from '@/src/features/folders/components/ListAllFolders';
 import { useRootFolder } from '@/src/features/folders/hooks';
 import { PhotosList } from '@/src/features/photos/components/PhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
-import { signOut, useSession } from '@/src/lib/auth-client';
+import { signOut, useSession } from '@/src/lib/auth/auth-client';
 import { Icon } from '@iconify-icon/react';
 import { useRouter } from 'next/navigation';
 
@@ -62,6 +63,7 @@ export default function Root() {
         >
           Log out
         </button>
+        <AddPasskey />
       </div>
       <div className="m-4">
         <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">

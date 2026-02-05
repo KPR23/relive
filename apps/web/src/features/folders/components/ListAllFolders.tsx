@@ -1,6 +1,6 @@
 'use client';
 
-import { Folder } from '@/src/features/types';
+import { Folder } from '@/src/lib/types';
 import RemoveFolderButton from './RemoveFolderButton';
 import { useFoldersByParentId } from '../hooks';
 import Link from 'next/link';

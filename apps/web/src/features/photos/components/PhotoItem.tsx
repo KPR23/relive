@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { Photo } from '../../types';
+import { Photo } from '../../../lib/types';
 import { PhotoLightbox } from './PhotoLightbox';
 
 const ROW_HEIGHT = 120;

@@ -34,6 +34,10 @@ const envSchema = z.object({
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
 
+  // Google OAuth
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+
   // Frontend
   FRONTEND_URL: z
     .url('FRONTEND_URL must be a valid URL')
@@ -59,7 +63,9 @@ function validateEnv(): Env {
 
   if (
     (result.data.GITHUB_CLIENT_ID && !result.data.GITHUB_CLIENT_SECRET) ||
-    (!result.data.GITHUB_CLIENT_ID && result.data.GITHUB_CLIENT_SECRET)
+    (!result.data.GITHUB_CLIENT_ID && result.data.GITHUB_CLIENT_SECRET) ||
+    (result.data.GOOGLE_CLIENT_ID && !result.data.GOOGLE_CLIENT_SECRET) ||
+    (!result.data.GOOGLE_CLIENT_ID && result.data.GOOGLE_CLIENT_SECRET)
   ) {
     console.error(
       '❌ Both GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET must be set together',

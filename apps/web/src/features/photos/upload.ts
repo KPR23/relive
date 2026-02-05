@@ -1,6 +1,6 @@
 'use client';
 
-import { RequestUploadInput } from '../types';
+import { RequestUploadInput } from '../../lib/types';
 import { PhotoUploadActions } from './hooks';
 
 type UploadDeps = PhotoUploadActions & {
