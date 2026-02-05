@@ -4,6 +4,7 @@ import { AddPasskey } from '@/src/components/AddPasskey';
 import CreateFolderButton from '@/src/features/folders/components/CreateFolderButton';
 import { ListAllFolders } from '@/src/features/folders/components/ListAllFolders';
 import { useRootFolder } from '@/src/features/folders/hooks';
+import { AllPhotosList } from '@/src/features/photos/components/AllPhotosList';
 import { PhotosList } from '@/src/features/photos/components/PhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
 import { signOut, useSession } from '@/src/lib/auth/auth-client';
@@ -89,7 +90,7 @@ export default function Root() {
         <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
           Photos
         </h2>
-        <PhotosList folderId={rootFolder.id} />
+        <AllPhotosList />
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ const appRouter = t.router({
     })).output(z.array(
       z.object({
         photoId: z.string(),
+        folderId: z.string(),
         originalName: z.string(),
         createdAt: z.date(),
         takenAt: z.date().nullable(),
@@ -22,6 +23,7 @@ const appRouter = t.router({
     listAllPhotos: publicProcedure.output(z.array(
       z.object({
         photoId: z.string(),
+        folderId: z.string(),
         originalName: z.string(),
         createdAt: z.date(),
         takenAt: z.date().nullable(),
@@ -38,6 +40,9 @@ const appRouter = t.router({
       signedUrl: z.string(),
       expiresAt: z.date(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    movePhotoToFolder: publicProcedure.input(z.object({ photoId: z.string(), folderId: z.string() })).output(z.object({
+      status: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     requestUpload: publicProcedure.input(z.object({
       folderId: z.uuid(),
       mimeType: z.string(),
@@ -115,6 +120,25 @@ const appRouter = t.router({
         z.date(),
       ),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getMoveableFolders: publicProcedure.input(z
+      .object({ currentFolderId: z.string().optional() })
+      .optional()
+      .default({})).output(z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string().nullable(),
+        ownerId: z.string(),
+        parentId: z.string().nullable(),
+        isRoot: z.boolean(),
+        createdAt: z.preprocess(
+          (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+          z.date(),
+        ),
+        updatedAt: z.preprocess(
+          (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+          z.date(),
+        ),
+      }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createFolder: publicProcedure.input(z.object({
       name: z.string(),
       description: z.string().optional().nullable(),

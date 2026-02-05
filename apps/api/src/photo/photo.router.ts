@@ -31,6 +31,7 @@ export class PhotoRouter {
     output: z.array(
       z.object({
         photoId: z.string(),
+        folderId: z.string(),
         originalName: z.string(),
         createdAt: z.date(),
         takenAt: z.date().nullable(),
@@ -51,6 +52,7 @@ export class PhotoRouter {
     output: z.array(
       z.object({
         photoId: z.string(),
+        folderId: z.string(),
         originalName: z.string(),
         createdAt: z.date(),
         takenAt: z.date().nullable(),
@@ -90,6 +92,23 @@ export class PhotoRouter {
     @Input() data: { photoId: string },
   ) {
     return this.photoService.getPhotoUrl(ctx.user.id, data.photoId);
+  }
+
+  @Mutation({
+    input: z.object({ photoId: z.string(), folderId: z.string() }),
+    output: z.object({
+      status: z.string(),
+    }),
+  })
+  async movePhotoToFolder(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: { photoId: string; folderId: string },
+  ) {
+    return this.photoService.movePhotoToFolder(
+      _ctx.user.id,
+      data.photoId,
+      data.folderId,
+    );
   }
 
   @Mutation({

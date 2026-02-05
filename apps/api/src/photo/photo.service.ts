@@ -6,7 +6,7 @@ import {
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
-import { FolderService } from '../folder/folder.service.js';
+import { FolderService, Tx } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
 import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
@@ -155,8 +155,29 @@ export class PhotoService {
     return this.storage.getSignedUrl(photoRecord.filePath, 60 * 60);
   }
 
-  private async getReadyPhotoOrThrow(userId: string, photoId: string) {
-    const [photoRecord] = await db
+  async movePhotoToFolder(userId: string, photoId: string, folderId: string) {
+    return db.transaction(async (tx) => {
+      const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId, tx);
+      await this.folderService.getOwnedFolderOrThrow(userId, folderId, tx);
+
+      if (photoRecord.folderId === folderId) {
+        throw new ConflictException('Photo already in this folder');
+      }
+
+      await tx
+        .update(photo)
+        .set({ folderId })
+        .where(eq(photo.id, photoId));
+
+      return {
+        status: 'moved',
+      };
+    });
+  }
+
+  private async getReadyPhotoOrThrow(userId: string, photoId: string, tx?: Tx) {
+    const client = tx ?? db;
+    const [photoRecord] = await client
       .select()
       .from(photo)
       .where(
@@ -191,6 +212,7 @@ export class PhotoService {
 
         return {
           photoId: photo.id,
+          folderId: photo.folderId,
           originalName: photo.originalName,
           createdAt: photo.createdAt,
           takenAt: photo.takenAt,

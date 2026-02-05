@@ -18,6 +18,13 @@ export function usePhotos(folderId: string) {
   );
 }
 
+export function useAllPhotos() {
+  return trpc.photo.listAllPhotos.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+  });
+}
+
 export function usePhotoUrl(photoId: string) {
   return trpc.photo.getPhotoUrl.useQuery(
     { photoId },
@@ -28,13 +35,22 @@ export function usePhotoUrl(photoId: string) {
 }
 
 export function usePhotoUploadActions(): PhotoUploadActions {
+  const utils = trpc.useUtils();
   const requestUpload = trpc.photo.requestUpload.useMutation();
   const confirmUpload = trpc.photo.confirmUpload.useMutation();
-  const utils = trpc.useUtils();
 
   return {
     requestUpload,
     confirmUpload,
     utils,
   };
+}
+
+export function useMovePhotoToFolder() {
+  const utils = trpc.useUtils();
+  return trpc.photo.movePhotoToFolder.useMutation({
+    onSuccess: () => {
+      utils.photo.invalidate();
+    },
+  });
 }

@@ -27,6 +27,19 @@ export function useAllParentsForFolder(folderId: string) {
   });
 }
 
+export function useMoveableFolders(
+  currentFolderId?: string,
+  options?: { enabled?: boolean },
+) {
+  return trpc.folder.getMoveableFolders.useQuery(
+    { currentFolderId: currentFolderId },
+    {
+      staleTime: 0,
+      ...options,
+    },
+  );
+}
+
 export function useCreateFolder() {
   const utils = trpc.useUtils();
   return trpc.folder.createFolder.useMutation({
