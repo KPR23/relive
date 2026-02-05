@@ -1,5 +1,6 @@
 'use client';
 
+import { usePhotoUtils } from '@/src/lib/trpc-utils';
 import { trpc } from '@/src/trpc/client';
 
 export function useRootFolder(
@@ -27,8 +28,21 @@ export function useAllParentsForFolder(folderId: string) {
   });
 }
 
+export function useMoveableFolders(
+  currentFolderId?: string,
+  options?: { enabled?: boolean },
+) {
+  return trpc.folder.getMoveableFolders.useQuery(
+    { currentFolderId: currentFolderId },
+    {
+      staleTime: 0,
+      ...options,
+    },
+  );
+}
+
 export function useCreateFolder() {
-  const utils = trpc.useUtils();
+  const utils = usePhotoUtils();
   return trpc.folder.createFolder.useMutation({
     onSuccess: () => {
       utils.folder.invalidate();
@@ -37,7 +51,7 @@ export function useCreateFolder() {
 }
 
 export function useDeleteFolder() {
-  const utils = trpc.useUtils();
+  const utils = usePhotoUtils();
   return trpc.folder.deleteFolder.useMutation({
     onSuccess: () => {
       utils.folder.invalidate();

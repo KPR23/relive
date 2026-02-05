@@ -1,0 +1,19 @@
+'use client';
+import { useAllPhotos } from '../hooks';
+import { PhotoItem } from './PhotoItem';
+
+export const AllPhotosList = () => {
+  const { data, isLoading, error } = useAllPhotos();
+
+  if (isLoading) return <p>Loading…</p>;
+  if (error) return <p>{error.message}</p>;
+  if (!data || data.length === 0) return <p>No photos found</p>;
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {data.map((photo) => (
+        <PhotoItem key={photo.photoId} photo={photo} />
+      ))}
+    </div>
+  );
+};

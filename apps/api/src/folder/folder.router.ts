@@ -61,6 +61,23 @@ export class FolderRouter {
     );
   }
 
+  @Query({
+    input: z
+      .object({ currentFolderId: z.string().optional() })
+      .optional()
+      .default({}),
+    output: z.array(folderSchema),
+  })
+  async getMoveableFolders(
+    @Ctx() _ctx: AuthContext,
+    @Input() data?: { currentFolderId?: string },
+  ) {
+    return this.folderService.getMoveableFolders(
+      _ctx.user.id,
+      data?.currentFolderId,
+    );
+  }
+
   @Mutation({
     input: createFolderSchema,
     output: folderSchema,

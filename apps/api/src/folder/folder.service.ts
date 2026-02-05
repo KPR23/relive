@@ -5,12 +5,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { folder } from '../db/schema.js';
 import { CreateFolderSchema, Folder } from './folder.schema.js';
 
-type Tx = Parameters<typeof db.transaction>[0] extends (tx: infer T) => any
+export type Tx = Parameters<typeof db.transaction>[0] extends (
+  tx: infer T,
+) => any
   ? T
   : never;
 @Injectable()
@@ -41,6 +43,21 @@ export class FolderService {
     return client.select().from(folder).where(eq(folder.ownerId, userId));
   }
 
+  async getMoveableFolders(userId: string, currentFolderId?: string, tx?: Tx) {
+    const client = tx ?? db;
+    const conditions = [eq(folder.ownerId, userId), eq(folder.isRoot, false)];
+
+    if (currentFolderId) {
+      conditions.push(ne(folder.id, currentFolderId));
+    }
+
+    return client
+      .select()
+      .from(folder)
+      .where(and(...conditions))
+      .orderBy(folder.name);
+  }
+
   async getParent(userId: string, folder: Folder, tx?: Tx) {
     if (!folder.parentId) {
       return null;
@@ -68,6 +85,7 @@ export class FolderService {
 
     const parents: Folder[] = [];
     let current = folderRecord;
+    parents.push(current);
     while (current.parentId) {
       const parentFolder = await this.getOwnedFolderOrThrow(
         userId,
@@ -81,16 +99,39 @@ export class FolderService {
     return parents;
   }
 
-  async ensureRootFolder(userId: string) {
-    return db.transaction(async (tx) => {
+  async ensureRootFolder(userId: string, tx?: Tx) {
+    if (tx) {
       const [root] = await tx
         .select()
         .from(folder)
-        .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)));
+        .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)))
+        .limit(1);
 
       if (root) return root;
 
       const [created] = await tx
+        .insert(folder)
+        .values({
+          ownerId: userId,
+          name: 'My Photos',
+          isRoot: true,
+          parentId: null,
+        })
+        .returning();
+
+      return created;
+    }
+
+    return db.transaction(async (transaction) => {
+      const [root] = await transaction
+        .select()
+        .from(folder)
+        .where(and(eq(folder.ownerId, userId), eq(folder.isRoot, true)))
+        .limit(1);
+
+      if (root) return root;
+
+      const [created] = await transaction
         .insert(folder)
         .values({
           ownerId: userId,
