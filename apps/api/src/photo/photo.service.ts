@@ -165,10 +165,6 @@ export class PhotoService {
       }
 
       await tx.update(photo).set({ folderId }).where(eq(photo.id, photoId));
-
-      return {
-        status: 'moved',
-      };
     });
   }
 
@@ -180,15 +176,12 @@ export class PhotoService {
       if (photoRecord.folderId === rootFolder.id) {
         throw new ConflictException('Photo is already in root folder');
       }
-      const result = await tx
+
+      await tx
         .update(photo)
         .set({ folderId: rootFolder.id })
         .where(eq(photo.id, photoId))
         .returning();
-      console.log(result);
-      return {
-        status: 'removed from folder',
-      };
     });
   }
 

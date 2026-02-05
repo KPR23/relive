@@ -96,9 +96,6 @@ export class PhotoRouter {
 
   @Mutation({
     input: z.object({ photoId: z.string(), folderId: z.string() }),
-    output: z.object({
-      status: z.string(),
-    }),
   })
   async movePhotoToFolder(
     @Ctx() _ctx: AuthContext,
@@ -113,9 +110,6 @@ export class PhotoRouter {
 
   @Mutation({
     input: z.object({ photoId: z.string() }),
-    output: z.object({
-      status: z.string(),
-    }),
   })
   async removePhotoFromFolder(
     @Ctx() _ctx: AuthContext,

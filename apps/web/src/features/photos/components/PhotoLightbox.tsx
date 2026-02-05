@@ -1,14 +1,14 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+import { Photo } from '../../../lib/types';
+import { useMoveableFolders } from '../../folders/hooks';
 import {
   useMovePhotoToFolder,
   usePhotoUrl,
   useRemovePhotoFromFolder,
 } from '../hooks';
-import { Photo } from '../../../lib/types';
-import { useState, useRef, useEffect } from 'react';
-import { useMoveableFolders } from '../../folders/hooks';
 
 interface PhotoLightboxProps {
   photo: Photo;
@@ -56,7 +56,7 @@ export function PhotoLightbox({
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [movePhotoToFolder.isSuccess, movePhotoToFolder.reset]);
+  }, [movePhotoToFolder]);
 
   return (
     <div

@@ -5,7 +5,6 @@ import CreateFolderButton from '@/src/features/folders/components/CreateFolderBu
 import { ListAllFolders } from '@/src/features/folders/components/ListAllFolders';
 import { useRootFolder } from '@/src/features/folders/hooks';
 import { AllPhotosList } from '@/src/features/photos/components/AllPhotosList';
-import { PhotosList } from '@/src/features/photos/components/PhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
 import { signOut, useSession } from '@/src/lib/auth/auth-client';
 import { Icon } from '@iconify-icon/react';

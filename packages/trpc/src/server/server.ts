@@ -40,12 +40,8 @@ const appRouter = t.router({
       signedUrl: z.string(),
       expiresAt: z.date(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    movePhotoToFolder: publicProcedure.input(z.object({ photoId: z.string(), folderId: z.string() })).output(z.object({
-      status: z.string(),
-    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    removePhotoFromFolder: publicProcedure.input(z.object({ photoId: z.string() })).output(z.object({
-      status: z.string(),
-    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    movePhotoToFolder: publicProcedure.input(z.object({ photoId: z.string(), folderId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    removePhotoFromFolder: publicProcedure.input(z.object({ photoId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     requestUpload: publicProcedure.input(z.object({
       folderId: z.uuid(),
       mimeType: z.string(),
