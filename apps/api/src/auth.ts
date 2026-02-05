@@ -18,14 +18,14 @@ export const auth = betterAuth({
     minPasswordLength: 8,
   },
   plugins: [passkey()],
-  trustedOrigins: [env.FRONTEND_URL],
-  ...(env.GITHUB_CLIENT_ID &&
-    env.GITHUB_CLIENT_SECRET && {
-      socialProviders: {
-        github: {
-          clientId: env.GITHUB_CLIENT_ID,
-          clientSecret: env.GITHUB_CLIENT_SECRET,
-        },
-      },
-    }),
+  socialProviders: {
+    github: {
+      clientId: env.GITHUB_CLIENT_ID as string,
+      clientSecret: env.GITHUB_CLIENT_SECRET as string,
+    },
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID as string,
+      clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
 });

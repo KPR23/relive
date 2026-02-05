@@ -17,6 +17,12 @@ export const signInWithGitHub = async () => {
   });
 };
 
+export const signInWithGoogle = async () => {
+  await authClient.signIn.social({
+    provider: 'google',
+  });
+};
+
 export async function addPasskey() {
   const { data, error } = await authClient.passkey.addPasskey({
     name: 'Relive Passkey',

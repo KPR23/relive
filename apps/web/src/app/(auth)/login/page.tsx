@@ -5,6 +5,7 @@ import {
   signInWithPasskey,
   signIn,
   useSession,
+  signInWithGoogle,
 } from '@/src/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -143,6 +144,12 @@ export default function LoginPage() {
           onClick={() => signInWithGitHub()}
         >
           Sign in with GitHub
+        </button>
+        <button
+          className="bg-primary rounded-md px-4 py-2 text-blue-500"
+          onClick={() => signInWithGoogle()}
+        >
+          Sign in with Google
         </button>
         <button
           className="bg-primary rounded-md px-4 py-2 text-white"
