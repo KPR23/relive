@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signUp } from '@/src/lib/auth-client';
+import { signUp } from '@/src/lib/auth/auth-client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 

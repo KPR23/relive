@@ -1,6 +1,11 @@
 'use client';
 
-import { signIn, useSession } from '@/src/lib/auth-client';
+import {
+  gitHubSignIn,
+  passkeySignIn,
+  signIn,
+  useSession,
+} from '@/src/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -133,6 +138,18 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+        <button
+          className="bg-primary rounded-md px-4 py-2 text-white"
+          onClick={() => gitHubSignIn()}
+        >
+          Sign in with github
+        </button>
+        <button
+          className="bg-primary rounded-md px-4 py-2 text-white"
+          onClick={() => passkeySignIn()}
+        >
+          Sign in with passkey
+        </button>
       </div>
       <div className="bg-text-main rounded-xl">2</div>
     </div>

@@ -1,7 +1,6 @@
-import { getCookieCache } from 'better-auth/cookies';
-import { headers } from 'next/headers';
+import { getSessionCookie } from 'better-auth/cookies';
 import { NextRequest, NextResponse } from 'next/server';
-import { authClient } from './lib/auth-client';
+import { authClient } from './lib/auth/auth-client';
 import { LOGIN_URL, PUBLIC_ROUTES } from './lib/constants';
 
 export async function proxy(request: NextRequest) {
@@ -11,32 +10,29 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const cookieCache = await getCookieCache(request, {
-    cookiePrefix: 'relive',
-  });
+  const sessionCookie = getSessionCookie(request);
 
-  if (!cookieCache) {
-    return NextResponse.redirect(new URL(LOGIN_URL, request.url));
-  }
+  if (!sessionCookie) {
+    try {
+      const { data: session } = await authClient.getSession({
+        fetchOptions: {
+          headers: Object.fromEntries(request.headers),
+        },
+      });
 
-  try {
-    const session = await authClient.getSession({
-      fetchOptions: {
-        headers: await headers(),
-      },
-    });
+      if (!session) {
+        return NextResponse.redirect(new URL(LOGIN_URL, request.url));
+      }
 
-    if (!session) {
+      return NextResponse.next();
+    } catch {
       return NextResponse.redirect(new URL(LOGIN_URL, request.url));
     }
-
-    return NextResponse.next();
-  } catch (error) {
-    console.warn('⚠️ Session verification failed:', error);
-    return NextResponse.redirect(new URL(LOGIN_URL, request.url));
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/', '/f/:folderId'],
+  matcher: ['/', '/folder/:path*'],
 };
