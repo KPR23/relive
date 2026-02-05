@@ -142,7 +142,7 @@ export default function LoginPage() {
           className="bg-primary rounded-md px-4 py-2 text-white"
           onClick={() => gitHubSignIn()}
         >
-          Sign in with github
+          Sign in with GitHub
         </button>
         <button
           className="bg-primary rounded-md px-4 py-2 text-white"

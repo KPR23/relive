@@ -63,7 +63,6 @@ export default function Root() {
         >
           Log out
         </button>
-        Dodaj passkey
         <AddPasskey />
       </div>
       <div className="m-4">

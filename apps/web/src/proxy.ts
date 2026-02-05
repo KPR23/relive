@@ -13,24 +13,24 @@ export async function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
 
   if (!sessionCookie) {
-    try {
-      const { data: session } = await authClient.getSession({
-        fetchOptions: {
-          headers: Object.fromEntries(request.headers),
-        },
-      });
-
-      if (!session) {
-        return NextResponse.redirect(new URL(LOGIN_URL, request.url));
-      }
-
-      return NextResponse.next();
-    } catch {
-      return NextResponse.redirect(new URL(LOGIN_URL, request.url));
-    }
+    return NextResponse.redirect(new URL(LOGIN_URL, request.url));
   }
 
-  return NextResponse.next();
+  try {
+    const { data: session } = await authClient.getSession({
+      fetchOptions: {
+        headers: Object.fromEntries(request.headers),
+      },
+    });
+
+    if (!session) {
+      return NextResponse.redirect(new URL(LOGIN_URL, request.url));
+    }
+
+    return NextResponse.next();
+  } catch {
+    return NextResponse.redirect(new URL(LOGIN_URL, request.url));
+  }
 }
 
 export const config = {
