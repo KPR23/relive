@@ -91,12 +91,12 @@ export const passkey = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
-    credentialID: text('credential_id').notNull(),
+    credentialID: text('credential_id').notNull().unique(),
     counter: integer('counter').notNull(),
     deviceType: text('device_type').notNull(),
     backedUp: boolean('backed_up').notNull(),
     transports: text('transports'),
-    createdAt: timestamp('created_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
     aaguid: text('aaguid'),
   },
   (table) => [
@@ -117,6 +117,8 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   passkeys: many(passkey),
+  folders: many(folder),
+  photos: many(photo),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

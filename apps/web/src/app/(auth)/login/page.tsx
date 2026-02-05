@@ -5,7 +5,6 @@ import {
   signInWithPasskey,
   signIn,
   useSession,
-  fetchAndStoreJWT,
 } from '@/src/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -39,7 +38,6 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error.message || 'Login failed');
       } else {
-        await fetchAndStoreJWT();
         router.push('/');
       }
     } catch {

@@ -1,7 +1,6 @@
 import { passkey } from '@better-auth/passkey';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { jwt } from 'better-auth/plugins';
 import { db } from './db/index.js';
 import * as schema from './db/schema.js';
 import { env } from './env.server.js';
@@ -18,7 +17,7 @@ export const auth = betterAuth({
     // requireEmailVerification: true,
     minPasswordLength: 8,
   },
-  plugins: [passkey(), jwt()],
+  plugins: [passkey()],
   trustedOrigins: [env.FRONTEND_URL],
   ...(env.GITHUB_CLIENT_ID &&
     env.GITHUB_CLIENT_SECRET && {

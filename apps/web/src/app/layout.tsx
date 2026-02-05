@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import TRPCProvider from '../providers/TRPCProvider';
 import ThemeProvider from '../providers/ThemeProvider';
-import { JWTProvider } from '../providers/JWTProvider';
 import { ThemeToggle } from '../components/ThemeToggle';
 import './globals.css';
 
@@ -29,7 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        suppressHydrationWarning
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -37,11 +39,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCProvider>
-            <JWTProvider>
-              {children}
-              <ThemeToggle />
-              <Analytics />
-            </JWTProvider>
+            {children}
+            <ThemeToggle />
+            <Analytics />
           </TRPCProvider>
         </ThemeProvider>
       </body>
