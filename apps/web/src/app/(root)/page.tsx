@@ -6,6 +6,7 @@ import { useRootFolder } from '@/src/features/folders/hooks';
 import { PhotosList } from '@/src/features/photos/components/PhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
 import { signOut, useSession } from '@/src/lib/auth-client';
+import { Icon } from '@iconify-icon/react';
 import { useRouter } from 'next/navigation';
 
 export default function Root() {
@@ -66,6 +67,8 @@ export default function Root() {
         <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
           Folders
         </h2>
+        <Icon icon="solar:gallery-bold" width="24" height="24" />{' '}
+        <Icon icon="solar:gallery-wide-linear" width="24" height="24" />
         <ListAllFolders parentId={rootFolder.id} />
       </div>
       <div className="m-4">
