@@ -7,7 +7,11 @@ import { Session } from './lib/types';
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_ROUTES.includes(pathname)) {
+  if (
+    PUBLIC_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
+  ) {
     return NextResponse.next();
   }
 
@@ -23,6 +27,7 @@ export async function proxy(request: NextRequest) {
         headers: {
           cookie: request.headers.get('cookie') || '',
         },
+        cache: 'no-store',
       },
     );
 
