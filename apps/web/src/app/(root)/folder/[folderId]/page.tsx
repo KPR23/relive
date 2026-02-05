@@ -2,7 +2,7 @@ import CreateFolderButton from '@/src/features/folders/components/CreateFolderBu
 import { ListAllFolders } from '@/src/features/folders/components/ListAllFolders';
 import { PhotosList } from '@/src/features/photos/components/PhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
-import { Breadcrumbs } from '@/src/lib/components/breadcrumbs';
+import { Breadcrumbs } from '@/src/components/breadcrumbs';
 import Link from 'next/link';
 
 export default async function FolderPage(props: {

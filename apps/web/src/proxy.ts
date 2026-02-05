@@ -1,31 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { getCookieCache } from 'better-auth/cookies';
 import { headers } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 import { authClient } from './lib/auth-client';
+import { LOGIN_URL, PUBLIC_ROUTES } from './lib/constants';
 
 export async function proxy(request: NextRequest) {
-  let session = null;
+  const { pathname } = request.nextUrl;
+
+  if (PUBLIC_ROUTES.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  const cookieCache = await getCookieCache(request, {
+    cookiePrefix: 'relive',
+  });
+
+  if (!cookieCache) {
+    return NextResponse.redirect(new URL(LOGIN_URL, request.url));
+  }
 
   try {
-    const response = await authClient.getSession({
+    const session = await authClient.getSession({
       fetchOptions: {
         headers: await headers(),
       },
     });
-    session = response;
+
+    if (!session) {
+      return NextResponse.redirect(new URL(LOGIN_URL, request.url));
+    }
+
+    return NextResponse.next();
   } catch (error) {
-    console.warn(
-      '⚠️ Backend connection failed in proxy:',
-      error instanceof Error ? error.message : error,
-    );
+    console.warn('⚠️ Session verification failed:', error);
+    return NextResponse.redirect(new URL(LOGIN_URL, request.url));
   }
-
-  if (!session) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/home', '/f/:folderId'],
+  matcher: ['/', '/f/:folderId'],
 };
