@@ -1,7 +1,8 @@
 import { getSessionCookie } from 'better-auth/cookies';
 import { NextRequest, NextResponse } from 'next/server';
-import { authClient } from './lib/auth/auth-client';
+import { env } from './env.client';
 import { LOGIN_URL, PUBLIC_ROUTES } from './lib/constants';
+import { Session } from './lib/types';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,19 +12,27 @@ export async function proxy(request: NextRequest) {
   }
 
   const sessionCookie = getSessionCookie(request);
-
   if (!sessionCookie) {
     return NextResponse.redirect(new URL(LOGIN_URL, request.url));
   }
 
   try {
-    const { data: session } = await authClient.getSession({
-      fetchOptions: {
-        headers: Object.fromEntries(request.headers),
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
+      {
+        headers: {
+          cookie: request.headers.get('cookie') || '',
+        },
       },
-    });
+    );
 
-    if (!session) {
+    if (!response.ok) {
+      return NextResponse.redirect(new URL(LOGIN_URL, request.url));
+    }
+
+    const data: Session = await response.json();
+
+    if (!data.session || !data.user) {
       return NextResponse.redirect(new URL(LOGIN_URL, request.url));
     }
 
