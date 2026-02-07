@@ -8,11 +8,7 @@ import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
 import { FolderService, Tx } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
-import {
-  ConfirmUploadPhoto,
-  CreatePendingPhoto,
-  Photo,
-} from './photo.schema.js';
+import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoService {
