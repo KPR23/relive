@@ -27,7 +27,10 @@ export async function startUpload({
 
   await uploadWithProgress(uploadUrl, photo, onProgress);
 
-  await confirmUpload.mutateAsync({ photoId });
+  const confirmResult = await confirmUpload.mutateAsync({ photoId });
+  if (confirmResult.status !== 'READY') {
+    throw new Error('Upload confirmation failed');
+  }
 
   await utils.photo.listPhotosForFolder.invalidate({ folderId });
   await utils.photo.listAllPhotos.invalidate();

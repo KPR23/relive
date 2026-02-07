@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, lt } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
 import { FolderService, Tx } from '../folder/folder.service.js';
@@ -42,15 +42,17 @@ export class PhotoService {
       const [photoRecord] = await tx
         .select()
         .from(photo)
-        .where(and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)))
+        .where(
+          and(
+            eq(photo.id, data.photoId),
+            eq(photo.ownerId, data.ownerId),
+            eq(photo.status, PhotoStatusEnum.PENDING),
+          ),
+        )
         .limit(1);
 
       if (!photoRecord) {
         throw new NotFoundException('Photo not found');
-      }
-
-      if (photoRecord.status !== PhotoStatusEnum.PENDING) {
-        throw new ConflictException('Photo not pending');
       }
 
       const thumbPath = `photos/${photoRecord.ownerId}/${photoRecord.id}_thumb.jpg`;
@@ -234,5 +236,47 @@ export class PhotoService {
     );
 
     return photosWithThumbnails;
+  }
+
+  async cleanupFailedAndPendingPhotos(): Promise<void> {
+    const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const photosToDelete = await db
+      .update(photo)
+      .set({ status: PhotoStatusEnum.DELETING })
+      .where(
+        and(
+          inArray(photo.status, [
+            PhotoStatusEnum.FAILED,
+            PhotoStatusEnum.PENDING,
+          ]),
+          lt(photo.createdAt, cutoffDate),
+        ),
+      )
+      .returning({
+        id: photo.id,
+        filePath: photo.filePath,
+        thumbPath: photo.thumbPath,
+      });
+
+    if (photosToDelete.length === 0) return;
+
+    const keysToDelete = photosToDelete.flatMap((p) => [
+      p.filePath,
+      ...(p.thumbPath ? [p.thumbPath] : []),
+    ]);
+
+    try {
+      await this.storage.deleteMany(keysToDelete);
+
+      await db.delete(photo).where(
+        inArray(
+          photo.id,
+          photosToDelete.map((p) => p.id),
+        ),
+      );
+    } catch (err) {
+      console.error('Failed to delete photos', err);
+    }
   }
 }

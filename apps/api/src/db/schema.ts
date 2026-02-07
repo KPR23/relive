@@ -168,6 +168,7 @@ export const PhotoStatusEnum = {
   PENDING: 'PENDING',
   READY: 'READY',
   FAILED: 'FAILED',
+  DELETING: 'DELETING',
 } as const;
 
 export type PhotoStatus =
@@ -177,6 +178,7 @@ export const photoStatus = pgEnum('photo_status', [
   PhotoStatusEnum.PENDING,
   PhotoStatusEnum.READY,
   PhotoStatusEnum.FAILED,
+  PhotoStatusEnum.DELETING,
 ]);
 
 export const photo = pgTable(
