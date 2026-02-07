@@ -8,5 +8,7 @@ import { B2Storage } from '../storage/b2.storage.js';
 @Module({
   imports: [FolderModule],
   providers: [PhotoService, PhotoRouter, AuthMiddleware, B2Storage],
+
+  exports: [PhotoService],
 })
 export class PhotoModule {}

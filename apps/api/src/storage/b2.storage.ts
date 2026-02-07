@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -45,6 +46,18 @@ export class B2Storage {
       new DeleteObjectCommand({
         Bucket: this.bucket,
         Key: key,
+      }),
+    );
+  }
+
+  async deleteMany(keys: string[]): Promise<void> {
+    await this.client.send(
+      new DeleteObjectsCommand({
+        Bucket: this.bucket,
+        Delete: {
+          Objects: keys.map((key) => ({ Key: key })),
+          Quiet: true,
+        },
       }),
     );
   }

@@ -46,6 +46,9 @@ const envSchema = z.object({
 
   // Server
   PORT: z.coerce.number().optional().default(8000),
+
+  // Cleanup
+  CRON_SECRET: z.string().min(1, 'CRON_SECRET is required'),
 });
 
 export type Env = z.infer<typeof envSchema>;
