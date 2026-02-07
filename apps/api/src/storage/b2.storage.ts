@@ -50,16 +50,36 @@ export class B2Storage {
     );
   }
 
+  private static readonly DELETE_BATCH_SIZE = 1000;
+
   async deleteMany(keys: string[]): Promise<void> {
-    await this.client.send(
-      new DeleteObjectsCommand({
-        Bucket: this.bucket,
-        Delete: {
-          Objects: keys.map((key) => ({ Key: key })),
-          Quiet: true,
-        },
-      }),
-    );
+    if (keys.length === 0) return;
+
+    for (let i = 0; i < keys.length; i += B2Storage.DELETE_BATCH_SIZE) {
+      const batch = keys.slice(i, i + B2Storage.DELETE_BATCH_SIZE);
+      const response = await this.client.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucket,
+          Delete: {
+            Objects: batch.map((key) => ({ Key: key })),
+            Quiet: true,
+          },
+        }),
+      );
+
+      const errors = response.Errors ?? [];
+      if (errors.length > 0) {
+        const details = errors
+          .map(
+            (e) =>
+              `${e.Key ?? 'unknown'}: ${e.Code ?? ''} ${e.Message ?? ''}`.trim(),
+          )
+          .join('; ');
+        throw new Error(
+          `B2 deleteObjects failed for ${errors.length} object(s): ${details}`,
+        );
+      }
+    }
   }
 
   async downloadStream(key: string): Promise<Readable> {

@@ -266,13 +266,17 @@ export class PhotoService {
       ...(p.thumbPath ? [p.thumbPath] : []),
     ]);
 
-    await this.storage.deleteMany(keysToDelete);
+    try {
+      await this.storage.deleteMany(keysToDelete);
 
-    await db.delete(photo).where(
-      inArray(
-        photo.id,
-        photosToDelete.map((p) => p.id),
-      ),
-    );
+      await db.delete(photo).where(
+        inArray(
+          photo.id,
+          photosToDelete.map((p) => p.id),
+        ),
+      );
+    } catch (err) {
+      console.error('Failed to delete photos', err);
+    }
   }
 }
