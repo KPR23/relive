@@ -3,7 +3,7 @@ import { asDate, asNumber, asString } from '../helpers/helpers.js';
 import { ExifSchema } from './photo.schema.js';
 
 export async function getExif(buffer: Buffer): Promise<ExifSchema | undefined> {
-  const raw = await exifr.parse(buffer, {
+  const parsed = (await exifr.parse(buffer, {
     tiff: true,
     exif: true,
     gps: true,
@@ -11,11 +11,11 @@ export async function getExif(buffer: Buffer): Promise<ExifSchema | undefined> {
     ifd1: true,
     makerNote: true,
     mergeOutput: true,
-  });
+  })) as unknown;
 
-  if (!raw || typeof raw !== 'object') return undefined;
+  if (!parsed || typeof parsed !== 'object') return undefined;
 
-  const r = raw as Record<string, unknown>;
+  const r = parsed as Record<string, unknown>;
 
   const iso =
     typeof r.ISO === 'number'

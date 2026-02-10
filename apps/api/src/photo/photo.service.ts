@@ -8,7 +8,11 @@ import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
 import { FolderService, Tx } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
-import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema.js';
+import {
+  type PhotoListItem,
+  ConfirmUploadPhoto,
+  CreatePendingPhoto,
+} from './photo.schema.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoService {
@@ -220,7 +224,9 @@ export class PhotoService {
     return photoRecord;
   }
 
-  private async mapPhotosToResponse(photos: (typeof photo.$inferSelect)[]) {
+  private async mapPhotosToResponse(
+    photos: (typeof photo.$inferSelect)[],
+  ): Promise<PhotoListItem[]> {
     const photosWithThumbnails = await Promise.all(
       photos.map(async (photo) => {
         if (!photo.thumbPath) {

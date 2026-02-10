@@ -19,13 +19,12 @@ export class B2Storage {
   private bucket: string;
 
   constructor() {
-    this.bucket = env.BACKBLAZE_BUCKET;
+    this.bucket = env.AWS_BUCKET;
     this.client = new S3Client({
-      region: env.BACKBLAZE_REGION,
-      endpoint: env.BACKBLAZE_ENDPOINT,
+      region: env.AWS_REGION,
       credentials: {
-        accessKeyId: env.BACKBLAZE_KEY_ID,
-        secretAccessKey: env.BACKBLAZE_ACCESS_KEY,
+        accessKeyId: env.AWS_KEY_ID,
+        secretAccessKey: env.AWS_ACCESS_KEY,
       },
     });
   }
