@@ -22,7 +22,7 @@ const envSchema = z.object({
   AWS_REGION: z.string().min(1, 'AWS_REGION is required'),
   AWS_BUCKET: z.string().min(1, 'AWS_BUCKET is required'),
   AWS_KEY_ID: z.string().min(1, 'AWS_KEY_ID is required'),
-  AWS_ACCESS_KEY: z.string().min(1, 'AWS_ACCESS_KEY is required'),
+  AWS_BUCKET_ACCESS_KEY: z.string().min(1, 'AWS_BUCKET_ACCESS_KEY is required'),
 
   // Better Auth
   BETTER_AUTH_SECRET: z
