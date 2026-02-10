@@ -1,7 +1,7 @@
 import z from 'zod';
 
 export function asNumber(v: unknown): number | undefined {
-  return typeof v === 'number' ? v : undefined;
+  return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
 }
 
 export function asString(v: unknown): string | undefined {
