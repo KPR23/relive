@@ -3,15 +3,20 @@ import { asDate, asNumber, asString } from '../helpers/helpers.js';
 import { ExifSchema } from './photo.schema.js';
 
 export async function getExif(buffer: Buffer): Promise<ExifSchema | undefined> {
-  const parsed = (await exifr.parse(buffer, {
-    tiff: true,
-    exif: true,
-    gps: true,
-    xmp: true,
-    ifd1: true,
-    makerNote: true,
-    mergeOutput: true,
-  })) as unknown;
+  let parsed: unknown;
+  try {
+    parsed = await exifr.parse(buffer, {
+      tiff: true,
+      exif: true,
+      gps: true,
+      xmp: true,
+      ifd1: true,
+      makerNote: true,
+      mergeOutput: true,
+    });
+  } catch {
+    return undefined;
+  }
 
   if (!parsed || typeof parsed !== 'object') return undefined;
 
