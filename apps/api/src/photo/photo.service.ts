@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq, inArray, lt } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, lt, or } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
 import { FolderService, Tx } from '../folder/folder.service.js';
@@ -20,14 +20,34 @@ export class PhotoService {
     private readonly storage: B2Storage,
     private readonly folderService: FolderService,
   ) {}
-
   async createPending(data: CreatePendingPhoto) {
+    const PHOTO_LIMIT_PER_USER = 20;
+
     return db.transaction(async (tx) => {
       await this.folderService.getOwnedFolderOrThrow(
         data.ownerId,
         data.folderId,
         tx,
       );
+
+      const userPhotos = await tx
+        .select({ count: count() })
+        .from(photo)
+        .where(
+          and(
+            eq(photo.ownerId, data.ownerId),
+            or(
+              eq(photo.status, PhotoStatusEnum.READY),
+              eq(photo.status, PhotoStatusEnum.PENDING),
+            ),
+          ),
+        );
+
+      const userPhotoCount = userPhotos[0].count;
+
+      if (userPhotoCount >= PHOTO_LIMIT_PER_USER) {
+        throw new ConflictException('User has reached the photo limit');
+      }
 
       await tx.insert(photo).values({
         id: data.id,
