@@ -6,15 +6,19 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
+import z from 'zod';
 import { AuthMiddleware } from '../middleware.js';
 import { B2Storage } from '../storage/b2.storage.js';
 import type { AuthContext } from '../trpc/context.js';
-import z from 'zod';
 import {
+  confirmUploadOutputSchema,
   listPhotosSchema,
+  photoListSchema,
+  requestUploadOutputSchema,
+  requestUploadSchema,
+  signedUrlOutputSchema,
   type ListPhotosSchema,
   type RequestUploadSchema,
-  requestUploadSchema,
 } from './photo.schema.js';
 import { PhotoService } from './photo.service.js';
 
@@ -28,70 +32,42 @@ export class PhotoRouter {
 
   @Query({
     input: listPhotosSchema,
-    output: z.array(
-      z.object({
-        photoId: z.string(),
-        folderId: z.string(),
-        originalName: z.string(),
-        createdAt: z.date(),
-        takenAt: z.date().nullable(),
-        width: z.number().nullable(),
-        height: z.number().nullable(),
-        thumbnailUrl: z.string(),
-      }),
-    ),
+    output: photoListSchema,
   })
   async listPhotosForFolder(
-    @Ctx() ctx: AuthContext,
+    @Ctx() _ctx: AuthContext,
     @Input() data: ListPhotosSchema,
   ) {
-    return this.photoService.listPhotos(ctx.user.id, data.folderId);
+    return this.photoService.listPhotos(_ctx.user.id, data.folderId);
   }
 
   @Query({
-    output: z.array(
-      z.object({
-        photoId: z.string(),
-        folderId: z.string(),
-        originalName: z.string(),
-        createdAt: z.date(),
-        takenAt: z.date().nullable(),
-        width: z.number().nullable(),
-        height: z.number().nullable(),
-        thumbnailUrl: z.string(),
-      }),
-    ),
+    output: photoListSchema,
   })
-  async listAllPhotos(@Ctx() ctx: AuthContext) {
-    return this.photoService.listAllPhotos(ctx.user.id);
+  async listAllPhotos(@Ctx() _ctx: AuthContext) {
+    return this.photoService.listAllPhotos(_ctx.user.id);
   }
 
   @Query({
     input: z.object({ photoId: z.string().uuid() }),
-    output: z.object({
-      signedUrl: z.string(),
-      expiresAt: z.date(),
-    }),
+    output: signedUrlOutputSchema,
   })
   async getThumbnailUrl(
-    @Ctx() ctx: AuthContext,
+    @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
-    return this.photoService.getThumbnailUrl(ctx.user.id, data.photoId);
+    return this.photoService.getThumbnailUrl(_ctx.user.id, data.photoId);
   }
 
   @Query({
     input: z.object({ photoId: z.string().uuid() }),
-    output: z.object({
-      signedUrl: z.string(),
-      expiresAt: z.date(),
-    }),
+    output: signedUrlOutputSchema,
   })
   async getPhotoUrl(
-    @Ctx() ctx: AuthContext,
+    @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
-    return this.photoService.getPhotoUrl(ctx.user.id, data.photoId);
+    return this.photoService.getPhotoUrl(_ctx.user.id, data.photoId);
   }
 
   @Mutation({
@@ -120,10 +96,7 @@ export class PhotoRouter {
 
   @Mutation({
     input: requestUploadSchema,
-    output: z.object({
-      uploadUrl: z.string(),
-      photoId: z.string(),
-    }),
+    output: requestUploadOutputSchema,
   })
   async requestUpload(
     @Ctx() _ctx: AuthContext,
@@ -153,17 +126,15 @@ export class PhotoRouter {
 
   @Mutation({
     input: z.object({ photoId: z.string() }),
-    output: z.object({
-      status: z.string(),
-    }),
+    output: confirmUploadOutputSchema,
   })
   async confirmUpload(
-    @Ctx() ctx: AuthContext,
+    @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
     return this.photoService.confirmUpload({
       photoId: data.photoId,
-      ownerId: ctx.user.id,
+      ownerId: _ctx.user.id,
     });
   }
 }

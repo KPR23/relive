@@ -8,7 +8,11 @@ import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
 import { FolderService, Tx } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
-import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema.js';
+import {
+  type PhotoListItem,
+  ConfirmUploadPhoto,
+  CreatePendingPhoto,
+} from './photo.schema.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoService {
@@ -60,7 +64,7 @@ export class PhotoService {
       try {
         const { size } = await this.storage.getFileInfo(photoRecord.filePath);
 
-        const { width, height } = await generateAndUploadThumbnail({
+        const { width, height, exif } = await generateAndUploadThumbnail({
           storage: this.storage,
           originalKey: photoRecord.filePath,
           thumbKey: thumbPath,
@@ -74,6 +78,18 @@ export class PhotoService {
             thumbPath,
             width,
             height,
+            cameraMake: exif?.cameraMake,
+            cameraModel: exif?.cameraModel,
+            lensModel: exif?.lensModel,
+            exposureTime: exif?.exposureTime,
+            fNumber: exif?.fNumber,
+            iso: exif?.iso,
+            focalLength: exif?.focalLength,
+            focalLength35mm: exif?.focalLength35mm,
+            gpsLat: exif?.gpsLat,
+            gpsLng: exif?.gpsLng,
+            gpsAltitude: exif?.gpsAltitude,
+            takenAt: exif?.takenAt,
           })
           .where(
             and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)),
@@ -208,7 +224,9 @@ export class PhotoService {
     return photoRecord;
   }
 
-  private async mapPhotosToResponse(photos: (typeof photo.$inferSelect)[]) {
+  private async mapPhotosToResponse(
+    photos: (typeof photo.$inferSelect)[],
+  ): Promise<PhotoListItem[]> {
     const photosWithThumbnails = await Promise.all(
       photos.map(async (photo) => {
         if (!photo.thumbPath) {
@@ -227,10 +245,21 @@ export class PhotoService {
           folderId: photo.folderId,
           originalName: photo.originalName,
           createdAt: photo.createdAt,
-          takenAt: photo.takenAt,
           width: photo.width,
           height: photo.height,
           thumbnailUrl: signedUrl,
+          cameraMake: photo.cameraMake,
+          cameraModel: photo.cameraModel,
+          lensModel: photo.lensModel,
+          exposureTime: photo.exposureTime,
+          fNumber: photo.fNumber,
+          iso: photo.iso,
+          focalLength: photo.focalLength,
+          focalLength35mm: photo.focalLength35mm,
+          gpsLat: photo.gpsLat,
+          gpsLng: photo.gpsLng,
+          gpsAltitude: photo.gpsAltitude,
+          takenAt: photo.takenAt,
         };
       }),
     );
@@ -241,32 +270,33 @@ export class PhotoService {
   async cleanupFailedAndPendingPhotos(): Promise<void> {
     const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const photosToDelete = await db
-      .update(photo)
-      .set({ status: PhotoStatusEnum.DELETING })
-      .where(
-        and(
-          inArray(photo.status, [
-            PhotoStatusEnum.FAILED,
-            PhotoStatusEnum.PENDING,
-          ]),
-          lt(photo.createdAt, cutoffDate),
-        ),
-      )
-      .returning({
-        id: photo.id,
-        filePath: photo.filePath,
-        thumbPath: photo.thumbPath,
-      });
-
-    if (photosToDelete.length === 0) return;
-
-    const keysToDelete = photosToDelete.flatMap((p) => [
-      p.filePath,
-      ...(p.thumbPath ? [p.thumbPath] : []),
-    ]);
-
     try {
+      const photosToDelete = await db
+        .update(photo)
+        .set({ status: PhotoStatusEnum.DELETING })
+        .where(
+          and(
+            inArray(photo.status, [
+              PhotoStatusEnum.FAILED,
+              PhotoStatusEnum.PENDING,
+              PhotoStatusEnum.DELETING,
+            ]),
+            lt(photo.createdAt, cutoffDate),
+          ),
+        )
+        .returning({
+          id: photo.id,
+          filePath: photo.filePath,
+          thumbPath: photo.thumbPath,
+        });
+
+      if (photosToDelete.length === 0) return;
+
+      const keysToDelete = photosToDelete.flatMap((p) => [
+        p.filePath,
+        ...(p.thumbPath ? [p.thumbPath] : []),
+      ]);
+
       await this.storage.deleteMany(keysToDelete);
 
       await db.delete(photo).where(
@@ -277,6 +307,7 @@ export class PhotoService {
       );
     } catch (err) {
       console.error('Failed to delete photos', err);
+      throw err;
     }
   }
 }

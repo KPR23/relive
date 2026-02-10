@@ -2,6 +2,9 @@ import sharp from 'sharp';
 import { PassThrough } from 'stream';
 import { pipeline } from 'stream/promises';
 import { B2Storage } from '../storage/b2.storage.js';
+import { readStreamHeadAndPassThrough } from '../helpers/readStreamHead.js';
+import { getExif } from './exif.js';
+import { ExifSchema } from './photo.schema.js';
 
 function createThumbnailStream() {
   return sharp()
@@ -20,9 +23,12 @@ export async function generateAndUploadThumbnail({
   storage: B2Storage;
   originalKey: string;
   thumbKey: string;
-}): Promise<{ width: number; height: number }> {
+}): Promise<{ width: number; height: number; exif: ExifSchema }> {
   const inputStream = await storage.downloadStream(originalKey);
+  const { transform: headCapture, headPromise } =
+    readStreamHeadAndPassThrough(64 * 1024);
 
+  const exifPromise = headPromise.then((head) => getExif(head));
   const transformer = createThumbnailStream();
 
   const outputStream = new PassThrough();
@@ -35,14 +41,15 @@ export async function generateAndUploadThumbnail({
 
   const metadataPromise = transformer.metadata();
 
-  await pipeline(inputStream, transformer, outputStream);
+  await pipeline(inputStream, headCapture, transformer, outputStream);
 
   await uploadPromise;
 
-  const metadata = await metadataPromise;
+  const [metadata, exif] = await Promise.all([metadataPromise, exifPromise]);
 
   return {
     width: metadata.width ?? 0,
     height: metadata.height ?? 0,
+    exif,
   };
 }

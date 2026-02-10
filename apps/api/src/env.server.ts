@@ -18,12 +18,11 @@ const envSchema = z.object({
     .string()
     .startsWith('ajkey_', 'ARCJET_KEY must start with "ajkey_"'),
 
-  // Backblaze B2
-  BACKBLAZE_ENDPOINT: z.url('BACKBLAZE_ENDPOINT must be a valid URL'),
-  BACKBLAZE_REGION: z.string().min(1, 'BACKBLAZE_REGION is required'),
-  BACKBLAZE_BUCKET: z.string().min(1, 'BACKBLAZE_BUCKET is required'),
-  BACKBLAZE_KEY_ID: z.string().min(1, 'BACKBLAZE_KEY_ID is required'),
-  BACKBLAZE_ACCESS_KEY: z.string().min(1, 'BACKBLAZE_ACCESS_KEY is required'),
+  // AWS S3
+  AWS_REGION: z.string().min(1, 'AWS_REGION is required'),
+  AWS_BUCKET: z.string().min(1, 'AWS_BUCKET is required'),
+  AWS_KEY_ID: z.string().min(1, 'AWS_KEY_ID is required'),
+  AWS_ACCESS_KEY: z.string().min(1, 'AWS_ACCESS_KEY is required'),
 
   // Better Auth
   BETTER_AUTH_SECRET: z

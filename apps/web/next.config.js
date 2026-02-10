@@ -7,10 +7,6 @@ const nextConfig = {
         hostname: process.env.STORAGE_HOSTNAME || 'localhost',
         protocol: 'https',
       },
-      {
-        hostname: process.env.STORAGE_HOSTNAME_2 || 'localhost',
-        protocol: 'https',
-      },
     ],
   },
   rewrites: () => [
