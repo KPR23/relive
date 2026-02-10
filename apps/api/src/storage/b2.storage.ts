@@ -24,7 +24,7 @@ export class B2Storage {
       region: env.AWS_REGION,
       credentials: {
         accessKeyId: env.AWS_KEY_ID,
-        secretAccessKey: env.AWS_ACCESS_KEY,
+        secretAccessKey: env.AWS_BUCKET_ACCESS_KEY,
       },
     });
   }
