@@ -5,6 +5,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  real,
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
@@ -187,21 +188,43 @@ export const photo = pgTable(
     id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
+
     ownerId: text('owner_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
+
     folderId: text('folder_id')
       .notNull()
       .references(() => folder.id, { onDelete: 'cascade' }),
+
     filePath: text('file_path').notNull(),
     thumbPath: text('thumb_path'),
+
     originalName: text('original_name').notNull(),
     mimeType: text('mime_type').notNull(),
     size: integer('size'),
-    takenAt: timestamp('taken_at'),
+
     width: integer('width'),
     height: integer('height'),
-    exif: text('exif'),
+    orientation: integer('orientation'),
+
+    cameraMake: text('camera_make'),
+    cameraModel: text('camera_model'),
+    lensModel: text('lens_model'),
+
+    exposureTime: real('exposure_time'),
+    fNumber: real('f_number'),
+    iso: integer('iso'),
+
+    focalLength: real('focal_length'),
+    focalLength35mm: integer('focal_length_35mm'),
+
+    gpsLat: real('gps_lat'),
+    gpsLng: real('gps_lng'),
+    gpsAltitude: real('gps_altitude'),
+
+    takenAt: timestamp('taken_at'),
+
     status: photoStatus('status').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

@@ -60,7 +60,7 @@ export class PhotoService {
       try {
         const { size } = await this.storage.getFileInfo(photoRecord.filePath);
 
-        const { width, height } = await generateAndUploadThumbnail({
+        const { width, height, exif } = await generateAndUploadThumbnail({
           storage: this.storage,
           originalKey: photoRecord.filePath,
           thumbKey: thumbPath,
@@ -74,6 +74,19 @@ export class PhotoService {
             thumbPath,
             width,
             height,
+            orientation: exif?.orientation,
+            cameraMake: exif?.cameraMake,
+            cameraModel: exif?.cameraModel,
+            lensModel: exif?.lensModel,
+            exposureTime: exif?.exposureTime,
+            fNumber: exif?.fNumber,
+            iso: exif?.iso,
+            focalLength: exif?.focalLength,
+            focalLength35mm: exif?.focalLength35mm,
+            gpsLat: exif?.gpsLat,
+            gpsLng: exif?.gpsLng,
+            gpsAltitude: exif?.gpsAltitude,
+            takenAt: exif?.takenAt,
           })
           .where(
             and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)),
@@ -227,10 +240,22 @@ export class PhotoService {
           folderId: photo.folderId,
           originalName: photo.originalName,
           createdAt: photo.createdAt,
-          takenAt: photo.takenAt,
           width: photo.width,
           height: photo.height,
           thumbnailUrl: signedUrl,
+          orientation: photo.orientation,
+          cameraMake: photo.cameraMake,
+          cameraModel: photo.cameraModel,
+          lensModel: photo.lensModel,
+          exposureTime: photo.exposureTime,
+          fNumber: photo.fNumber,
+          iso: photo.iso,
+          focalLength: photo.focalLength,
+          focalLength35mm: photo.focalLength35mm,
+          gpsLat: photo.gpsLat,
+          gpsLng: photo.gpsLng,
+          gpsAltitude: photo.gpsAltitude,
+          takenAt: photo.takenAt,
         };
       }),
     );
@@ -241,32 +266,33 @@ export class PhotoService {
   async cleanupFailedAndPendingPhotos(): Promise<void> {
     const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const photosToDelete = await db
-      .update(photo)
-      .set({ status: PhotoStatusEnum.DELETING })
-      .where(
-        and(
-          inArray(photo.status, [
-            PhotoStatusEnum.FAILED,
-            PhotoStatusEnum.PENDING,
-          ]),
-          lt(photo.createdAt, cutoffDate),
-        ),
-      )
-      .returning({
-        id: photo.id,
-        filePath: photo.filePath,
-        thumbPath: photo.thumbPath,
-      });
-
-    if (photosToDelete.length === 0) return;
-
-    const keysToDelete = photosToDelete.flatMap((p) => [
-      p.filePath,
-      ...(p.thumbPath ? [p.thumbPath] : []),
-    ]);
-
     try {
+      const photosToDelete = await db
+        .update(photo)
+        .set({ status: PhotoStatusEnum.DELETING })
+        .where(
+          and(
+            inArray(photo.status, [
+              PhotoStatusEnum.FAILED,
+              PhotoStatusEnum.PENDING,
+              PhotoStatusEnum.DELETING,
+            ]),
+            lt(photo.createdAt, cutoffDate),
+          ),
+        )
+        .returning({
+          id: photo.id,
+          filePath: photo.filePath,
+          thumbPath: photo.thumbPath,
+        });
+
+      if (photosToDelete.length === 0) return;
+
+      const keysToDelete = photosToDelete.flatMap((p) => [
+        p.filePath,
+        ...(p.thumbPath ? [p.thumbPath] : []),
+      ]);
+
       await this.storage.deleteMany(keysToDelete);
 
       await db.delete(photo).where(
@@ -277,6 +303,7 @@ export class PhotoService {
       );
     } catch (err) {
       console.error('Failed to delete photos', err);
+      throw err;
     }
   }
 }

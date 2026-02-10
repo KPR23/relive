@@ -14,7 +14,7 @@ export class CleanupController {
     const authHeader = req.headers['authorization'];
     const token = authHeader?.startsWith('Bearer ')
       ? authHeader.slice(7)
-      : (req.query.secret as string | undefined);
+      : undefined;
     if (!env.CRON_SECRET || token !== env.CRON_SECRET) {
       throw new UnauthorizedException('Invalid or missing cron secret');
     }

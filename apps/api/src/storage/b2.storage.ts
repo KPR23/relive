@@ -10,8 +10,8 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { Injectable } from '@nestjs/common';
-import { env } from '../env.server.js';
 import { Readable } from 'stream';
+import { env } from '../env.server.js';
 
 @Injectable()
 export class B2Storage {
@@ -28,17 +28,6 @@ export class B2Storage {
         secretAccessKey: env.BACKBLAZE_ACCESS_KEY,
       },
     });
-  }
-
-  async upload(key: string, body: Buffer, contentType: string): Promise<void> {
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-      }),
-    );
   }
 
   async delete(key: string): Promise<void> {
@@ -70,9 +59,8 @@ export class B2Storage {
       const errors = response.Errors ?? [];
       if (errors.length > 0) {
         const details = errors
-          .map(
-            (e) =>
-              `${e.Key ?? 'unknown'}: ${e.Code ?? ''} ${e.Message ?? ''}`.trim(),
+          .map((e) =>
+            `${e.Key ?? 'unknown'}: ${e.Code ?? ''} ${e.Message ?? ''}`.trim(),
           )
           .join('; ');
         throw new Error(
