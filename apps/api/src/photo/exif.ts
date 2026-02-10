@@ -1,7 +1,8 @@
 import exifr from 'exifr';
+import { asDate, asNumber, asString } from '../helpers/helpers.js';
 import { ExifSchema } from './photo.schema.js';
 
-export async function getExif(buffer: Buffer): Promise<ExifSchema> {
+export async function getExif(buffer: Buffer): Promise<ExifSchema | undefined> {
   const raw = await exifr.parse(buffer, {
     tiff: true,
     exif: true,
@@ -12,46 +13,36 @@ export async function getExif(buffer: Buffer): Promise<ExifSchema> {
     mergeOutput: true,
   });
 
-  if (!raw) return;
+  if (!raw || typeof raw !== 'object') return undefined;
 
-  const orientation = (() => {
-    switch (raw.Orientation) {
-      case 'Horizontal (normal)':
-        return 1;
-      case 'Mirror horizontal':
-        return 2;
-      case 'Rotate 180':
-        return 3;
-      case 'Mirror vertical':
-        return 4;
-      case 'Mirror horizontal and rotate 270 CW':
-        return 5;
-      case 'Rotate 90 CW':
-        return 6;
-      case 'Mirror horizontal and rotate 90 CW':
-        return 7;
-      case 'Rotate 270 CW':
-        return 8;
-      default:
-        return undefined;
-    }
-  })();
+  const r = raw as Record<string, unknown>;
 
-  const exif: ExifSchema = {
-    orientation,
-    cameraMake: raw.Make,
-    cameraModel: raw.Model,
-    lensModel: raw.LensModel,
-    exposureTime: raw.ExposureTime,
-    fNumber: raw.FNumber,
-    iso: raw.ISO,
-    focalLength: raw.FocalLength,
-    focalLength35mm: raw.FocalLengthIn35mmFormat,
-    gpsLat: raw.latitude ?? raw.GPSLatitude,
-    gpsLng: raw.longitude ?? raw.GPSLongitude,
-    gpsAltitude: raw.GPSAltitude,
-    takenAt: raw.DateTimeOriginal ?? raw.CreateDate ?? raw.ModifyDate,
+  const iso =
+    typeof r.ISO === 'number'
+      ? r.ISO
+      : Array.isArray(r.ISO) && typeof r.ISO[0] === 'number'
+        ? r.ISO[0]
+        : undefined;
+
+  return {
+    cameraMake: asString(r.Make),
+    cameraModel: asString(r.Model),
+    lensModel: asString(r.LensModel),
+
+    exposureTime: asNumber(r.ExposureTime),
+    fNumber: asNumber(r.FNumber),
+    iso,
+
+    focalLength: asNumber(r.FocalLength),
+    focalLength35mm: asNumber(r.FocalLengthIn35mmFormat),
+
+    gpsLat: asNumber(r.latitude) ?? asNumber(r.GPSLatitude),
+    gpsLng: asNumber(r.longitude) ?? asNumber(r.GPSLongitude),
+    gpsAltitude: asNumber(r.GPSAltitude),
+
+    takenAt:
+      asDate(r.DateTimeOriginal) ??
+      asDate(r.CreateDate) ??
+      asDate(r.ModifyDate),
   };
-
-  return exif;
 }

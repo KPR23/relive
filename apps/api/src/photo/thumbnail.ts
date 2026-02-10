@@ -2,7 +2,7 @@ import sharp from 'sharp';
 import { PassThrough } from 'stream';
 import { pipeline } from 'stream/promises';
 import { B2Storage } from '../storage/b2.storage.js';
-import { readStreamHead } from '../helper/readStreamHead.js';
+import { readStreamHead } from '../helpers/readStreamHead.js';
 import { getExif } from './exif.js';
 import { ExifSchema } from './photo.schema.js';
 

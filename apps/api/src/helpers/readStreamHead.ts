@@ -1,7 +1,7 @@
 import { Readable } from 'stream';
 
 export async function readStreamHead(
-  stream: Readable,
+  stream: Readable & AsyncIterable<Buffer>,
   maxBytes: number,
 ): Promise<Buffer> {
   const chunks: Buffer[] = [];

@@ -206,7 +206,6 @@ export const photo = pgTable(
 
     width: integer('width'),
     height: integer('height'),
-    orientation: integer('orientation'),
 
     cameraMake: text('camera_make'),
     cameraModel: text('camera_model'),

@@ -31,7 +31,6 @@ export const listPhotosSchema = z.object({
 
 export const exifSchema = z
   .object({
-    orientation: z.number().optional(),
     cameraMake: z.string().optional(),
     cameraModel: z.string().optional(),
     lensModel: z.string().optional(),
