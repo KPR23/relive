@@ -206,6 +206,32 @@ export class PhotoService {
     });
   }
 
+  async removePhoto(userId: string, photoId: string) {
+    db.transaction(async (tx) => {
+      const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId, tx);
+
+      try {
+        await this.storage.delete(photoRecord.filePath);
+        if (photoRecord.thumbPath) {
+          await this.storage.delete(photoRecord.thumbPath);
+        }
+
+        await tx.delete(photo).where(eq(photo.id, photoId));
+
+        return {
+          success: true,
+        };
+      } catch (err) {
+        console.error(`Failed to remove photo ${photoId}`, err);
+        throw err;
+      }
+    });
+
+    return {
+      success: true,
+    };
+  }
+
   async removePhotoFromFolder(userId: string, photoId: string) {
     return db.transaction(async (tx) => {
       const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId, tx);

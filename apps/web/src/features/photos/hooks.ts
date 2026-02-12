@@ -56,6 +56,15 @@ export function useMovePhotoToFolder() {
   });
 }
 
+export function useRemovePhoto() {
+  const utils = usePhotoUtils();
+  return trpc.photo.removePhoto.useMutation({
+    onSuccess: () => {
+      utils.photo.invalidate();
+    },
+  });
+}
+
 export function useRemovePhotoFromFolder() {
   const utils = usePhotoUtils();
   return trpc.photo.removePhotoFromFolder.useMutation({
