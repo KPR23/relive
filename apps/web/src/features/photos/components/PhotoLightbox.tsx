@@ -10,7 +10,6 @@ import {
   useRemovePhoto,
   useRemovePhotoFromFolder,
 } from '../hooks';
-import { usePhotoUtils } from '@/src/lib/trpc-utils';
 
 interface PhotoLightboxProps {
   photo: Photo;

@@ -25,8 +25,9 @@ export async function generateAndUploadThumbnail({
   thumbKey: string;
 }): Promise<{ width: number; height: number; exif: ExifSchema }> {
   const inputStream = await storage.downloadStream(originalKey);
-  const { transform: headCapture, headPromise } =
-    readStreamHeadAndPassThrough(64 * 1024);
+  const { transform: headCapture, headPromise } = readStreamHeadAndPassThrough(
+    64 * 1024,
+  );
 
   const exifPromise = headPromise.then((head) => getExif(head));
   const transformer = createThumbnailStream();
