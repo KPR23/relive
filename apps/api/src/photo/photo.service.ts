@@ -368,10 +368,7 @@ export class PhotoService {
       return { success: true };
     } catch (err) {
       console.error('Failed to delete photos', err);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to delete photos',
-      });
+      throw err;
     }
   }
 }
