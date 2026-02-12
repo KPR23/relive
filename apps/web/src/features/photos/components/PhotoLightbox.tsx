@@ -7,6 +7,7 @@ import { useMoveableFolders } from '../../folders/hooks';
 import {
   useMovePhotoToFolder,
   usePhotoUrl,
+  useRemovePhoto,
   useRemovePhotoFromFolder,
 } from '../hooks';
 
@@ -23,7 +24,7 @@ export function PhotoLightbox({
 }: PhotoLightboxProps) {
   const [isFullLoaded, setIsFullLoaded] = useState(false);
   const [shouldLoadFolders, setShouldLoadFolders] = useState(false);
-  const { data } = usePhotoUrl(photo.photoId);
+
   const selectRef = useRef<HTMLSelectElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -34,6 +35,11 @@ export function PhotoLightbox({
 
   const movePhotoToFolder = useMovePhotoToFolder();
   const removePhotoFromFolder = useRemovePhotoFromFolder();
+  const removePhoto = useRemovePhoto();
+
+  const { data } = usePhotoUrl(photo.photoId, {
+    enabled: !removePhoto.isPending && !removePhoto.isSuccess,
+  });
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -57,6 +63,17 @@ export function PhotoLightbox({
       return () => clearTimeout(timer);
     }
   }, [movePhotoToFolder]);
+
+  const handleRemovePhoto = () => {
+    removePhoto.mutate(
+      { photoId: photo.photoId },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      },
+    );
+  };
 
   return (
     <div
@@ -84,6 +101,34 @@ export function PhotoLightbox({
       >
         {removePhotoFromFolder.isPending ? 'Removing...' : 'Remove from folder'}
       </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleRemovePhoto();
+        }}
+        disabled={removePhoto.isPending}
+        className="cursor-pointer rounded-md bg-red-500 px-4 py-2 text-red-950 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {removePhoto.isPending ? 'Removing...' : 'Remove'}
+      </button>
+      {removePhoto.isSuccess && (
+        <p
+          className="mt-2 text-xs text-green-600 dark:text-green-400"
+          role="status"
+          aria-live="polite"
+        >
+          Photo removed successfully!
+        </p>
+      )}
+      {removePhoto.isError && (
+        <p
+          className="mt-2 text-xs text-red-600 dark:text-red-400"
+          role="alert"
+          aria-live="assertive"
+        >
+          Failed to remove photo: {removePhoto.error?.message}
+        </p>
+      )}
       {removePhotoFromFolder.isSuccess && (
         <p
           className="mt-2 text-xs text-green-600 dark:text-green-400"

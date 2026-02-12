@@ -87,6 +87,16 @@ export class PhotoRouter {
   @Mutation({
     input: z.object({ photoId: z.string() }),
   })
+  async removePhoto(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: { photoId: string },
+  ) {
+    return this.photoService.removePhoto(_ctx.user.id, data.photoId);
+  }
+
+  @Mutation({
+    input: z.object({ photoId: z.string() }),
+  })
   async removePhotoFromFolder(
     @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
