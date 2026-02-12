@@ -217,8 +217,10 @@ export class PhotoService {
   }
 
   async removePhoto(userId: string, photoId: string) {
-    return db.transaction(async (tx) => {
-      const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId, tx);
+    try {
+      const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
+
+      await db.delete(photo).where(eq(photo.id, photoId));
 
       await this.storage.delete(photoRecord.filePath);
 
@@ -226,10 +228,14 @@ export class PhotoService {
         await this.storage.delete(photoRecord.thumbPath);
       }
 
-      await tx.delete(photo).where(eq(photo.id, photoId));
-
       return { success: true };
-    });
+    } catch (err) {
+      console.error(`Failed to remove photo ${photoId}`, err);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to remove photo',
+      });
+    }
   }
 
   async removePhotoFromFolder(userId: string, photoId: string) {
@@ -320,7 +326,7 @@ export class PhotoService {
     return photosWithThumbnails;
   }
 
-  async cleanupFailedAndPendingPhotos(): Promise<void> {
+  async cleanupFailedAndPendingPhotos(): Promise<{ success: boolean }> {
     const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     try {
@@ -343,7 +349,7 @@ export class PhotoService {
           thumbPath: photo.thumbPath,
         });
 
-      if (photosToDelete.length === 0) return;
+      if (photosToDelete.length === 0) return { success: true };
 
       const keysToDelete = photosToDelete.flatMap((p) => [
         p.filePath,
@@ -358,6 +364,8 @@ export class PhotoService {
           photosToDelete.map((p) => p.id),
         ),
       );
+
+      return { success: true };
     } catch (err) {
       console.error('Failed to delete photos', err);
       throw new TRPCError({
