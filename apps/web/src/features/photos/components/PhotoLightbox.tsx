@@ -10,6 +10,7 @@ import {
   useRemovePhoto,
   useRemovePhotoFromFolder,
 } from '../hooks';
+import { usePhotoUtils } from '@/src/lib/trpc-utils';
 
 interface PhotoLightboxProps {
   photo: Photo;
@@ -24,7 +25,7 @@ export function PhotoLightbox({
 }: PhotoLightboxProps) {
   const [isFullLoaded, setIsFullLoaded] = useState(false);
   const [shouldLoadFolders, setShouldLoadFolders] = useState(false);
-  const { data } = usePhotoUrl(photo.photoId);
+
   const selectRef = useRef<HTMLSelectElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -36,6 +37,10 @@ export function PhotoLightbox({
   const movePhotoToFolder = useMovePhotoToFolder();
   const removePhotoFromFolder = useRemovePhotoFromFolder();
   const removePhoto = useRemovePhoto();
+
+  const { data } = usePhotoUrl(photo.photoId, {
+    enabled: !removePhoto.isPending && !removePhoto.isSuccess,
+  });
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -59,6 +64,17 @@ export function PhotoLightbox({
       return () => clearTimeout(timer);
     }
   }, [movePhotoToFolder]);
+
+  const handleRemovePhoto = () => {
+    removePhoto.mutate(
+      { photoId: photo.photoId },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      },
+    );
+  };
 
   return (
     <div
@@ -87,7 +103,7 @@ export function PhotoLightbox({
         {removePhotoFromFolder.isPending ? 'Removing...' : 'Remove from folder'}
       </button>
       <button
-        onClick={() => removePhoto.mutate({ photoId: photo.photoId })}
+        onClick={handleRemovePhoto}
         disabled={removePhoto.isPending}
         className="cursor-pointer rounded-md bg-red-500 px-4 py-2 text-red-950 disabled:cursor-not-allowed disabled:opacity-50"
       >

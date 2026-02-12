@@ -1,8 +1,5 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, inArray, lt, or } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
@@ -20,6 +17,7 @@ export class PhotoService {
     private readonly storage: B2Storage,
     private readonly folderService: FolderService,
   ) {}
+
   async createPending(data: CreatePendingPhoto) {
     const PHOTO_LIMIT_PER_USER = 20;
 
@@ -46,7 +44,10 @@ export class PhotoService {
       const userPhotoCount = userPhotos[0].count;
 
       if (userPhotoCount >= PHOTO_LIMIT_PER_USER) {
-        throw new ConflictException('User has reached the photo limit');
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'User has reached the photo limit',
+        });
       }
 
       await tx.insert(photo).values({
@@ -76,7 +77,10 @@ export class PhotoService {
         .limit(1);
 
       if (!photoRecord) {
-        throw new NotFoundException('Photo not found');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Photo not found',
+        });
       }
 
       const thumbPath = `photos/${photoRecord.ownerId}/${photoRecord.id}_thumb.jpg`;
@@ -174,12 +178,15 @@ export class PhotoService {
     const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
 
     if (!photoRecord.thumbPath) {
-      throw new NotFoundException('Thumbnail not found');
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Thumbnail not found',
+      });
     }
 
     const { signedUrl, expiresAt } = await this.storage.getSignedUrl(
       photoRecord.thumbPath,
-      60 * 60 * 24 * 6,
+      60 * 10,
     );
 
     return {
@@ -190,7 +197,7 @@ export class PhotoService {
 
   async getPhotoUrl(userId: string, photoId: string) {
     const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
-    return this.storage.getSignedUrl(photoRecord.filePath, 60 * 60);
+    return this.storage.getSignedUrl(photoRecord.filePath);
   }
 
   async movePhotoToFolder(userId: string, photoId: string, folderId: string) {
@@ -199,7 +206,10 @@ export class PhotoService {
       await this.folderService.getOwnedFolderOrThrow(userId, folderId, tx);
 
       if (photoRecord.folderId === folderId) {
-        throw new ConflictException('Photo already in this folder');
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Photo already in this folder',
+        });
       }
 
       await tx.update(photo).set({ folderId }).where(eq(photo.id, photoId));
@@ -207,29 +217,19 @@ export class PhotoService {
   }
 
   async removePhoto(userId: string, photoId: string) {
-    db.transaction(async (tx) => {
+    return db.transaction(async (tx) => {
       const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId, tx);
 
-      try {
-        await this.storage.delete(photoRecord.filePath);
-        if (photoRecord.thumbPath) {
-          await this.storage.delete(photoRecord.thumbPath);
-        }
+      await this.storage.delete(photoRecord.filePath);
 
-        await tx.delete(photo).where(eq(photo.id, photoId));
-
-        return {
-          success: true,
-        };
-      } catch (err) {
-        console.error(`Failed to remove photo ${photoId}`, err);
-        throw err;
+      if (photoRecord.thumbPath) {
+        await this.storage.delete(photoRecord.thumbPath);
       }
-    });
 
-    return {
-      success: true,
-    };
+      await tx.delete(photo).where(eq(photo.id, photoId));
+
+      return { success: true };
+    });
   }
 
   async removePhotoFromFolder(userId: string, photoId: string) {
@@ -238,7 +238,10 @@ export class PhotoService {
       const rootFolder = await this.folderService.ensureRootFolder(userId, tx);
 
       if (photoRecord.folderId === rootFolder.id) {
-        throw new ConflictException('Photo is already in root folder');
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Photo is already in root folder',
+        });
       }
 
       await tx
@@ -264,7 +267,10 @@ export class PhotoService {
       .limit(1);
 
     if (!photoRecord) {
-      throw new NotFoundException('Photo not found');
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Photo not found',
+      });
     }
 
     return photoRecord;
@@ -276,14 +282,15 @@ export class PhotoService {
     const photosWithThumbnails = await Promise.all(
       photos.map(async (photo) => {
         if (!photo.thumbPath) {
-          throw new ConflictException(
-            `READY photo ${photo.id} is missing thumbPath`,
-          );
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: `READY photo ${photo.id} is missing thumbPath`,
+          });
         }
 
         const { signedUrl } = await this.storage.getSignedUrl(
           photo.thumbPath,
-          60 * 60 * 24 * 6,
+          60 * 10,
         );
 
         return {
@@ -353,7 +360,10 @@ export class PhotoService {
       );
     } catch (err) {
       console.error('Failed to delete photos', err);
-      throw err;
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to delete photos',
+      });
     }
   }
 }

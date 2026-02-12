@@ -26,11 +26,13 @@ export function useAllPhotos() {
   });
 }
 
-export function usePhotoUrl(photoId: string) {
+export function usePhotoUrl(photoId: string, options?: { enabled?: boolean }) {
   return trpc.photo.getPhotoUrl.useQuery(
     { photoId },
     {
-      staleTime: 60_000,
+      staleTime: 80_000,
+      enabled: options?.enabled ?? true,
+      retry: false,
     },
   );
 }
@@ -59,8 +61,12 @@ export function useMovePhotoToFolder() {
 export function useRemovePhoto() {
   const utils = usePhotoUtils();
   return trpc.photo.removePhoto.useMutation({
-    onSuccess: () => {
-      utils.photo.invalidate();
+    onMutate: async () => {
+      await utils.photo.getPhotoUrl.cancel();
+    },
+    onSuccess: async () => {
+      await utils.photo.listAllPhotos.invalidate();
+      await utils.photo.listPhotosForFolder.invalidate();
     },
   });
 }
