@@ -102,7 +102,10 @@ export function PhotoLightbox({
         {removePhotoFromFolder.isPending ? 'Removing...' : 'Remove from folder'}
       </button>
       <button
-        onClick={handleRemovePhoto}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleRemovePhoto();
+        }}
         disabled={removePhoto.isPending}
         className="cursor-pointer rounded-md bg-red-500 px-4 py-2 text-red-950 disabled:cursor-not-allowed disabled:opacity-50"
       >
