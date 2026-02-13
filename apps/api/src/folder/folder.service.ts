@@ -192,8 +192,7 @@ export class FolderService {
       if (targetParentId === movingFolderId)
         throw new CannotMoveFolderToSelfError();
 
-      if (movingFolder.isRoot === true)
-        throw new CannotMoveRootFolderError();
+      if (movingFolder.isRoot === true) throw new CannotMoveRootFolderError();
 
       let current = targetFolder;
       while (current.parentId) {

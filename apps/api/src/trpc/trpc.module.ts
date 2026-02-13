@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TRPCModule } from 'nestjs-trpc';
+import { TRPCError } from '@trpc/server';
 import { ZodError, flattenError } from 'zod';
 import { AppContext } from './context.js';
 import { env } from '../env.server.js';
@@ -13,6 +14,10 @@ function formatZodMessage(zodError: ZodError): string {
   return messages.length > 0 ? messages.join('; ') : zodError.message;
 }
 
+function isZodError(cause: unknown): cause is ZodError {
+  return cause instanceof ZodError;
+}
+
 @Module({
   imports: [
     TRPCModule.forRoot({
@@ -21,8 +26,12 @@ function formatZodMessage(zodError: ZodError): string {
         : { autoSchemaFile: '../../packages/trpc/src/server' }),
       basePath: '/api/trpc',
       context: AppContext,
-      errorFormatter({ shape, error }) {
-        if (error.code === 'BAD_REQUEST' && error.cause instanceof ZodError) {
+      errorFormatter(opts: {
+        shape: { message: string; data: object };
+        error: TRPCError;
+      }) {
+        const { shape, error } = opts;
+        if (error.code === 'BAD_REQUEST' && isZodError(error.cause)) {
           const zodError = error.cause;
           return {
             ...shape,
