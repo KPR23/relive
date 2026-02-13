@@ -26,7 +26,7 @@ export const folderSchema = z.object({
 });
 
 export const createFolderSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1, 'Folder name is required'),
   description: z.string().optional().nullable(),
   parentId: z.string(),
 });

@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, inArray, lt, or } from 'drizzle-orm';
+import { and, count, desc, eq, exists, inArray, lt, or } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { photo, PhotoStatusEnum } from '../db/schema.js';
+import {
+  folderShare,
+  photo,
+  photoShare,
+  PhotoStatusEnum,
+} from '../db/schema.js';
 import { FolderService, Tx } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
 import {
@@ -10,6 +14,15 @@ import {
   ConfirmUploadPhoto,
   CreatePendingPhoto,
 } from './photo.schema.js';
+import {
+  PhotoAlreadyInFolderError,
+  PhotoAlreadyInRootFolderError,
+  PhotoLimitReachedError,
+  PhotoMissingThumbPathError,
+  PhotoNotFoundError,
+  PhotoRemoveFailedError,
+  ThumbnailNotFoundError,
+} from './photo.errors.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoService {
@@ -44,10 +57,7 @@ export class PhotoService {
       const userPhotoCount = userPhotos[0].count;
 
       if (userPhotoCount >= PHOTO_LIMIT_PER_USER) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'User has reached the photo limit',
-        });
+        throw new PhotoLimitReachedError();
       }
 
       await tx.insert(photo).values({
@@ -77,10 +87,7 @@ export class PhotoService {
         .limit(1);
 
       if (!photoRecord) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Photo not found',
-        });
+        throw new PhotoNotFoundError();
       }
 
       const thumbPath = `photos/${photoRecord.ownerId}/${photoRecord.id}_thumb.jpg`;
@@ -178,10 +185,7 @@ export class PhotoService {
     const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
 
     if (!photoRecord.thumbPath) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Thumbnail not found',
-      });
+      throw new ThumbnailNotFoundError();
     }
 
     const { signedUrl, expiresAt } = await this.storage.getSignedUrl(
@@ -197,6 +201,7 @@ export class PhotoService {
 
   async getPhotoUrl(userId: string, photoId: string) {
     const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
+
     return this.storage.getSignedUrl(photoRecord.filePath);
   }
 
@@ -206,10 +211,7 @@ export class PhotoService {
       await this.folderService.getOwnedFolderOrThrow(userId, folderId, tx);
 
       if (photoRecord.folderId === folderId) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Photo already in this folder',
-        });
+        throw new PhotoAlreadyInFolderError();
       }
 
       await tx.update(photo).set({ folderId }).where(eq(photo.id, photoId));
@@ -231,10 +233,7 @@ export class PhotoService {
       return { success: true };
     } catch (err) {
       console.error(`Failed to remove photo ${photoId}`, err);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to remove photo',
-      });
+      throw new PhotoRemoveFailedError('Failed to remove photo', err);
     }
   }
 
@@ -244,10 +243,7 @@ export class PhotoService {
       const rootFolder = await this.folderService.ensureRootFolder(userId, tx);
 
       if (photoRecord.folderId === rootFolder.id) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Photo is already in root folder',
-        });
+        throw new PhotoAlreadyInRootFolderError();
       }
 
       await tx
@@ -260,38 +256,58 @@ export class PhotoService {
 
   private async getReadyPhotoOrThrow(userId: string, photoId: string, tx?: Tx) {
     const client = tx ?? db;
+
     const [photoRecord] = await client
       .select()
       .from(photo)
       .where(
         and(
           eq(photo.id, photoId),
-          eq(photo.ownerId, userId),
           eq(photo.status, PhotoStatusEnum.READY),
+          or(
+            eq(photo.ownerId, userId),
+
+            exists(
+              client
+                .select()
+                .from(photoShare)
+                .where(
+                  and(
+                    eq(photoShare.photoId, photo.id),
+                    eq(photoShare.sharedWithId, userId),
+                  ),
+                ),
+            ),
+
+            exists(
+              client
+                .select()
+                .from(folderShare)
+                .where(
+                  and(
+                    eq(folderShare.folderId, photo.folderId),
+                    eq(folderShare.sharedWithId, userId),
+                  ),
+                ),
+            ),
+          ),
         ),
       )
       .limit(1);
 
     if (!photoRecord) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Photo not found',
-      });
+      throw new PhotoNotFoundError();
     }
 
     return photoRecord;
   }
-
   private async mapPhotosToResponse(
     photos: (typeof photo.$inferSelect)[],
   ): Promise<PhotoListItem[]> {
     const photosWithThumbnails = await Promise.all(
       photos.map(async (photo) => {
         if (!photo.thumbPath) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: `READY photo ${photo.id} is missing thumbPath`,
-          });
+          throw new PhotoMissingThumbPathError(photo.id);
         }
 
         const { signedUrl } = await this.storage.getSignedUrl(
@@ -370,5 +386,43 @@ export class PhotoService {
       console.error('Failed to delete photos', err);
       throw err;
     }
+  }
+
+  async sharedPhotosWithMe(userId: string) {
+    const photos = await db
+      .select()
+      .from(photo)
+      .where(
+        and(
+          eq(photo.status, PhotoStatusEnum.READY),
+          or(
+            exists(
+              db
+                .select()
+                .from(photoShare)
+                .where(
+                  and(
+                    eq(photoShare.photoId, photo.id),
+                    eq(photoShare.sharedWithId, userId),
+                  ),
+                ),
+            ),
+
+            exists(
+              db
+                .select()
+                .from(folderShare)
+                .where(
+                  and(
+                    eq(folderShare.folderId, photo.folderId),
+                    eq(folderShare.sharedWithId, userId),
+                  ),
+                ),
+            ),
+          ),
+        ),
+      );
+
+    return this.mapPhotosToResponse(photos);
   }
 }

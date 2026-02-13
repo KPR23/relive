@@ -8,7 +8,9 @@ import {
   real,
   text,
   timestamp,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
+
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -105,14 +107,6 @@ export const passkey = pgTable(
     index('passkey_credentialID_idx').on(table.credentialID),
   ],
 );
-
-export const jwks = pgTable('jwks', {
-  id: text('id').primaryKey(),
-  publicKey: text('public_key').notNull(),
-  privateKey: text('private_key').notNull(),
-  createdAt: timestamp('created_at').notNull(),
-  expiresAt: timestamp('expires_at'),
-});
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
@@ -232,6 +226,104 @@ export const photo = pgTable(
     index('photo_folder_idx').on(table.folderId),
   ],
 );
+
+export const sharePermissionEnum = {
+  VIEW: 'VIEW',
+  EDIT: 'EDIT',
+} as const;
+
+export type sharePermission =
+  (typeof sharePermissionEnum)[keyof typeof sharePermissionEnum];
+
+export const sharePermission = pgEnum('share_permission', [
+  sharePermissionEnum.VIEW,
+  sharePermissionEnum.EDIT,
+]);
+
+export const photoShare = pgTable(
+  'photo_share',
+  {
+    id: text('id').primaryKey(),
+    ownerId: text('owner_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    photoId: text('photo_id')
+      .notNull()
+      .references(() => photo.id),
+    sharedWithId: text('shared_with_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    permission: sharePermission('permission').notNull(),
+    expiresAt: timestamp('expires_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('photo_share_photo_idx').on(table.photoId),
+    index('photo_share_shared_with_idx').on(table.sharedWithId),
+    uniqueIndex('photo_share_unique_idx').on(table.photoId, table.sharedWithId),
+  ],
+);
+
+export const photoShareRelations = relations(photoShare, ({ one }) => ({
+  owner: one(user, {
+    fields: [photoShare.ownerId],
+    references: [user.id],
+  }),
+  photo: one(photo, {
+    fields: [photoShare.photoId],
+    references: [photo.id],
+  }),
+  sharedWith: one(user, {
+    fields: [photoShare.sharedWithId],
+    references: [user.id],
+  }),
+}));
+
+export const folderShare = pgTable(
+  'folder_share',
+  {
+    id: text('id').primaryKey(),
+
+    ownerId: text('owner_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+
+    folderId: text('folder_id')
+      .notNull()
+      .references(() => folder.id, { onDelete: 'cascade' }),
+
+    sharedWithId: text('shared_with_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+
+    permission: sharePermission('permission').notNull(),
+    expiresAt: timestamp('expires_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('folder_share_folder_idx').on(table.folderId),
+    index('folder_share_shared_with_idx').on(table.sharedWithId),
+    uniqueIndex('folder_share_unique_idx').on(
+      table.folderId,
+      table.sharedWithId,
+    ),
+  ],
+);
+
+export const folderShareRelations = relations(folderShare, ({ one }) => ({
+  owner: one(user, {
+    fields: [folderShare.ownerId],
+    references: [user.id],
+  }),
+  folder: one(folder, {
+    fields: [folderShare.folderId],
+    references: [folder.id],
+  }),
+  sharedWith: one(user, {
+    fields: [folderShare.sharedWithId],
+    references: [user.id],
+  }),
+}));
 
 export const folderRelations = relations(folder, ({ one, many }) => ({
   owner: one(user, {

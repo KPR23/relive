@@ -10,6 +10,7 @@ import z from 'zod';
 import { AuthMiddleware } from '../middleware.js';
 import { B2Storage } from '../storage/b2.storage.js';
 import type { AuthContext } from '../trpc/context.js';
+import { mapToTRPCError } from '../trpc/mapToTRPCError.js';
 import {
   confirmUploadOutputSchema,
   listPhotosSchema,
@@ -38,14 +39,22 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: ListPhotosSchema,
   ) {
-    return this.photoService.listPhotos(_ctx.user.id, data.folderId);
+    try {
+      return await this.photoService.listPhotos(_ctx.user.id, data.folderId);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Query({
     output: photoListSchema,
   })
   async listAllPhotos(@Ctx() _ctx: AuthContext) {
-    return this.photoService.listAllPhotos(_ctx.user.id);
+    try {
+      return await this.photoService.listAllPhotos(_ctx.user.id);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Query({
@@ -56,7 +65,14 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
-    return this.photoService.getThumbnailUrl(_ctx.user.id, data.photoId);
+    try {
+      return await this.photoService.getThumbnailUrl(
+        _ctx.user.id,
+        data.photoId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Query({
@@ -67,7 +83,20 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
-    return this.photoService.getPhotoUrl(_ctx.user.id, data.photoId);
+    try {
+      return await this.photoService.getPhotoUrl(_ctx.user.id, data.photoId);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Query({})
+  async sharedPhotosWithMe(@Ctx() _ctx: AuthContext) {
+    try {
+      return await this.photoService.sharedPhotosWithMe(_ctx.user.id);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
@@ -77,11 +106,15 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string; folderId: string },
   ) {
-    return this.photoService.movePhotoToFolder(
-      _ctx.user.id,
-      data.photoId,
-      data.folderId,
-    );
+    try {
+      return await this.photoService.movePhotoToFolder(
+        _ctx.user.id,
+        data.photoId,
+        data.folderId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
@@ -91,7 +124,11 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
-    return this.photoService.removePhoto(_ctx.user.id, data.photoId);
+    try {
+      return await this.photoService.removePhoto(_ctx.user.id, data.photoId);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
@@ -101,7 +138,14 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
-    return this.photoService.removePhotoFromFolder(_ctx.user.id, data.photoId);
+    try {
+      return await this.photoService.removePhotoFromFolder(
+        _ctx.user.id,
+        data.photoId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
@@ -112,26 +156,30 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: RequestUploadSchema,
   ) {
-    const photoId = crypto.randomUUID();
-    const ext = data.mimeType.split('/')[1];
+    try {
+      const photoId = crypto.randomUUID();
+      const ext = data.mimeType.split('/')[1];
 
-    const key = `photos/${_ctx.user.id}/${photoId}.${ext}`;
+      const key = `photos/${_ctx.user.id}/${photoId}.${ext}`;
 
-    const uploadUrl = await this.storage.getUploadUrl(key, data.mimeType);
+      const uploadUrl = await this.storage.getUploadUrl(key, data.mimeType);
 
-    await this.photoService.createPending({
-      id: photoId,
-      ownerId: _ctx.user.id,
-      folderId: data.folderId,
-      filePath: key,
-      originalName: data.originalName,
-      mimeType: data.mimeType,
-    });
+      await this.photoService.createPending({
+        id: photoId,
+        ownerId: _ctx.user.id,
+        folderId: data.folderId,
+        filePath: key,
+        originalName: data.originalName,
+        mimeType: data.mimeType,
+      });
 
-    return {
-      uploadUrl,
-      photoId,
-    };
+      return {
+        uploadUrl,
+        photoId,
+      };
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
@@ -142,9 +190,13 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { photoId: string },
   ) {
-    return this.photoService.confirmUpload({
-      photoId: data.photoId,
-      ownerId: _ctx.user.id,
-    });
+    try {
+      return await this.photoService.confirmUpload({
+        photoId: data.photoId,
+        ownerId: _ctx.user.id,
+      });
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 }
