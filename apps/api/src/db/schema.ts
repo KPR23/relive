@@ -232,7 +232,7 @@ export const sharePermissionEnum = {
   EDIT: 'EDIT',
 } as const;
 
-export type sharePermission =
+export type SharePermission =
   (typeof sharePermissionEnum)[keyof typeof sharePermissionEnum];
 
 export const sharePermission = pgEnum('share_permission', [
@@ -243,13 +243,15 @@ export const sharePermission = pgEnum('share_permission', [
 export const photoShare = pgTable(
   'photo_share',
   {
-    id: text('id').primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     ownerId: text('owner_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     photoId: text('photo_id')
       .notNull()
-      .references(() => photo.id),
+      .references(() => photo.id, { onDelete: 'cascade' }),
     sharedWithId: text('shared_with_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
@@ -268,6 +270,7 @@ export const photoShareRelations = relations(photoShare, ({ one }) => ({
   owner: one(user, {
     fields: [photoShare.ownerId],
     references: [user.id],
+    relationName: 'photoShare_owner',
   }),
   photo: one(photo, {
     fields: [photoShare.photoId],
@@ -276,13 +279,16 @@ export const photoShareRelations = relations(photoShare, ({ one }) => ({
   sharedWith: one(user, {
     fields: [photoShare.sharedWithId],
     references: [user.id],
+    relationName: 'photoShare_sharedWith',
   }),
 }));
 
 export const folderShare = pgTable(
   'folder_share',
   {
-    id: text('id').primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
 
     ownerId: text('owner_id')
       .notNull()
@@ -314,6 +320,7 @@ export const folderShareRelations = relations(folderShare, ({ one }) => ({
   owner: one(user, {
     fields: [folderShare.ownerId],
     references: [user.id],
+    relationName: 'folderShare_owner',
   }),
   folder: one(folder, {
     fields: [folderShare.folderId],
@@ -322,6 +329,7 @@ export const folderShareRelations = relations(folderShare, ({ one }) => ({
   sharedWith: one(user, {
     fields: [folderShare.sharedWithId],
     references: [user.id],
+    relationName: 'folderShare_sharedWith',
   }),
 }));
 

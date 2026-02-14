@@ -42,7 +42,7 @@ export class PhotoRouter {
     try {
       return await this.photoService.listPhotos(_ctx.user.id, data.folderId);
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
@@ -53,7 +53,7 @@ export class PhotoRouter {
     try {
       return await this.photoService.listAllPhotos(_ctx.user.id);
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
@@ -71,7 +71,7 @@ export class PhotoRouter {
         data.photoId,
       );
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
@@ -86,16 +86,16 @@ export class PhotoRouter {
     try {
       return await this.photoService.getPhotoUrl(_ctx.user.id, data.photoId);
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
-  @Query({})
+  @Query({ output: photoListSchema })
   async sharedPhotosWithMe(@Ctx() _ctx: AuthContext) {
     try {
       return await this.photoService.sharedPhotosWithMe(_ctx.user.id);
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
@@ -113,7 +113,7 @@ export class PhotoRouter {
         data.folderId,
       );
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
@@ -127,7 +127,7 @@ export class PhotoRouter {
     try {
       return await this.photoService.removePhoto(_ctx.user.id, data.photoId);
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
@@ -144,7 +144,7 @@ export class PhotoRouter {
         data.photoId,
       );
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 
@@ -158,7 +158,11 @@ export class PhotoRouter {
   ) {
     try {
       const photoId = crypto.randomUUID();
-      const ext = data.mimeType.split('/')[1];
+      const parts = data.mimeType.split('/');
+      if (parts.length !== 2 || !parts[1]) {
+        throw mapToTRPCError(new Error('Invalid mimeType format'));
+      }
+      const ext = parts[1];
 
       const key = `photos/${_ctx.user.id}/${photoId}.${ext}`;
 
@@ -196,7 +200,7 @@ export class PhotoRouter {
         ownerId: _ctx.user.id,
       });
     } catch (err) {
-      mapToTRPCError(err);
+      throw mapToTRPCError(err);
     }
   }
 }

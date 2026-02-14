@@ -7,11 +7,13 @@ import { env } from '../env.server.js';
 
 const isProduction = env.NODE_ENV === 'production';
 
-function formatZodMessage(zodError: ZodError): string {
-  const flattened = flattenError(zodError);
+function formatZodMessage(
+  flattened: ReturnType<typeof flattenError>,
+  fallbackMessage: string,
+): string {
   const fieldErrors = flattened.fieldErrors as Record<string, string[]>;
   const messages = Object.values(fieldErrors).flat().filter(Boolean);
-  return messages.length > 0 ? messages.join('; ') : zodError.message;
+  return messages.length > 0 ? messages.join('; ') : fallbackMessage;
 }
 
 function isZodError(cause: unknown): cause is ZodError {
@@ -35,7 +37,7 @@ function isZodError(cause: unknown): cause is ZodError {
           const zodError = error.cause;
           return {
             ...shape,
-            message: formatZodMessage(zodError),
+            message: formatZodMessage(flattenError(zodError), zodError.message),
             data: {
               ...shape.data,
               zodError: flattenError(zodError),

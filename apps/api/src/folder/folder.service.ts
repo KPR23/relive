@@ -35,9 +35,6 @@ export class FolderService {
     const folder = await this.getFolderById(userId, folderId, tx);
 
     if (!folder) throw new FolderNotFoundError();
-    if (folder.ownerId !== userId) {
-      throw new FolderNotOwnedError();
-    }
 
     return folder;
   }
@@ -72,20 +69,12 @@ export class FolderService {
       folder.parentId,
       tx,
     );
+
     return parentFolder;
   }
 
   async getAllParentsForFolder(userId: string, folderId: string, tx?: Tx) {
-    const client = tx ?? db;
-    const [folderRecord] = await client
-      .select()
-      .from(folder)
-      .where(and(eq(folder.id, folderId), eq(folder.ownerId, userId)));
-
-    if (!folderRecord) throw new FolderNotFoundError();
-    if (folderRecord.ownerId !== userId) {
-      throw new FolderNotOwnedError();
-    }
+    const folderRecord = await this.getOwnedFolderOrThrow(userId, folderId, tx);
 
     const parents: Folder[] = [];
     let current = folderRecord;

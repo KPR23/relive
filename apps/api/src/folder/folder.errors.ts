@@ -34,7 +34,7 @@ export class CannotMoveRootFolderError extends Error {
 }
 
 export class CannotMoveFolderCreatesCycleError extends Error {
-  constructor(message = 'Cannot move this folder') {
+  constructor(message = 'Moving this folder would create a cycle') {
     super(message);
     this.name = 'CannotMoveFolderCreatesCycleError';
   }

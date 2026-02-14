@@ -42,7 +42,7 @@ export class PhotoMissingThumbPathError extends Error {
 
 export class PhotoRemoveFailedError extends Error {
   constructor(message = 'Failed to remove photo', cause?: unknown) {
-    super(message, cause instanceof Error ? { cause } : undefined);
+    super(message, cause != null ? { cause } : undefined);
     this.name = 'PhotoRemoveFailedError';
   }
 }

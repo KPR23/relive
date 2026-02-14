@@ -1,5 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { and, count, desc, eq, exists, inArray, lt, or } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  gt,
+  inArray,
+  isNull,
+  lt,
+  or,
+} from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   folderShare,
@@ -10,11 +21,6 @@ import {
 import { FolderService, Tx } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
 import {
-  type PhotoListItem,
-  ConfirmUploadPhoto,
-  CreatePendingPhoto,
-} from './photo.schema.js';
-import {
   PhotoAlreadyInFolderError,
   PhotoAlreadyInRootFolderError,
   PhotoLimitReachedError,
@@ -23,6 +29,11 @@ import {
   PhotoRemoveFailedError,
   ThumbnailNotFoundError,
 } from './photo.errors.js';
+import {
+  type PhotoListItem,
+  ConfirmUploadPhoto,
+  CreatePendingPhoto,
+} from './photo.schema.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoService {
@@ -232,6 +243,7 @@ export class PhotoService {
 
       return { success: true };
     } catch (err) {
+      if (err instanceof PhotoNotFoundError) throw err;
       console.error(`Failed to remove photo ${photoId}`, err);
       throw new PhotoRemoveFailedError('Failed to remove photo', err);
     }
@@ -275,6 +287,10 @@ export class PhotoService {
                   and(
                     eq(photoShare.photoId, photo.id),
                     eq(photoShare.sharedWithId, userId),
+                    or(
+                      isNull(photoShare.expiresAt),
+                      gt(photoShare.expiresAt, new Date()),
+                    ),
                   ),
                 ),
             ),
@@ -287,6 +303,10 @@ export class PhotoService {
                   and(
                     eq(folderShare.folderId, photo.folderId),
                     eq(folderShare.sharedWithId, userId),
+                    or(
+                      isNull(folderShare.expiresAt),
+                      gt(folderShare.expiresAt, new Date()),
+                    ),
                   ),
                 ),
             ),
@@ -404,6 +424,10 @@ export class PhotoService {
                   and(
                     eq(photoShare.photoId, photo.id),
                     eq(photoShare.sharedWithId, userId),
+                    or(
+                      isNull(photoShare.expiresAt),
+                      gt(photoShare.expiresAt, new Date()),
+                    ),
                   ),
                 ),
             ),
@@ -416,6 +440,10 @@ export class PhotoService {
                   and(
                     eq(folderShare.folderId, photo.folderId),
                     eq(folderShare.sharedWithId, userId),
+                    or(
+                      isNull(folderShare.expiresAt),
+                      gt(folderShare.expiresAt, new Date()),
+                    ),
                   ),
                 ),
             ),

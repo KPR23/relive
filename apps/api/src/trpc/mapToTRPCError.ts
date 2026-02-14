@@ -33,11 +33,13 @@ export function mapToTRPCError(err: unknown): never {
   ) {
     throw new TRPCError({ code: 'NOT_FOUND', message: err.message });
   }
+  if (err instanceof PhotoMissingThumbPathError) {
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message });
+  }
   if (
     err instanceof PhotoLimitReachedError ||
     err instanceof PhotoAlreadyInFolderError ||
     err instanceof PhotoAlreadyInRootFolderError ||
-    err instanceof PhotoMissingThumbPathError ||
     err instanceof CannotMoveFolderCreatesCycleError ||
     err instanceof CannotDeleteFolderWithChildrenError
   ) {
@@ -75,5 +77,6 @@ export function mapToTRPCError(err: unknown): never {
   if (err instanceof BadRequestException) {
     throw new TRPCError({ code: 'BAD_REQUEST', message: err.message });
   }
+  console.error('Unknown error in mapToTRPCError, rethrowing:', err);
   throw err;
 }
