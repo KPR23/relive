@@ -1,13 +1,16 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { and, eq, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { folder } from '../db/schema.js';
+import {
+  CannotDeleteFolderWithChildrenError,
+  CannotDeleteRootFolderError,
+  CannotMoveFolderCreatesCycleError,
+  CannotMoveFolderToSelfError,
+  CannotMoveRootFolderError,
+  FolderNotFoundError,
+  ParentFolderIdRequiredError,
+} from './folder.errors.js';
 import { CreateFolderSchema, Folder } from './folder.schema.js';
 
 export type Tx = Parameters<typeof db.transaction>[0] extends (
@@ -30,10 +33,7 @@ export class FolderService {
   async getOwnedFolderOrThrow(userId: string, folderId: string, tx?: Tx) {
     const folder = await this.getFolderById(userId, folderId, tx);
 
-    if (!folder) throw new NotFoundException('Folder not found');
-    if (folder.ownerId !== userId) {
-      throw new ForbiddenException('Folder not owned by user');
-    }
+    if (!folder) throw new FolderNotFoundError();
 
     return folder;
   }
@@ -68,20 +68,12 @@ export class FolderService {
       folder.parentId,
       tx,
     );
+
     return parentFolder;
   }
 
   async getAllParentsForFolder(userId: string, folderId: string, tx?: Tx) {
-    const client = tx ?? db;
-    const [folderRecord] = await client
-      .select()
-      .from(folder)
-      .where(and(eq(folder.id, folderId), eq(folder.ownerId, userId)));
-
-    if (!folderRecord) throw new NotFoundException('Folder not found');
-    if (folderRecord.ownerId !== userId) {
-      throw new ForbiddenException('Folder not owned by user');
-    }
+    const folderRecord = await this.getOwnedFolderOrThrow(userId, folderId, tx);
 
     const parents: Folder[] = [];
     let current = folderRecord;
@@ -157,7 +149,7 @@ export class FolderService {
     await this.ensureRootFolder(userId);
 
     if (!data.parentId) {
-      throw new BadRequestException('Parent folder ID not provided');
+      throw new ParentFolderIdRequiredError();
     }
     await this.getOwnedFolderOrThrow(userId, data.parentId);
 
@@ -186,17 +178,16 @@ export class FolderService {
       );
 
       if (targetParentId === movingFolderId)
-        throw new BadRequestException('Cannot move this folder');
+        throw new CannotMoveFolderToSelfError();
 
-      if (movingFolder.isRoot === true)
-        throw new ForbiddenException('Cannot move root folder');
+      if (movingFolder.isRoot === true) throw new CannotMoveRootFolderError();
 
       let current = targetFolder;
       while (current.parentId) {
         const parent = await this.getParent(userId, current, tx);
         if (!parent) break;
         if (parent.id === movingFolder.id) {
-          throw new ConflictException('Cannot move this folder');
+          throw new CannotMoveFolderCreatesCycleError();
         }
         current = parent;
       }
@@ -213,13 +204,13 @@ export class FolderService {
       const targetFolder = await this.getOwnedFolderOrThrow(userId, id, tx);
 
       if (targetFolder.isRoot) {
-        throw new ForbiddenException('Cannot delete root folder');
+        throw new CannotDeleteRootFolderError();
       }
 
       const children = await this.getFolderChildren(userId, id, tx);
 
       if (children.length > 0) {
-        throw new ConflictException('Cannot delete folder with children');
+        throw new CannotDeleteFolderWithChildrenError();
       }
 
       return tx.delete(folder).where(eq(folder.id, id));

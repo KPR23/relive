@@ -8,6 +8,7 @@ import {
 } from 'nestjs-trpc';
 import { AuthMiddleware } from '../middleware.js';
 import { type AuthContext } from '../trpc/context.js';
+import { mapToTRPCError } from '../trpc/mapToTRPCError.js';
 import { z } from 'zod';
 import {
   type CreateFolderSchema,
@@ -26,14 +27,22 @@ export class FolderRouter {
     output: folderSchema,
   })
   async getRootFolder(@Ctx() _ctx: AuthContext) {
-    return this.folderService.ensureRootFolder(_ctx.user.id);
+    try {
+      return await this.folderService.ensureRootFolder(_ctx.user.id);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Query({
     output: z.array(folderSchema),
   })
   async getAllFolders(@Ctx() _ctx: AuthContext) {
-    return this.folderService.getAllFolders(_ctx.user.id);
+    try {
+      return await this.folderService.getAllFolders(_ctx.user.id);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Query({
@@ -44,7 +53,14 @@ export class FolderRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { parentId: string },
   ) {
-    return this.folderService.getFolderChildren(_ctx.user.id, data.parentId);
+    try {
+      return await this.folderService.getFolderChildren(
+        _ctx.user.id,
+        data.parentId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Query({
@@ -55,10 +71,14 @@ export class FolderRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { folderId: string },
   ) {
-    return this.folderService.getAllParentsForFolder(
-      _ctx.user.id,
-      data.folderId,
-    );
+    try {
+      return await this.folderService.getAllParentsForFolder(
+        _ctx.user.id,
+        data.folderId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Query({
@@ -72,10 +92,14 @@ export class FolderRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data?: { currentFolderId?: string },
   ) {
-    return this.folderService.getMoveableFolders(
-      _ctx.user.id,
-      data?.currentFolderId,
-    );
+    try {
+      return await this.folderService.getMoveableFolders(
+        _ctx.user.id,
+        data?.currentFolderId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
@@ -86,7 +110,11 @@ export class FolderRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: CreateFolderSchema,
   ): Promise<Folder> {
-    return this.folderService.createFolder(_ctx.user.id, data);
+    try {
+      return await this.folderService.createFolder(_ctx.user.id, data);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
@@ -96,17 +124,25 @@ export class FolderRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: { movingFolderId: string; targetParentId: string },
   ) {
-    return this.folderService.moveFolder(
-      _ctx.user.id,
-      data.movingFolderId,
-      data.targetParentId,
-    );
+    try {
+      return await this.folderService.moveFolder(
+        _ctx.user.id,
+        data.movingFolderId,
+        data.targetParentId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 
   @Mutation({
     input: z.object({ id: z.string() }),
   })
   async deleteFolder(@Ctx() _ctx: AuthContext, @Input() data: { id: string }) {
-    return this.folderService.deleteFolder(_ctx.user.id, data.id);
+    try {
+      return await this.folderService.deleteFolder(_ctx.user.id, data.id);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
   }
 }
