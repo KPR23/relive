@@ -34,7 +34,10 @@ export function mapToTRPCError(err: unknown): never {
     throw new TRPCError({ code: 'NOT_FOUND', message: err.message });
   }
   if (err instanceof PhotoMissingThumbPathError) {
-    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: err.message });
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: err.message,
+    });
   }
   if (
     err instanceof PhotoLimitReachedError ||

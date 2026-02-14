@@ -30,7 +30,7 @@ export class FolderRouter {
     try {
       return await this.folderService.ensureRootFolder(_ctx.user.id);
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 
@@ -41,7 +41,7 @@ export class FolderRouter {
     try {
       return await this.folderService.getAllFolders(_ctx.user.id);
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 
@@ -59,7 +59,7 @@ export class FolderRouter {
         data.parentId,
       );
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 
@@ -77,7 +77,7 @@ export class FolderRouter {
         data.folderId,
       );
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 
@@ -98,7 +98,7 @@ export class FolderRouter {
         data?.currentFolderId,
       );
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 
@@ -113,7 +113,7 @@ export class FolderRouter {
     try {
       return await this.folderService.createFolder(_ctx.user.id, data);
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 
@@ -131,7 +131,7 @@ export class FolderRouter {
         data.targetParentId,
       );
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 
@@ -142,7 +142,7 @@ export class FolderRouter {
     try {
       return await this.folderService.deleteFolder(_ctx.user.id, data.id);
     } catch (err) {
-      throw mapToTRPCError(err);
+      mapToTRPCError(err);
     }
   }
 }

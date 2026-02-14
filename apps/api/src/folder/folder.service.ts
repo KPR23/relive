@@ -9,7 +9,6 @@ import {
   CannotMoveFolderToSelfError,
   CannotMoveRootFolderError,
   FolderNotFoundError,
-  FolderNotOwnedError,
   ParentFolderIdRequiredError,
 } from './folder.errors.js';
 import { CreateFolderSchema, Folder } from './folder.schema.js';
