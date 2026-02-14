@@ -6,6 +6,7 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
+import { TRPCError } from '@trpc/server';
 import z from 'zod';
 import { AuthMiddleware } from '../middleware.js';
 import { B2Storage } from '../storage/b2.storage.js';
@@ -156,16 +157,18 @@ export class PhotoRouter {
     @Ctx() _ctx: AuthContext,
     @Input() data: RequestUploadSchema,
   ) {
+    const parts = data.mimeType.split('/');
+    if (parts.length !== 2 || !parts[1]) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Invalid mimeType format',
+      });
+    }
+    const ext = parts[1];
+    const photoId = crypto.randomUUID();
+    const key = `photos/${_ctx.user.id}/${photoId}.${ext}`;
+
     try {
-      const photoId = crypto.randomUUID();
-      const parts = data.mimeType.split('/');
-      if (parts.length !== 2 || !parts[1]) {
-        mapToTRPCError(new Error('Invalid mimeType format'));
-      }
-      const ext = parts[1];
-
-      const key = `photos/${_ctx.user.id}/${photoId}.${ext}`;
-
       const uploadUrl = await this.storage.getUploadUrl(key, data.mimeType);
 
       await this.photoService.createPending({

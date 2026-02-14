@@ -80,6 +80,15 @@ export function mapToTRPCError(err: unknown): never {
   if (err instanceof BadRequestException) {
     throw new TRPCError({ code: 'BAD_REQUEST', message: err.message });
   }
+  if (err instanceof TRPCError) {
+    throw err;
+  }
+
   console.error('Unknown error in mapToTRPCError, rethrowing:', err);
-  throw err;
+
+  throw new TRPCError({
+    code: 'INTERNAL_SERVER_ERROR',
+    message: 'An unexpected error occurred',
+    cause: err,
+  });
 }
