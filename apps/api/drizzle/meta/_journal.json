@@ -8,6 +8,13 @@
       "when": 1768846277233,
       "tag": "0000_plain_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771082295736,
+      "tag": "0001_early_archangel",
+      "breakpoints": true
     }
   ]
 }
