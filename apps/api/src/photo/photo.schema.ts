@@ -1,6 +1,6 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { photo } from '../db/schema.js';
+import { photo, sharePermissionEnum } from '../db/schema.js';
 import { dateFromString } from '../helpers/helpers.js';
 
 export const photoSelectSchema = createSelectSchema(photo);
@@ -54,6 +54,12 @@ export const photoListItemSchema = z.object({
 
 export const photoListSchema = z.array(photoListItemSchema);
 
+export const sharePhotoWithUserInputSchema = z.object({
+  photoId: z.string(),
+  targetUserEmail: z.string(),
+  permission: z.enum(sharePermissionEnum),
+});
+
 export const requestUploadOutputSchema = z.object({
   uploadUrl: z.string(),
   photoId: z.string(),
@@ -93,3 +99,6 @@ export type CreatePendingPhoto = z.infer<typeof createPendingPhotoSchema>;
 export type ConfirmUploadPhoto = z.infer<typeof confirmUploadPhotoSchema>;
 export type ListPhotosSchema = z.infer<typeof listPhotosSchema>;
 export type ExifSchema = z.infer<typeof exifSchema>;
+export type SharePhotoWithUserInputSchema = z.infer<
+  typeof sharePhotoWithUserInputSchema
+>;

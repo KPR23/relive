@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import {
   Ctx,
   Input,
@@ -6,21 +7,22 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
-import { TRPCError } from '@trpc/server';
 import z from 'zod';
 import { AuthMiddleware } from '../middleware.js';
 import { B2Storage } from '../storage/b2.storage.js';
 import type { AuthContext } from '../trpc/context.js';
-import { mapToTRPCError } from '../trpc/mapToTRPCError.js';
+import { mapToTRPCError } from '../trpc/map-to-trpc.js';
 import {
   confirmUploadOutputSchema,
   listPhotosSchema,
+  type ListPhotosSchema,
   photoListSchema,
   requestUploadOutputSchema,
   requestUploadSchema,
-  signedUrlOutputSchema,
-  type ListPhotosSchema,
   type RequestUploadSchema,
+  type SharePhotoWithUserInputSchema,
+  sharePhotoWithUserInputSchema,
+  signedUrlOutputSchema,
 } from './photo.schema.js';
 import { PhotoService } from './photo.service.js';
 
@@ -95,6 +97,25 @@ export class PhotoRouter {
   async sharedPhotosWithMe(@Ctx() _ctx: AuthContext) {
     try {
       return await this.photoService.sharedPhotosWithMe(_ctx.user.id);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Mutation({
+    input: sharePhotoWithUserInputSchema,
+  })
+  async sharePhotoWithUser(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: SharePhotoWithUserInputSchema,
+  ) {
+    try {
+      return await this.photoService.sharePhotoWithUser(
+        _ctx.user.id,
+        data.photoId,
+        data.targetUserEmail,
+        data.permission,
+      );
     } catch (err) {
       mapToTRPCError(err);
     }

@@ -26,6 +26,18 @@ export function useAllPhotos() {
   });
 }
 
+export function useSharedPhotosWithMe() {
+  return trpc.photo.sharedPhotosWithMe.useQuery(undefined, {
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+  });
+}
+
+export function useSharePhotoWithUser() {
+  return trpc.photo.sharePhotoWithUser.useMutation();
+}
+
 export function usePhotoUrl(photoId: string, options?: { enabled?: boolean }) {
   return trpc.photo.getPhotoUrl.useQuery(
     { photoId },

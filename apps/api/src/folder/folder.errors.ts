@@ -1,55 +1,57 @@
-export class FolderNotFoundError extends Error {
+import { AppError } from '../helpers/errors.js';
+
+export class FolderNotFoundError extends AppError {
+  readonly code = 'NOT_FOUND';
   constructor(message = 'Folder not found') {
     super(message);
-    this.name = 'FolderNotFoundError';
   }
 }
 
-export class FolderNotOwnedError extends Error {
+export class FolderNotOwnedError extends AppError {
+  readonly code = 'FORBIDDEN';
   constructor(message = 'Folder not owned by user') {
     super(message);
-    this.name = 'FolderNotOwnedError';
   }
 }
 
-export class ParentFolderIdRequiredError extends Error {
+export class ParentFolderIdRequiredError extends AppError {
+  readonly code = 'BAD_REQUEST';
   constructor(message = 'Parent folder ID not provided') {
     super(message);
-    this.name = 'ParentFolderIdRequiredError';
   }
 }
 
-export class CannotMoveFolderToSelfError extends Error {
-  constructor(message = 'Cannot move this folder') {
+export class CannotMoveFolderToSelfError extends AppError {
+  readonly code = 'BAD_REQUEST';
+  constructor(message = 'Cannot move this folder to itself') {
     super(message);
-    this.name = 'CannotMoveFolderToSelfError';
   }
 }
 
-export class CannotMoveRootFolderError extends Error {
+export class CannotMoveRootFolderError extends AppError {
+  readonly code = 'FORBIDDEN';
   constructor(message = 'Cannot move root folder') {
     super(message);
-    this.name = 'CannotMoveRootFolderError';
   }
 }
 
-export class CannotMoveFolderCreatesCycleError extends Error {
+export class CannotMoveFolderCreatesCycleError extends AppError {
+  readonly code = 'CONFLICT';
   constructor(message = 'Moving this folder would create a cycle') {
     super(message);
-    this.name = 'CannotMoveFolderCreatesCycleError';
   }
 }
 
-export class CannotDeleteRootFolderError extends Error {
+export class CannotDeleteRootFolderError extends AppError {
+  readonly code = 'FORBIDDEN';
   constructor(message = 'Cannot delete root folder') {
     super(message);
-    this.name = 'CannotDeleteRootFolderError';
   }
 }
 
-export class CannotDeleteFolderWithChildrenError extends Error {
+export class CannotDeleteFolderWithChildrenError extends AppError {
+  readonly code = 'CONFLICT';
   constructor(message = 'Cannot delete folder with children') {
     super(message);
-    this.name = 'CannotDeleteFolderWithChildrenError';
   }
 }

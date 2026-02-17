@@ -109,6 +109,14 @@ const appRouter = t.router({
       gpsLng: z.number().nullish(),
       gpsAltitude: z.number().nullish(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    sharePhotoWithUser: publicProcedure.input(z.object({
+      photoId: z.string(),
+      targetUserEmail: z.string(),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     movePhotoToFolder: publicProcedure.input(z.object({ photoId: z.string(), folderId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     removePhoto: publicProcedure.input(z.object({ photoId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     removePhotoFromFolder: publicProcedure.input(z.object({ photoId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),

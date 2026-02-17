@@ -17,12 +17,16 @@ import {
   photo,
   photoShare,
   PhotoStatusEnum,
+  SharePermission,
+  user,
 } from '../db/schema.js';
 import { FolderService, Tx } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
 import {
   PhotoAlreadyInFolderError,
   PhotoAlreadyInRootFolderError,
+  PhotoAlreadySharedWithUserError,
+  PhotoCannotShareWithSelfError,
   PhotoLimitReachedError,
   PhotoMissingThumbPathError,
   PhotoNotFoundError,
@@ -452,5 +456,62 @@ export class PhotoService {
       );
 
     return this.mapPhotosToResponse(photos);
+  }
+
+  private async sharePhotoWithUserId(
+    userId: string,
+    photoId: string,
+    targetUserId: string,
+    permission: SharePermission,
+  ) {
+    return db.transaction(async (tx) => {
+      if (userId === targetUserId) {
+        throw new PhotoCannotShareWithSelfError();
+      }
+
+      await this.getReadyPhotoOrThrow(userId, photoId, tx);
+
+      const result = await tx
+        .insert(photoShare)
+        .values({
+          id: crypto.randomUUID(),
+          ownerId: userId,
+          photoId: photoId,
+          sharedWithId: targetUserId,
+          permission: permission,
+        })
+        .onConflictDoNothing();
+
+      if (result.rowCount === 0) {
+        throw new PhotoAlreadySharedWithUserError();
+      }
+
+      return { success: true };
+    });
+  }
+
+  async sharePhotoWithUser(
+    userId: string,
+    photoId: string,
+    targetUserEmail: string,
+    permission: SharePermission,
+  ) {
+    const [targetUser] = await db
+      .select({ id: user.id, email: user.email })
+      .from(user)
+      .where(eq(user.email, targetUserEmail))
+      .limit(1);
+
+    if (!targetUser) {
+      //TODO
+      throw new Error('Target user not found');
+    }
+
+    return this.sharePhotoWithUserId(
+      userId,
+      photoId,
+      targetUser.id,
+      permission,
+    );
   }
 }

@@ -8,7 +8,7 @@ import {
 } from 'nestjs-trpc';
 import { AuthMiddleware } from '../middleware.js';
 import { type AuthContext } from '../trpc/context.js';
-import { mapToTRPCError } from '../trpc/mapToTRPCError.js';
+import { mapToTRPCError } from '../trpc/map-to-trpc.js';
 import { z } from 'zod';
 import {
   type CreateFolderSchema,
