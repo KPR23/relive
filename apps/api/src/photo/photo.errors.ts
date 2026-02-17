@@ -63,6 +63,20 @@ export class PhotoRemoveFailedError extends AppError {
   }
 }
 
+export class PhotoUploadConfirmFailedError extends AppError {
+  readonly code = 'INTERNAL_SERVER_ERROR';
+  constructor(cause?: unknown) {
+    super(`Failed to confirm photo upload`, cause);
+  }
+}
+
+export class PhotoShareNotFoundError extends AppError {
+  readonly code = 'NOT_FOUND';
+  constructor(message = 'Photo share not found') {
+    super(message);
+  }
+}
+
 export class PhotoNotOwnedByUserError extends AppError {
   readonly code = 'FORBIDDEN';
   constructor(message = 'Photo is not owned by the user') {

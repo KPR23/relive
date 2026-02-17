@@ -14,6 +14,7 @@ import { PhotoPermissionService } from './photo-permission.service.js';
 import {
   PhotoAlreadySharedWithUserError,
   PhotoCannotShareWithSelfError,
+  PhotoShareNotFoundError,
   UserNotFoundError,
 } from './photo.errors.js';
 import { PhotoShareListItem } from './photo.schema.js';
@@ -136,7 +137,7 @@ export class PhotoShareService {
         tx,
       );
 
-      await tx
+      const result = await tx
         .delete(photoShare)
         .where(
           and(
@@ -144,6 +145,12 @@ export class PhotoShareService {
             eq(photoShare.sharedWithId, targetUserId),
           ),
         );
+
+      if (result.rowCount === 0) {
+        throw new PhotoShareNotFoundError();
+      }
+
+      return { success: true };
     });
   }
 }

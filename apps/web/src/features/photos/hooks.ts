@@ -104,8 +104,10 @@ export function useRemovePhoto() {
     ...createAppMutation({
       successMessage: 'Photo deleted',
       invalidate: async () => {
-        await utils.photo.listAllPhotos.invalidate();
-        await utils.photo.listPhotosForFolder.invalidate();
+        await Promise.all([
+          utils.photo.listAllPhotos.invalidate(),
+          utils.photo.listPhotosForFolder.invalidate(),
+        ]);
       },
     }),
     onMutate: async () => {

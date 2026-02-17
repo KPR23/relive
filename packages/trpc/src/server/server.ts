@@ -10,7 +10,7 @@ const appRouter = t.router({
       folderId: z.uuid(),
     })).output(z.array(z.object({
       photoId: z.uuid(),
-      folderId: z.string(),
+      folderId: z.uuid(),
       originalName: z.string(),
       createdAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
@@ -41,7 +41,7 @@ const appRouter = t.router({
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listAllPhotos: publicProcedure.output(z.array(z.object({
       photoId: z.uuid(),
-      folderId: z.string(),
+      folderId: z.uuid(),
       originalName: z.string(),
       createdAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
@@ -101,7 +101,7 @@ const appRouter = t.router({
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     sharedPhotosWithMe: publicProcedure.output(z.array(z.object({
       photoId: z.uuid(),
-      folderId: z.string(),
+      folderId: z.uuid(),
       originalName: z.string(),
       createdAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
@@ -235,25 +235,24 @@ const appRouter = t.router({
         z.date(),
       ),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    getMoveableFolders: publicProcedure.input(z
-      .object({ currentFolderId: z.uuid().optional() })
-      .optional()
-      .default({})).output(z.array(z.object({
-        id: z.uuid(),
-        name: z.string(),
-        description: z.string().nullable(),
-        ownerId: z.string(),
-        parentId: z.string().uuid().nullable(),
-        isRoot: z.boolean(),
-        createdAt: z.preprocess(
-          (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
-          z.date(),
-        ),
-        updatedAt: z.preprocess(
-          (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
-          z.date(),
-        ),
-      }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getMoveableFolders: publicProcedure.input(z.object({
+      currentFolderId: z.uuid().optional(),
+    })).output(z.array(z.object({
+      id: z.uuid(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().uuid().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createFolder: publicProcedure.input(z.object({
       name: z.string().min(1, 'Folder name is required'),
       description: z.string().optional().nullable(),

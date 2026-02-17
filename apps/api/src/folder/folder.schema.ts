@@ -39,10 +39,9 @@ export const folderIdInputSchema = z.object({
   folderId: z.uuid(),
 });
 
-export const getMoveableFoldersInputSchema = z
-  .object({ currentFolderId: z.uuid().optional() })
-  .optional()
-  .default({});
+export const getMoveableFoldersInputSchema = z.object({
+  currentFolderId: z.uuid().optional(),
+});
 
 export const moveFolderInputSchema = z.object({
   movingFolderId: z.uuid(),

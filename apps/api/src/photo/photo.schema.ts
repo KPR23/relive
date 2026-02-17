@@ -41,7 +41,7 @@ export const movePhotoToFolderInputSchema = z.object({
 
 export const photoListItemSchema = z.object({
   photoId: z.uuid(),
-  folderId: z.string(),
+  folderId: z.uuid(),
   originalName: z.string(),
   createdAt: dateFromString,
   takenAt: dateFromString,

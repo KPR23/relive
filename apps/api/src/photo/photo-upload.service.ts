@@ -4,7 +4,11 @@ import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
 import { FolderService } from '../folder/folder.service.js';
 import { B2Storage } from '../storage/b2.storage.js';
-import { PhotoLimitReachedError, PhotoNotFoundError } from './photo.errors.js';
+import {
+  PhotoLimitReachedError,
+  PhotoNotFoundError,
+  PhotoUploadConfirmFailedError,
+} from './photo.errors.js';
 import { ConfirmUploadPhoto, CreatePendingPhoto } from './photo.schema.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
 
@@ -128,9 +132,7 @@ export class PhotoUploadService {
             and(eq(photo.id, data.photoId), eq(photo.ownerId, data.ownerId)),
           );
 
-        return {
-          status: PhotoStatusEnum.FAILED,
-        };
+        throw new PhotoUploadConfirmFailedError(err);
       }
     });
   }
