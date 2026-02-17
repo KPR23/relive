@@ -5,7 +5,22 @@ import { folder } from '../db/schema.js';
 export const folderSelectSchema = createSelectSchema(folder);
 export const folderInsertSchema = createInsertSchema(folder);
 
-export const folderSchema = folderSelectSchema;
+export const folderSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  ownerId: z.string(),
+  parentId: z.string().uuid().nullable(),
+  isRoot: z.boolean(),
+  createdAt: z.preprocess(
+    (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+    z.date(),
+  ),
+  updatedAt: z.preprocess(
+    (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+    z.date(),
+  ),
+});
 
 export type Folder = z.infer<typeof folderSelectSchema>;
 export type CreateFolder = z.infer<typeof folderInsertSchema>;

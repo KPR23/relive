@@ -167,101 +167,113 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
   folder: t.router({
-    getRootFolder: publicProcedure.output(createSelectSchema(pgTable(
-      'folder',
-      {
-        id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-        name: text('name').notNull(),
-        description: text('description'),
-        ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-        parentId: text('parent_id'),
-        isRoot: boolean('is_root').default(false).notNull(),
-        createdAt: timestamp('created_at').defaultNow().notNull(),
-        updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
-      },
-      (table) => [index('folder_owner_idx').on(table.ownerId)],
-    ))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    getAllFolders: publicProcedure.output(z.array(createSelectSchema(pgTable(
-      'folder',
-      {
-        id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-        name: text('name').notNull(),
-        description: text('description'),
-        ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-        parentId: text('parent_id'),
-        isRoot: boolean('is_root').default(false).notNull(),
-        createdAt: timestamp('created_at').defaultNow().notNull(),
-        updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
-      },
-      (table) => [index('folder_owner_idx').on(table.ownerId)],
-    )))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getRootFolder: publicProcedure.output(z.object({
+      id: z.uuid(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().uuid().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getAllFolders: publicProcedure.output(z.array(z.object({
+      id: z.uuid(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().uuid().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getFolderChildren: publicProcedure.input(z.object({
       parentId: z.uuid(),
-    })).output(z.array(createSelectSchema(pgTable(
-      'folder',
-      {
-        id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-        name: text('name').notNull(),
-        description: text('description'),
-        ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-        parentId: text('parent_id'),
-        isRoot: boolean('is_root').default(false).notNull(),
-        createdAt: timestamp('created_at').defaultNow().notNull(),
-        updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
-      },
-      (table) => [index('folder_owner_idx').on(table.ownerId)],
-    )))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    })).output(z.array(z.object({
+      id: z.uuid(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().uuid().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getAllParentsForFolder: publicProcedure.input(z.object({
       folderId: z.uuid(),
-    })).output(z.array(createSelectSchema(pgTable(
-      'folder',
-      {
-        id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-        name: text('name').notNull(),
-        description: text('description'),
-        ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-        parentId: text('parent_id'),
-        isRoot: boolean('is_root').default(false).notNull(),
-        createdAt: timestamp('created_at').defaultNow().notNull(),
-        updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
-      },
-      (table) => [index('folder_owner_idx').on(table.ownerId)],
-    )))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    })).output(z.array(z.object({
+      id: z.uuid(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().uuid().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getMoveableFolders: publicProcedure.input(z
       .object({ currentFolderId: z.uuid().optional() })
       .optional()
-      .default({})).output(z.array(createSelectSchema(pgTable(
-        'folder',
-        {
-          id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-          name: text('name').notNull(),
-          description: text('description'),
-          ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-          parentId: text('parent_id'),
-          isRoot: boolean('is_root').default(false).notNull(),
-          createdAt: timestamp('created_at').defaultNow().notNull(),
-          updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
-        },
-        (table) => [index('folder_owner_idx').on(table.ownerId)],
-      )))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+      .default({})).output(z.array(z.object({
+        id: z.uuid(),
+        name: z.string(),
+        description: z.string().nullable(),
+        ownerId: z.string(),
+        parentId: z.string().uuid().nullable(),
+        isRoot: z.boolean(),
+        createdAt: z.preprocess(
+          (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+          z.date(),
+        ),
+        updatedAt: z.preprocess(
+          (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+          z.date(),
+        ),
+      }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createFolder: publicProcedure.input(z.object({
       name: z.string().min(1, 'Folder name is required'),
       description: z.string().optional().nullable(),
       parentId: z.uuid(),
-    })).output(createSelectSchema(pgTable(
-      'folder',
-      {
-        id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-        name: text('name').notNull(),
-        description: text('description'),
-        ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-        parentId: text('parent_id'),
-        isRoot: boolean('is_root').default(false).notNull(),
-        createdAt: timestamp('created_at').defaultNow().notNull(),
-        updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
-      },
-      (table) => [index('folder_owner_idx').on(table.ownerId)],
-    ))).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    })).output(z.object({
+      id: z.uuid(),
+      name: z.string(),
+      description: z.string().nullable(),
+      ownerId: z.string(),
+      parentId: z.string().uuid().nullable(),
+      isRoot: z.boolean(),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      updatedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     moveFolder: publicProcedure.input(z.object({
       movingFolderId: z.uuid(),
       targetParentId: z.uuid(),
