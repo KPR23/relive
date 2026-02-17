@@ -10,7 +10,7 @@ export const folderSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   ownerId: z.string(),
-  parentId: z.string().uuid().nullable(),
+  parentId: z.uuid().nullable(),
   isRoot: z.boolean(),
   createdAt: z.preprocess(
     (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
