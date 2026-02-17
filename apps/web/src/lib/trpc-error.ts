@@ -15,15 +15,6 @@ export function getTRPCErrorMessage(error: unknown): string {
           error.message || 'You do not have permission to perform this action'
         );
 
-      case 'NOT_FOUND':
-        return error.message;
-
-      case 'CONFLICT':
-        return error.message;
-
-      case 'BAD_REQUEST':
-        return error.message;
-
       case 'INTERNAL_SERVER_ERROR':
         return 'Server error. Please try again later.';
 

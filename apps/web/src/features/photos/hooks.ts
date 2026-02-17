@@ -36,9 +36,15 @@ export function useSharedPhotosWithMe() {
 }
 
 export function useSharePhotoWithUser() {
+  const utils = usePhotoUtils();
+
   return trpc.photo.sharePhotoWithUser.useMutation(
     createAppMutation({
       successMessage: 'Photo shared successfully!',
+      invalidate: async () => {
+        await utils.photo.sharedPhotosWithMe.invalidate();
+        await utils.photo.listPhotoShares.invalidate();
+      },
     }),
   );
 }

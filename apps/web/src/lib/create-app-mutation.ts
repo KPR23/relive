@@ -6,6 +6,7 @@ import { getTRPCErrorMessage } from './trpc-error';
 type Options = {
   successMessage?: string;
   invalidate?: () => void | Promise<void>;
+  onSuccess?: () => void | Promise<void>;
 };
 
 export function createAppMutation(options?: Options) {
@@ -17,6 +18,10 @@ export function createAppMutation(options?: Options) {
 
       if (options?.successMessage) {
         toast.success(options.successMessage);
+      }
+
+      if (options?.onSuccess) {
+        await options.onSuccess();
       }
     },
     onError: (error: unknown) => {

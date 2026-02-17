@@ -50,7 +50,7 @@ export class PhotoAlreadySharedWithUserError extends AppError {
 }
 
 export class PhotoCannotShareWithSelfError extends AppError {
-  readonly code = 'CONFLICT';
+  readonly code = 'BAD_REQUEST';
   constructor(message = 'Cannot share photo with yourself') {
     super(message);
   }

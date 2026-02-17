@@ -33,6 +33,7 @@ export function mapToTRPCError(err: unknown): never {
 }
 
 function mapHttpStatusToTRPC(status: number): TRPC_ERROR_CODE_KEY {
+  if (status === 401) return 'UNAUTHORIZED';
   if (status === 404) return 'NOT_FOUND';
   if (status === 403) return 'FORBIDDEN';
   if (status === 409) return 'CONFLICT';
