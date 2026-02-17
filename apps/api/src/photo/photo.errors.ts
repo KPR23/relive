@@ -62,3 +62,17 @@ export class PhotoRemoveFailedError extends AppError {
     super(message, { cause });
   }
 }
+
+export class PhotoNotOwnedByUserError extends AppError {
+  readonly code = 'FORBIDDEN';
+  constructor(message = 'Photo is not owned by the user') {
+    super(message);
+  }
+}
+
+export class UserNotFoundError extends AppError {
+  readonly code = 'NOT_FOUND';
+  constructor(message = 'User not found') {
+    super(message);
+  }
+}

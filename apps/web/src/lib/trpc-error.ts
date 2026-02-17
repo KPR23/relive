@@ -11,7 +11,9 @@ export function getTRPCErrorMessage(error: unknown): string {
         return 'You must be logged in';
 
       case 'FORBIDDEN':
-        return 'You do not have permission to perform this action';
+        return (
+          error.message || 'You do not have permission to perform this action'
+        );
 
       case 'NOT_FOUND':
         return error.message;

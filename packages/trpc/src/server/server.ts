@@ -9,7 +9,7 @@ const appRouter = t.router({
     listPhotosForFolder: publicProcedure.input(z.object({
       folderId: z.uuid(),
     })).output(z.array(z.object({
-      photoId: z.string(),
+      photoId: z.uuid(),
       folderId: z.string(),
       originalName: z.string(),
       createdAt: z.preprocess((arg) => {
@@ -40,7 +40,7 @@ const appRouter = t.router({
       gpsAltitude: z.number().nullish(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listAllPhotos: publicProcedure.output(z.array(z.object({
-      photoId: z.string(),
+      photoId: z.uuid(),
       folderId: z.string(),
       originalName: z.string(),
       createdAt: z.preprocess((arg) => {
@@ -70,16 +70,31 @@ const appRouter = t.router({
       gpsLng: z.number().nullish(),
       gpsAltitude: z.number().nullish(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    getThumbnailUrl: publicProcedure.input(z.object({ photoId: z.string().uuid() })).output(z.object({
+    listPhotoShares: publicProcedure.input(z.object({ photoId: z.uuid() })).output(z.array(z.object({
+      id: z.string(),
+      sharedWithId: z.string(),
+      sharedWithEmail: z.email(),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+      expiresAt: z.preprocess((arg) => {
+        if (arg === null || arg === undefined) return null;
+        if (arg instanceof Date) return arg;
+        if (typeof arg === 'string') return new Date(arg);
+        return null;
+      }, z.date().nullable()),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getThumbnailUrl: publicProcedure.input(z.object({ photoId: z.uuid() })).output(z.object({
       signedUrl: z.string(),
       expiresAt: z.date(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    getPhotoUrl: publicProcedure.input(z.object({ photoId: z.string().uuid() })).output(z.object({
+    getPhotoUrl: publicProcedure.input(z.object({ photoId: z.uuid() })).output(z.object({
       signedUrl: z.string(),
       expiresAt: z.date(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     sharedPhotosWithMe: publicProcedure.output(z.array(z.object({
-      photoId: z.string(),
+      photoId: z.uuid(),
       folderId: z.string(),
       originalName: z.string(),
       createdAt: z.preprocess((arg) => {
@@ -110,25 +125,29 @@ const appRouter = t.router({
       gpsAltitude: z.number().nullish(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     sharePhotoWithUser: publicProcedure.input(z.object({
-      photoId: z.string(),
-      targetUserEmail: z.string(),
+      photoId: z.uuid(),
+      targetUserEmail: z.email(),
       permission: z.enum({
         VIEW: 'VIEW',
         EDIT: 'EDIT',
       } as const),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    movePhotoToFolder: publicProcedure.input(z.object({ photoId: z.string(), folderId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    removePhoto: publicProcedure.input(z.object({ photoId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    removePhotoFromFolder: publicProcedure.input(z.object({ photoId: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    movePhotoToFolder: publicProcedure.input(z.object({ photoId: z.uuid(), folderId: z.uuid() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    removePhoto: publicProcedure.input(z.object({ photoId: z.uuid() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    removePhotoFromFolder: publicProcedure.input(z.object({ photoId: z.uuid() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    revokePhotoShare: publicProcedure.input(z.object({
+      photoId: z.uuid(),
+      targetUserId: z.uuid(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     requestUpload: publicProcedure.input(z.object({
       folderId: z.uuid(),
       mimeType: z.string(),
       originalName: z.string(),
     })).output(z.object({
       uploadUrl: z.string(),
-      photoId: z.string(),
+      photoId: z.uuid(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    confirmUpload: publicProcedure.input(z.object({ photoId: z.string() })).output(z.object({
+    confirmUpload: publicProcedure.input(z.object({ photoId: z.uuid() })).output(z.object({
       status: z.string(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),

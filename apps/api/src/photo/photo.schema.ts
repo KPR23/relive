@@ -22,7 +22,7 @@ export const createPendingPhotoSchema = z.object({
 });
 
 export const confirmUploadPhotoSchema = z.object({
-  photoId: z.string(),
+  photoId: z.uuid(),
   ownerId: z.string(),
 });
 
@@ -31,7 +31,7 @@ export const listPhotosSchema = z.object({
 });
 
 export const photoListItemSchema = z.object({
-  photoId: z.string(),
+  photoId: z.uuid(),
   folderId: z.string(),
   originalName: z.string(),
   createdAt: dateFromString,
@@ -54,15 +54,28 @@ export const photoListItemSchema = z.object({
 
 export const photoListSchema = z.array(photoListItemSchema);
 
+export const photoShareListItemSchema = z.object({
+  id: z.string(),
+  sharedWithId: z.string(),
+  sharedWithEmail: z.email(),
+  permission: z.enum(sharePermissionEnum),
+  expiresAt: dateFromString,
+});
+
+export const revokePhotoShareInputSchema = z.object({
+  photoId: z.uuid(),
+  targetUserId: z.uuid(),
+});
+
 export const sharePhotoWithUserInputSchema = z.object({
-  photoId: z.string(),
-  targetUserEmail: z.string(),
+  photoId: z.uuid(),
+  targetUserEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
 });
 
 export const requestUploadOutputSchema = z.object({
   uploadUrl: z.string(),
-  photoId: z.string(),
+  photoId: z.uuid(),
 });
 
 export const confirmUploadOutputSchema = z.object({
@@ -101,4 +114,8 @@ export type ListPhotosSchema = z.infer<typeof listPhotosSchema>;
 export type ExifSchema = z.infer<typeof exifSchema>;
 export type SharePhotoWithUserInputSchema = z.infer<
   typeof sharePhotoWithUserInputSchema
+>;
+export type PhotoShareListItem = z.infer<typeof photoShareListItemSchema>;
+export type RevokePhotoShareInputSchema = z.infer<
+  typeof revokePhotoShareInputSchema
 >;

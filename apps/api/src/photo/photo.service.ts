@@ -30,13 +30,16 @@ import {
   PhotoLimitReachedError,
   PhotoMissingThumbPathError,
   PhotoNotFoundError,
+  PhotoNotOwnedByUserError,
   PhotoRemoveFailedError,
   ThumbnailNotFoundError,
+  UserNotFoundError,
 } from './photo.errors.js';
 import {
   type PhotoListItem,
   ConfirmUploadPhoto,
   CreatePendingPhoto,
+  PhotoShareListItem,
 } from './photo.schema.js';
 import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
@@ -234,10 +237,18 @@ export class PhotoService {
   }
 
   async removePhoto(userId: string, photoId: string) {
-    try {
-      const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
+    const photoRecord = await this.getReadyPhotoOrThrow(userId, photoId);
 
-      await db.delete(photo).where(eq(photo.id, photoId));
+    if (userId !== photoRecord.ownerId) {
+      throw new PhotoNotOwnedByUserError();
+    }
+
+    try {
+      await db.transaction(async (tx) => {
+        await tx.delete(photoShare).where(eq(photoShare.photoId, photoId));
+
+        await tx.delete(photo).where(eq(photo.id, photoId));
+      });
 
       await this.storage.delete(photoRecord.filePath);
 
@@ -247,7 +258,6 @@ export class PhotoService {
 
       return { success: true };
     } catch (err) {
-      if (err instanceof PhotoNotFoundError) throw err;
       console.error(`Failed to remove photo ${photoId}`, err);
       throw new PhotoRemoveFailedError('Failed to remove photo', err);
     }
@@ -324,46 +334,6 @@ export class PhotoService {
     }
 
     return photoRecord;
-  }
-  private async mapPhotosToResponse(
-    photos: (typeof photo.$inferSelect)[],
-  ): Promise<PhotoListItem[]> {
-    const photosWithThumbnails = await Promise.all(
-      photos.map(async (photo) => {
-        if (!photo.thumbPath) {
-          throw new PhotoMissingThumbPathError(photo.id);
-        }
-
-        const { signedUrl } = await this.storage.getSignedUrl(
-          photo.thumbPath,
-          60 * 10,
-        );
-
-        return {
-          photoId: photo.id,
-          folderId: photo.folderId,
-          originalName: photo.originalName,
-          createdAt: photo.createdAt,
-          width: photo.width,
-          height: photo.height,
-          thumbnailUrl: signedUrl,
-          cameraMake: photo.cameraMake,
-          cameraModel: photo.cameraModel,
-          lensModel: photo.lensModel,
-          exposureTime: photo.exposureTime,
-          fNumber: photo.fNumber,
-          iso: photo.iso,
-          focalLength: photo.focalLength,
-          focalLength35mm: photo.focalLength35mm,
-          gpsLat: photo.gpsLat,
-          gpsLng: photo.gpsLng,
-          gpsAltitude: photo.gpsAltitude,
-          takenAt: photo.takenAt,
-        };
-      }),
-    );
-
-    return photosWithThumbnails;
   }
 
   async cleanupFailedAndPendingPhotos(): Promise<{ success: boolean }> {
@@ -469,7 +439,15 @@ export class PhotoService {
         throw new PhotoCannotShareWithSelfError();
       }
 
-      await this.getReadyPhotoOrThrow(userId, photoId, tx);
+      const [ownedPhoto] = await tx
+        .select()
+        .from(photo)
+        .where(and(eq(photo.id, photoId), eq(photo.ownerId, userId)))
+        .limit(1);
+
+      if (!ownedPhoto) {
+        throw new PhotoNotOwnedByUserError();
+      }
 
       const result = await tx
         .insert(photoShare)
@@ -503,8 +481,7 @@ export class PhotoService {
       .limit(1);
 
     if (!targetUser) {
-      //TODO
-      throw new Error('Target user not found');
+      throw new UserNotFoundError('Target user not found');
     }
 
     return this.sharePhotoWithUserId(
@@ -513,5 +490,89 @@ export class PhotoService {
       targetUser.id,
       permission,
     );
+  }
+
+  async listPhotoShares(
+    userId: string,
+    photoId: string,
+  ): Promise<PhotoShareListItem[]> {
+    const results = await db
+      .select({
+        share: photoShare,
+        user: { id: user.id, email: user.email },
+      })
+      .from(photoShare)
+      .leftJoin(user, eq(photoShare.sharedWithId, user.id))
+      .where(
+        and(eq(photoShare.photoId, photoId), eq(photoShare.ownerId, userId)),
+      );
+
+    return results.map((r) => ({
+      id: r.share.id,
+      sharedWithId: r.share.sharedWithId,
+      sharedWithEmail: r.user?.email ?? '',
+      permission: r.share.permission,
+      expiresAt: r.share.expiresAt,
+    }));
+  }
+
+  async revokePhotoShare(
+    userId: string,
+    photoId: string,
+    targetUserId: string,
+  ) {
+    return db.transaction(async (tx) => {
+      await this.getReadyPhotoOrThrow(userId, photoId, tx);
+
+      await tx
+        .delete(photoShare)
+        .where(
+          and(
+            eq(photoShare.photoId, photoId),
+            eq(photoShare.sharedWithId, targetUserId),
+          ),
+        );
+    });
+  }
+
+  private async mapPhotosToResponse(
+    photos: (typeof photo.$inferSelect)[],
+  ): Promise<PhotoListItem[]> {
+    const photosWithThumbnails = await Promise.all(
+      photos.map(async (photo) => {
+        if (!photo.thumbPath) {
+          throw new PhotoMissingThumbPathError(photo.id);
+        }
+
+        const { signedUrl } = await this.storage.getSignedUrl(
+          photo.thumbPath,
+          60 * 10,
+        );
+
+        return {
+          photoId: photo.id,
+          folderId: photo.folderId,
+          originalName: photo.originalName,
+          createdAt: photo.createdAt,
+          width: photo.width,
+          height: photo.height,
+          thumbnailUrl: signedUrl,
+          cameraMake: photo.cameraMake,
+          cameraModel: photo.cameraModel,
+          lensModel: photo.lensModel,
+          exposureTime: photo.exposureTime,
+          fNumber: photo.fNumber,
+          iso: photo.iso,
+          focalLength: photo.focalLength,
+          focalLength35mm: photo.focalLength35mm,
+          gpsLat: photo.gpsLat,
+          gpsLng: photo.gpsLng,
+          gpsAltitude: photo.gpsAltitude,
+          takenAt: photo.takenAt,
+        };
+      }),
+    );
+
+    return photosWithThumbnails;
   }
 }

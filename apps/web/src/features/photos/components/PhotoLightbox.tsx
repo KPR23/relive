@@ -84,11 +84,18 @@ export function PhotoLightbox({
 
     if (!targetUserEmail.trim()) return;
 
-    sharePhotoWithUser.mutate({
-      photoId: photo.photoId,
-      targetUserEmail,
-      permission: 'VIEW',
-    });
+    sharePhotoWithUser.mutate(
+      {
+        photoId: photo.photoId,
+        targetUserEmail,
+        permission: 'VIEW',
+      },
+      {
+        onSuccess: () => {
+          setTargetUserEmail('');
+        },
+      },
+    );
 
     setTargetUserEmail('');
   };

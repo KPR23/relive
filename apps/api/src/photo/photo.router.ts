@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { UUID } from 'crypto';
 import {
   Ctx,
   Input,
@@ -17,9 +18,12 @@ import {
   listPhotosSchema,
   type ListPhotosSchema,
   photoListSchema,
+  photoShareListItemSchema,
   requestUploadOutputSchema,
   requestUploadSchema,
   type RequestUploadSchema,
+  revokePhotoShareInputSchema,
+  type RevokePhotoShareInputSchema,
   type SharePhotoWithUserInputSchema,
   sharePhotoWithUserInputSchema,
   signedUrlOutputSchema,
@@ -61,12 +65,30 @@ export class PhotoRouter {
   }
 
   @Query({
-    input: z.object({ photoId: z.string().uuid() }),
+    input: z.object({ photoId: z.uuid() }),
+    output: z.array(photoShareListItemSchema),
+  })
+  async listPhotoShares(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: { photoId: UUID },
+  ) {
+    try {
+      return await this.photoService.listPhotoShares(
+        _ctx.user.id,
+        data.photoId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Query({
+    input: z.object({ photoId: z.uuid() }),
     output: signedUrlOutputSchema,
   })
   async getThumbnailUrl(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { photoId: string },
+    @Input() data: { photoId: UUID },
   ) {
     try {
       return await this.photoService.getThumbnailUrl(
@@ -79,12 +101,12 @@ export class PhotoRouter {
   }
 
   @Query({
-    input: z.object({ photoId: z.string().uuid() }),
+    input: z.object({ photoId: z.uuid() }),
     output: signedUrlOutputSchema,
   })
   async getPhotoUrl(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { photoId: string },
+    @Input() data: { photoId: UUID },
   ) {
     try {
       return await this.photoService.getPhotoUrl(_ctx.user.id, data.photoId);
@@ -122,11 +144,11 @@ export class PhotoRouter {
   }
 
   @Mutation({
-    input: z.object({ photoId: z.string(), folderId: z.string() }),
+    input: z.object({ photoId: z.uuid(), folderId: z.uuid() }),
   })
   async movePhotoToFolder(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { photoId: string; folderId: string },
+    @Input() data: { photoId: UUID; folderId: UUID },
   ) {
     try {
       return await this.photoService.movePhotoToFolder(
@@ -140,11 +162,11 @@ export class PhotoRouter {
   }
 
   @Mutation({
-    input: z.object({ photoId: z.string() }),
+    input: z.object({ photoId: z.uuid() }),
   })
   async removePhoto(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { photoId: string },
+    @Input() data: { photoId: UUID },
   ) {
     try {
       return await this.photoService.removePhoto(_ctx.user.id, data.photoId);
@@ -154,16 +176,34 @@ export class PhotoRouter {
   }
 
   @Mutation({
-    input: z.object({ photoId: z.string() }),
+    input: z.object({ photoId: z.uuid() }),
   })
   async removePhotoFromFolder(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { photoId: string },
+    @Input() data: { photoId: UUID },
   ) {
     try {
       return await this.photoService.removePhotoFromFolder(
         _ctx.user.id,
         data.photoId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Mutation({
+    input: revokePhotoShareInputSchema,
+  })
+  async revokePhotoShare(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: RevokePhotoShareInputSchema,
+  ) {
+    try {
+      return await this.photoService.revokePhotoShare(
+        _ctx.user.id,
+        data.photoId,
+        data.targetUserId,
       );
     } catch (err) {
       mapToTRPCError(err);
@@ -211,12 +251,12 @@ export class PhotoRouter {
   }
 
   @Mutation({
-    input: z.object({ photoId: z.string() }),
+    input: z.object({ photoId: z.uuid() }),
     output: confirmUploadOutputSchema,
   })
   async confirmUpload(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { photoId: string },
+    @Input() data: { photoId: UUID },
   ) {
     try {
       return await this.photoService.confirmUpload({

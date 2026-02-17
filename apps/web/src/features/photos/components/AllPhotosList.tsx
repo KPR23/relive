@@ -16,15 +16,18 @@ export const AllPhotosList = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      {!data && <p>No photos found</p>}
-      {data &&
-        data.map((photo) => <PhotoItem key={photo.photoId} photo={photo} />)}
+      {data && data.length > 0 ? (
+        data.map((photo) => <PhotoItem key={photo.photoId} photo={photo} />)
+      ) : (
+        <p>No photos found</p>
+      )}
 
       <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
         Photos shared with me
       </h2>
-      {!sharedPhotosWithMe && <p>No shared photos with me</p>}
-      {sharedPhotosWithMe && (
+      {!sharedPhotosWithMe || sharedPhotosWithMe.length === 0 ? (
+        <p>No shared photos with me</p>
+      ) : (
         <div className="flex flex-wrap gap-1">
           {sharedPhotosWithMe.map((photo) => (
             <PhotoItem key={photo.photoId} photo={photo} />
