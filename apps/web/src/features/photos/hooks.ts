@@ -1,5 +1,6 @@
 'use client';
 
+import { createAppMutation } from '@/src/lib/create-app-mutation';
 import { usePhotoUtils } from '@/src/lib/trpc-utils';
 import { trpc } from '@/src/trpc/client';
 
@@ -35,7 +36,11 @@ export function useSharedPhotosWithMe() {
 }
 
 export function useSharePhotoWithUser() {
-  return trpc.photo.sharePhotoWithUser.useMutation();
+  return trpc.photo.sharePhotoWithUser.useMutation(
+    createAppMutation({
+      successMessage: 'Photo shared successfully!',
+    }),
+  );
 }
 
 export function usePhotoUrl(photoId: string, options?: { enabled?: boolean }) {
@@ -51,8 +56,18 @@ export function usePhotoUrl(photoId: string, options?: { enabled?: boolean }) {
 
 export function usePhotoUploadActions(): PhotoUploadActions {
   const utils = usePhotoUtils();
-  const requestUpload = trpc.photo.requestUpload.useMutation();
-  const confirmUpload = trpc.photo.confirmUpload.useMutation();
+
+  const requestUpload =
+    trpc.photo.requestUpload.useMutation(createAppMutation());
+
+  const confirmUpload = trpc.photo.confirmUpload.useMutation(
+    createAppMutation({
+      successMessage: 'Upload completed',
+      invalidate: async () => {
+        await utils.photo.invalidate();
+      },
+    }),
+  );
 
   return {
     requestUpload,
@@ -63,31 +78,43 @@ export function usePhotoUploadActions(): PhotoUploadActions {
 
 export function useMovePhotoToFolder() {
   const utils = usePhotoUtils();
-  return trpc.photo.movePhotoToFolder.useMutation({
-    onSuccess: () => {
-      utils.photo.invalidate();
-    },
-  });
+
+  return trpc.photo.movePhotoToFolder.useMutation(
+    createAppMutation({
+      successMessage: 'Photo moved successfully!',
+      invalidate: async () => {
+        await utils.photo.invalidate();
+      },
+    }),
+  );
 }
 
 export function useRemovePhoto() {
   const utils = usePhotoUtils();
+
   return trpc.photo.removePhoto.useMutation({
+    ...createAppMutation({
+      successMessage: 'Photo deleted',
+      invalidate: async () => {
+        await utils.photo.listAllPhotos.invalidate();
+        await utils.photo.listPhotosForFolder.invalidate();
+      },
+    }),
     onMutate: async () => {
       await utils.photo.getPhotoUrl.cancel();
-    },
-    onSuccess: async () => {
-      await utils.photo.listAllPhotos.invalidate();
-      await utils.photo.listPhotosForFolder.invalidate();
     },
   });
 }
 
 export function useRemovePhotoFromFolder() {
   const utils = usePhotoUtils();
-  return trpc.photo.removePhotoFromFolder.useMutation({
-    onSuccess: () => {
-      utils.photo.invalidate();
-    },
-  });
+
+  return trpc.photo.removePhotoFromFolder.useMutation(
+    createAppMutation({
+      successMessage: 'Photo removed from folder',
+      invalidate: async () => {
+        await utils.photo.invalidate();
+      },
+    }),
+  );
 }

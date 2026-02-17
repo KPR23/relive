@@ -20,7 +20,7 @@ export function mapToTRPCError(err: unknown): never {
     const status = err.getStatus();
     throw new TRPCError({
       code: mapHttpStatusToTRPC(status),
-      message: err.message,
+      message: getHttpMessage(err),
     });
   }
 
@@ -38,4 +38,17 @@ function mapHttpStatusToTRPC(status: number): TRPC_ERROR_CODE_KEY {
   if (status === 409) return 'CONFLICT';
   if (status === 400) return 'BAD_REQUEST';
   return 'INTERNAL_SERVER_ERROR';
+}
+
+function getHttpMessage(err: HttpException): string {
+  const response = err.getResponse();
+
+  if (typeof response === 'string') return response;
+
+  if (typeof response === 'object' && response && 'message' in response) {
+    const msg = (response as any).message;
+    return Array.isArray(msg) ? msg.join(', ') : msg;
+  }
+
+  return err.message;
 }
