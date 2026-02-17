@@ -42,8 +42,10 @@ export function useSharePhotoWithUser() {
     createAppMutation({
       successMessage: 'Photo shared successfully!',
       invalidate: async () => {
-        await utils.photo.sharedPhotosWithMe.invalidate();
-        await utils.photo.listPhotoShares.invalidate();
+        await Promise.all([
+          utils.photo.sharedPhotosWithMe.invalidate(),
+          utils.photo.listPhotoShares.invalidate(),
+        ]);
       },
     }),
   );

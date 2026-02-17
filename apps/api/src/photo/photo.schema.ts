@@ -30,6 +30,15 @@ export const listPhotosSchema = z.object({
   folderId: z.uuid(),
 });
 
+export const photoIdInputSchema = z.object({
+  photoId: z.uuid(),
+});
+
+export const movePhotoToFolderInputSchema = z.object({
+  photoId: z.uuid(),
+  folderId: z.uuid(),
+});
+
 export const photoListItemSchema = z.object({
   photoId: z.uuid(),
   folderId: z.string(),
@@ -111,6 +120,10 @@ export type RequestUploadSchema = z.infer<typeof requestUploadSchema>;
 export type CreatePendingPhoto = z.infer<typeof createPendingPhotoSchema>;
 export type ConfirmUploadPhoto = z.infer<typeof confirmUploadPhotoSchema>;
 export type ListPhotosSchema = z.infer<typeof listPhotosSchema>;
+export type PhotoIdInputSchema = z.infer<typeof photoIdInputSchema>;
+export type MovePhotoToFolderInputSchema = z.infer<
+  typeof movePhotoToFolderInputSchema
+>;
 export type ExifSchema = z.infer<typeof exifSchema>;
 export type SharePhotoWithUserInputSchema = z.infer<
   typeof sharePhotoWithUserInputSchema

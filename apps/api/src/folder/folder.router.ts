@@ -13,8 +13,18 @@ import { z } from 'zod';
 import {
   type CreateFolderSchema,
   createFolderSchema,
+  type DeleteFolderInputSchema,
+  deleteFolderInputSchema,
   type Folder,
   folderSchema,
+  type FolderIdInputSchema,
+  folderIdInputSchema,
+  type GetMoveableFoldersInputSchema,
+  getMoveableFoldersInputSchema,
+  type MoveFolderInputSchema,
+  moveFolderInputSchema,
+  type ParentIdInputSchema,
+  parentIdInputSchema,
 } from './folder.schema.js';
 import { FolderService } from './folder.service.js';
 
@@ -46,12 +56,12 @@ export class FolderRouter {
   }
 
   @Query({
-    input: z.object({ parentId: z.string() }),
+    input: parentIdInputSchema,
     output: z.array(folderSchema),
   })
   async getFolderChildren(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { parentId: string },
+    @Input() data: ParentIdInputSchema,
   ) {
     try {
       return await this.folderService.getFolderChildren(
@@ -64,12 +74,12 @@ export class FolderRouter {
   }
 
   @Query({
-    input: z.object({ folderId: z.string() }),
+    input: folderIdInputSchema,
     output: z.array(folderSchema),
   })
   async getAllParentsForFolder(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { folderId: string },
+    @Input() data: FolderIdInputSchema,
   ) {
     try {
       return await this.folderService.getAllParentsForFolder(
@@ -82,15 +92,12 @@ export class FolderRouter {
   }
 
   @Query({
-    input: z
-      .object({ currentFolderId: z.string().optional() })
-      .optional()
-      .default({}),
+    input: getMoveableFoldersInputSchema,
     output: z.array(folderSchema),
   })
   async getMoveableFolders(
     @Ctx() _ctx: AuthContext,
-    @Input() data?: { currentFolderId?: string },
+    @Input() data: GetMoveableFoldersInputSchema,
   ) {
     try {
       return await this.folderService.getMoveableFolders(
@@ -118,11 +125,11 @@ export class FolderRouter {
   }
 
   @Mutation({
-    input: z.object({ movingFolderId: z.string(), targetParentId: z.string() }),
+    input: moveFolderInputSchema,
   })
   async moveFolder(
     @Ctx() _ctx: AuthContext,
-    @Input() data: { movingFolderId: string; targetParentId: string },
+    @Input() data: MoveFolderInputSchema,
   ) {
     try {
       return await this.folderService.moveFolder(
@@ -136,9 +143,12 @@ export class FolderRouter {
   }
 
   @Mutation({
-    input: z.object({ id: z.string() }),
+    input: deleteFolderInputSchema,
   })
-  async deleteFolder(@Ctx() _ctx: AuthContext, @Input() data: { id: string }) {
+  async deleteFolder(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: DeleteFolderInputSchema,
+  ) {
     try {
       return await this.folderService.deleteFolder(_ctx.user.id, data.id);
     } catch (err) {

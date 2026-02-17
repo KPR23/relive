@@ -1,14 +1,12 @@
 import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
 import type { Request } from 'express';
 import { env } from '../env.server.js';
-import { PhotoService } from '../photo/photo.service.js';
-import { Public } from '@thallesp/nestjs-better-auth';
+import { PhotoUploadService } from '../photo/photo-upload.service.js';
 
 @Controller('api/cleanup')
 export class CleanupController {
-  constructor(private readonly photoService: PhotoService) {}
+  constructor(private readonly photoUploadService: PhotoUploadService) {}
 
-  @Public()
   @Get()
   async cleanupFailedAndPendingPhotos(@Req() req: Request) {
     const authHeader = req.headers['authorization'];
@@ -18,7 +16,7 @@ export class CleanupController {
     if (!env.CRON_SECRET || token !== env.CRON_SECRET) {
       throw new UnauthorizedException('Invalid or missing cron secret');
     }
-    await this.photoService.cleanupFailedAndPendingPhotos();
+    await this.photoUploadService.cleanupFailedAndPendingPhotos();
     return { ok: true };
   }
 }

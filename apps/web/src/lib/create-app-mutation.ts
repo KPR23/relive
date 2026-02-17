@@ -16,12 +16,12 @@ export function createAppMutation(options?: Options) {
         await options.invalidate();
       }
 
-      if (options?.successMessage) {
-        toast.success(options.successMessage);
-      }
-
       if (options?.onSuccess) {
         await options.onSuccess();
+      }
+
+      if (options?.successMessage) {
+        toast.success(options.successMessage);
       }
     },
     onError: (error: unknown) => {
