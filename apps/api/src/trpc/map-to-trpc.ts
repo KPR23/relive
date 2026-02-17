@@ -45,9 +45,20 @@ function getHttpMessage(err: HttpException): string {
 
   if (typeof response === 'string') return response;
 
-  if (typeof response === 'object' && response && 'message' in response) {
-    const msg = (response as any).message;
-    return Array.isArray(msg) ? msg.join(', ') : msg;
+  if (
+    typeof response === 'object' &&
+    response !== null &&
+    'message' in response
+  ) {
+    const msg = (response as Record<string, unknown>).message;
+
+    if (Array.isArray(msg)) {
+      return msg.join(', ');
+    }
+
+    if (typeof msg === 'string') {
+      return msg;
+    }
   }
 
   return err.message;
