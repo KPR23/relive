@@ -1,23 +1,22 @@
 import { Module } from '@nestjs/common';
+import { AuthMiddlewareModule } from '../auth/auth.module.js';
 import { FolderModule } from '../folder/folder.module.js';
-import { PhotoService } from './photo.service.js';
-import { PhotoRouter } from './photo.router.js';
-import { AuthMiddleware } from '../middleware.js';
-import { B2Storage } from '../storage/b2.storage.js';
-import { PhotoUploadService } from './photo-upload.service.js';
-import { PhotoShareService } from './photo-share.service.js';
+import { StorageModule } from '../storage/storage.module.js';
+import { UserModule } from '../user/user.module.js';
 import { PhotoPermissionService } from './photo-permission.service.js';
+import { PhotoShareService } from './photo-share.service.js';
+import { PhotoUploadService } from './photo-upload.service.js';
+import { PhotoRouter } from './photo.router.js';
+import { PhotoService } from './photo.service.js';
 
 @Module({
-  imports: [FolderModule],
+  imports: [AuthMiddlewareModule, FolderModule, StorageModule, UserModule],
   providers: [
     PhotoService,
     PhotoRouter,
     PhotoUploadService,
     PhotoShareService,
     PhotoPermissionService,
-    AuthMiddleware,
-    B2Storage,
   ],
 
   exports: [PhotoService, PhotoUploadService, PhotoPermissionService],

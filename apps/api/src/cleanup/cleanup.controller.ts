@@ -1,4 +1,5 @@
 import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
+import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
 import type { Request } from 'express';
 import { env } from '../env.server.js';
 import { PhotoUploadService } from '../photo/photo-upload.service.js';
@@ -7,6 +8,7 @@ import { PhotoUploadService } from '../photo/photo-upload.service.js';
 export class CleanupController {
   constructor(private readonly photoUploadService: PhotoUploadService) {}
 
+  @AllowAnonymous()
   @Get()
   async cleanupFailedAndPendingPhotos(@Req() req: Request) {
     const authHeader = req.headers['authorization'];

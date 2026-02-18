@@ -2,20 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { and, eq, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { folder } from '../db/schema.js';
+import { Tx } from '../helpers/helpers.js';
+import { FolderPermissionService } from './folder-permission.service.js';
 import {
   CannotDeleteFolderWithChildrenError,
   CannotDeleteRootFolderError,
   CannotMoveFolderCreatesCycleError,
   CannotMoveFolderToSelfError,
   CannotMoveRootFolderError,
-  FolderNotFoundError,
   ParentFolderIdRequiredError,
 } from './folder.errors.js';
 import { CreateFolderSchema, Folder } from './folder.schema.js';
-import { Tx } from '../helpers/helpers.js';
 
 @Injectable()
 export class FolderService {
+  constructor(
+    private readonly folderPermissionService: FolderPermissionService,
+  ) {}
+
   async getFolderById(userId: string, id: string, tx?: Tx) {
     const client = tx ?? db;
     const [folderRecord] = await client
@@ -24,14 +28,6 @@ export class FolderService {
       .where(and(eq(folder.id, id), eq(folder.ownerId, userId)));
 
     return folderRecord;
-  }
-
-  async getOwnedFolderOrThrow(userId: string, folderId: string, tx?: Tx) {
-    const folder = await this.getFolderById(userId, folderId, tx);
-
-    if (!folder) throw new FolderNotFoundError();
-
-    return folder;
   }
 
   async getAllFolders(userId: string, tx?: Tx) {
@@ -59,27 +55,34 @@ export class FolderService {
       return null;
     }
 
-    const parentFolder = await this.getOwnedFolderOrThrow(
-      userId,
-      folder.parentId,
-      tx,
-    );
+    const parentFolder =
+      await this.folderPermissionService.getOwnedFolderOrThrow(
+        userId,
+        folder.parentId,
+        tx,
+      );
 
     return parentFolder;
   }
 
   async getAllParentsForFolder(userId: string, folderId: string, tx?: Tx) {
-    const folderRecord = await this.getOwnedFolderOrThrow(userId, folderId, tx);
+    const folderRecord =
+      await this.folderPermissionService.getViewableFolderOrThrow(
+        userId,
+        folderId,
+        tx,
+      );
 
     const parents: Folder[] = [];
     let current = folderRecord;
     parents.push(current);
     while (current.parentId) {
-      const parentFolder = await this.getOwnedFolderOrThrow(
+      const parentFolder = await this.folderPermissionService.getViewableFolder(
         userId,
         current.parentId,
         tx,
       );
+      if (!parentFolder) break;
       parents.unshift(parentFolder);
       current = parentFolder;
     }
@@ -147,7 +150,10 @@ export class FolderService {
     if (!data.parentId) {
       throw new ParentFolderIdRequiredError();
     }
-    await this.getOwnedFolderOrThrow(userId, data.parentId);
+    await this.folderPermissionService.getOwnedFolderOrThrow(
+      userId,
+      data.parentId,
+    );
 
     const [created] = await db
       .insert(folder)
@@ -162,16 +168,18 @@ export class FolderService {
     targetParentId: string,
   ) {
     return db.transaction(async (tx) => {
-      const movingFolder = await this.getOwnedFolderOrThrow(
-        userId,
-        movingFolderId,
-        tx,
-      );
-      const targetFolder = await this.getOwnedFolderOrThrow(
-        userId,
-        targetParentId,
-        tx,
-      );
+      const movingFolder =
+        await this.folderPermissionService.getOwnedFolderOrThrow(
+          userId,
+          movingFolderId,
+          tx,
+        );
+      const targetFolder =
+        await this.folderPermissionService.getOwnedFolderOrThrow(
+          userId,
+          targetParentId,
+          tx,
+        );
 
       if (targetParentId === movingFolderId)
         throw new CannotMoveFolderToSelfError();
@@ -197,7 +205,12 @@ export class FolderService {
 
   async deleteFolder(userId: string, id: string) {
     return db.transaction(async (tx) => {
-      const targetFolder = await this.getOwnedFolderOrThrow(userId, id, tx);
+      const targetFolder =
+        await this.folderPermissionService.getOwnedFolderOrThrow(
+          userId,
+          id,
+          tx,
+        );
 
       if (targetFolder.isRoot) {
         throw new CannotDeleteRootFolderError();

@@ -83,10 +83,3 @@ export class PhotoNotOwnedByUserError extends AppError {
     super(message);
   }
 }
-
-export class UserNotFoundError extends AppError {
-  readonly code = 'NOT_FOUND';
-  constructor(message = 'User not found') {
-    super(message);
-  }
-}

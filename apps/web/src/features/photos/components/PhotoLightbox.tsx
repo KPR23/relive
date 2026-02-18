@@ -14,16 +14,20 @@ import {
   useSharePhotoWithUser,
 } from '../hooks';
 
+type PhotoSource = 'folder' | 'shared';
+
 interface PhotoLightboxProps {
   photo: Photo | SharedPhoto;
   thumbnailUrl: string;
   onClose: () => void;
+  source?: PhotoSource;
 }
 
 export function PhotoLightbox({
   photo,
   thumbnailUrl,
   onClose,
+  source = 'folder',
 }: PhotoLightboxProps) {
   const [isFullLoaded, setIsFullLoaded] = useState(false);
   const [shouldLoadFolders, setShouldLoadFolders] = useState(false);
@@ -46,7 +50,10 @@ export function PhotoLightbox({
   const revokePhotoShare = useRevokePhotoShare();
   const sharedWith = useSharedWith(photo.photoId);
 
-  const isSharedWithMe = 'ownerEmail' in photo && photo.ownerEmail;
+  const ownerName = 'ownerName' in photo ? photo.ownerName : undefined;
+  const isOwner = source === 'folder' && ownerName === undefined;
+  const isFromSharedFolder = source === 'folder' && !isOwner;
+  const isDirectlyShared = source === 'shared';
 
   const { data } = usePhotoUrl(photo.photoId, {
     enabled: !removePhoto.isPending && !removePhoto.isSuccess,
@@ -130,16 +137,25 @@ export function PhotoLightbox({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-80 shrink-0 overflow-y-auto rounded-xl bg-white/90 p-6 shadow-xl backdrop-blur-md dark:bg-gray-900/90">
-          {isSharedWithMe ? (
-            <div className="rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Shared by
+          {isFromSharedFolder ? (
+            <div className="rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Z udostępnionego folderu przez
               </p>
-              <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                {photo.ownerEmail}
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                {ownerName ?? '(nieznany)'}
               </p>
             </div>
-          ) : (
+          ) : isDirectlyShared ? (
+            <div className="rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Udostępnione przez
+              </p>
+              <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                {ownerName ?? '(nieznany)'}
+              </p>
+            </div>
+          ) : isOwner ? (
             <>
               {/* ===== Delete / Move ===== */}
               <div className="space-y-2">
@@ -262,7 +278,7 @@ export function PhotoLightbox({
                 </ul>
               </div>
             </>
-          )}
+          ) : null}
         </div>
 
         <div className="relative flex-1">

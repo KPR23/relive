@@ -1,6 +1,7 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { folder } from '../db/schema.js';
+import { folder, sharePermissionEnum } from '../db/schema.js';
+import { dateFromString } from '../helpers/helpers.js';
 
 export const folderSelectSchema = createSelectSchema(folder);
 export const folderInsertSchema = createInsertSchema(folder);
@@ -21,9 +22,6 @@ export const folderSchema = z.object({
     z.date(),
   ),
 });
-
-export type Folder = z.infer<typeof folderSelectSchema>;
-export type CreateFolder = z.infer<typeof folderInsertSchema>;
 
 export const createFolderSchema = z.object({
   name: z.string().min(1, 'Folder name is required'),
@@ -52,6 +50,33 @@ export const deleteFolderInputSchema = z.object({
   id: z.uuid(),
 });
 
+export const shareFolderWithUserInputSchema = z.object({
+  folderId: z.uuid(),
+  targetUserEmail: z.email(),
+  permission: z.enum(sharePermissionEnum),
+});
+
+export const folderShareRecipientSchema = z.object({
+  id: z.uuid(),
+  folderId: z.uuid(),
+  folderName: z.string(),
+  sharedWithId: z.string(),
+  sharedWithEmail: z.email(),
+  permission: z.enum(sharePermissionEnum),
+  expiresAt: dateFromString,
+});
+
+export const folderSharedWithMeSchema = z.object({
+  id: z.uuid(),
+  folderId: z.uuid(),
+  folderName: z.string(),
+  sharedByName: z.string().optional(),
+  permission: z.enum(sharePermissionEnum),
+  expiresAt: dateFromString,
+});
+
+export type Folder = z.infer<typeof folderSelectSchema>;
+export type CreateFolder = z.infer<typeof folderInsertSchema>;
 export type FolderSchema = z.infer<typeof folderSchema>;
 export type CreateFolderSchema = z.infer<typeof createFolderSchema>;
 export type ParentIdInputSchema = z.infer<typeof parentIdInputSchema>;
@@ -61,3 +86,8 @@ export type GetMoveableFoldersInputSchema = z.infer<
 >;
 export type MoveFolderInputSchema = z.infer<typeof moveFolderInputSchema>;
 export type DeleteFolderInputSchema = z.infer<typeof deleteFolderInputSchema>;
+export type ShareFolderWithUserInputSchema = z.infer<
+  typeof shareFolderWithUserInputSchema
+>;
+export type FolderShareRecipient = z.infer<typeof folderShareRecipientSchema>;
+export type FolderSharedWithMe = z.infer<typeof folderSharedWithMeSchema>;

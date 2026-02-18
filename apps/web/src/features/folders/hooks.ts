@@ -1,5 +1,6 @@
 'use client';
 
+import { createAppMutation } from '@/src/lib/create-app-mutation';
 import { usePhotoUtils } from '@/src/lib/trpc-utils';
 import { trpc } from '@/src/trpc/client';
 
@@ -23,9 +24,14 @@ export function useFoldersByParentId(parentId: string) {
 }
 
 export function useAllParentsForFolder(folderId: string) {
-  return trpc.folder.getAllParentsForFolder.useQuery({
-    folderId,
-  });
+  return trpc.folder.getAllParentsForFolder.useQuery(
+    {
+      folderId,
+    },
+    {
+      retry: false,
+    },
+  );
 }
 
 export function useMoveableFolders(
@@ -43,18 +49,44 @@ export function useMoveableFolders(
 
 export function useCreateFolder() {
   const utils = usePhotoUtils();
-  return trpc.folder.createFolder.useMutation({
-    onSuccess: () => {
-      utils.folder.invalidate();
-    },
-  });
+  return trpc.folder.createFolder.useMutation(
+    createAppMutation({
+      successMessage: 'Folder created successfully!',
+      invalidate: async () => {
+        await utils.folder.invalidate();
+      },
+    }),
+  );
 }
 
 export function useDeleteFolder() {
   const utils = usePhotoUtils();
-  return trpc.folder.deleteFolder.useMutation({
-    onSuccess: () => {
-      utils.folder.invalidate();
-    },
-  });
+  return trpc.folder.deleteFolder.useMutation(
+    createAppMutation({
+      successMessage: 'Folder deleted successfully!',
+      invalidate: async () => {
+        await utils.folder.invalidate();
+      },
+    }),
+  );
+}
+
+export function useShareFolderWithUser() {
+  const utils = usePhotoUtils();
+  return trpc.folder.shareFolderWithUser.useMutation(
+    createAppMutation({
+      successMessage: 'Folder shared successfully!',
+      invalidate: async () => {
+        await utils.folder.invalidate();
+      },
+    }),
+  );
+}
+
+export function useListFolderShares(folderId: string) {
+  return trpc.folder.listFolderShares.useQuery({ folderId });
+}
+
+export function useListSharedFoldersWithMe() {
+  return trpc.folder.listSharedFoldersWithMe.useQuery();
 }

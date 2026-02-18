@@ -17,7 +17,9 @@ export const AllPhotosList = () => {
   return (
     <div className="flex flex-col gap-1">
       {data && data.length > 0 ? (
-        data.map((photo) => <PhotoItem key={photo.photoId} photo={photo} />)
+        data.map((photo) => (
+          <PhotoItem key={photo.photoId} photo={photo} source="folder" />
+        ))
       ) : (
         <p>No photos found</p>
       )}
@@ -30,7 +32,7 @@ export const AllPhotosList = () => {
       ) : (
         <div className="flex flex-wrap gap-1">
           {sharedPhotosWithMe.photos.map((photo) => (
-            <PhotoItem key={photo.photoId} photo={photo} />
+            <PhotoItem key={photo.photoId} photo={photo} source="shared" />
           ))}
         </div>
       )}

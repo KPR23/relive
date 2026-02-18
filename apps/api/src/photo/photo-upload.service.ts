@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { and, count, eq, inArray, lt, or } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
-import { FolderService } from '../folder/folder.service.js';
-import { B2Storage } from '../storage/b2.storage.js';
+import { FolderPermissionService } from '../folder/folder-permission.service.js';
+import { StorageService } from '../storage/storage.service.js';
 import {
   PhotoLimitReachedError,
   PhotoNotFoundError,
@@ -15,15 +15,15 @@ import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoUploadService {
   constructor(
-    private readonly storage: B2Storage,
-    private readonly folderService: FolderService,
+    private readonly storage: StorageService,
+    private readonly folderPermissionService: FolderPermissionService,
   ) {}
 
   async createPending(data: CreatePendingPhoto) {
     const PHOTO_LIMIT_PER_USER = 20;
 
     return db.transaction(async (tx) => {
-      await this.folderService.getOwnedFolderOrThrow(
+      await this.folderPermissionService.getOwnedFolderOrThrow(
         data.ownerId,
         data.folderId,
         tx,

@@ -1,9 +1,9 @@
 import { passkey } from '@better-auth/passkey';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from './db/index.js';
-import * as schema from './db/schema.js';
-import { env } from './env.server.js';
+import { db } from '../db/index.js';
+import * as schema from '../db/schema.js';
+import { env } from '../env.server.js';
 
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,

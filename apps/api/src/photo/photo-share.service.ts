@@ -9,28 +9,29 @@ import {
   user,
 } from '../db/schema.js';
 import { mapPhotosToResponse } from '../helpers/helpers.js';
-import { B2Storage } from '../storage/b2.storage.js';
+import { StorageService } from '../storage/storage.service.js';
+import { UserService } from '../user/user.service.js';
 import { PhotoPermissionService } from './photo-permission.service.js';
 import {
   PhotoAlreadySharedWithUserError,
   PhotoCannotShareWithSelfError,
   PhotoShareNotFoundError,
-  UserNotFoundError,
 } from './photo.errors.js';
 import { PhotoShareListItem } from './photo.schema.js';
 
 @Injectable()
 export class PhotoShareService {
   constructor(
-    private readonly storage: B2Storage,
+    private readonly storage: StorageService,
     private readonly photoPermissionService: PhotoPermissionService,
+    private readonly userService: UserService,
   ) {}
 
   async sharedPhotosWithMe(userId: string) {
     const rows = await db
       .select({
         photo,
-        ownerEmail: user.email,
+        ownerName: user.name,
       })
       .from(photo)
       .leftJoin(user, eq(photo.ownerId, user.id))
@@ -50,7 +51,7 @@ export class PhotoShareService {
     return {
       photos: photos.map((p, i) => ({
         ...p,
-        ownerEmail: rows[i]?.ownerEmail ?? null,
+        ownerName: rows[i]?.ownerName ?? null,
       })),
     };
   }
@@ -97,15 +98,7 @@ export class PhotoShareService {
     targetUserEmail: string,
     permission: SharePermission,
   ) {
-    const [targetUser] = await db
-      .select({ id: user.id, email: user.email })
-      .from(user)
-      .where(eq(user.email, targetUserEmail))
-      .limit(1);
-
-    if (!targetUser) {
-      throw new UserNotFoundError('Target user not found');
-    }
+    const targetUser = await this.userService.getUserByEmail(targetUserEmail);
 
     return this.sharePhotoWithUserId(
       userId,

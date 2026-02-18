@@ -14,6 +14,27 @@ export class FolderNotOwnedError extends AppError {
   }
 }
 
+export class FolderCannotShareWithSelfError extends AppError {
+  readonly code = 'BAD_REQUEST';
+  constructor(message = 'Cannot share folder with yourself') {
+    super(message);
+  }
+}
+
+export class CannotShareRootFolderError extends AppError {
+  readonly code = 'FORBIDDEN';
+  constructor(message = 'Cannot share root folder') {
+    super(message);
+  }
+}
+
+export class FolderAlreadySharedWithUserError extends AppError {
+  readonly code = 'CONFLICT';
+  constructor(message = 'Folder already shared with this user') {
+    super(message);
+  }
+}
+
 export class ParentFolderIdRequiredError extends AppError {
   readonly code = 'BAD_REQUEST';
   constructor(message = 'Parent folder ID not provided') {

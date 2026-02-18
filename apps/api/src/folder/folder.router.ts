@@ -6,32 +6,40 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
-import { AuthMiddleware } from '../middleware.js';
+import { z } from 'zod';
+import { AuthMiddleware } from '../auth/middleware.js';
 import { type AuthContext } from '../trpc/context.js';
 import { mapToTRPCError } from '../trpc/map-to-trpc.js';
-import { z } from 'zod';
+import { FolderShareService } from './folder-share.service.js';
 import {
   type CreateFolderSchema,
   createFolderSchema,
   type DeleteFolderInputSchema,
   deleteFolderInputSchema,
   type Folder,
-  folderSchema,
   type FolderIdInputSchema,
   folderIdInputSchema,
+  folderSchema,
+  folderSharedWithMeSchema,
+  folderShareRecipientSchema,
   type GetMoveableFoldersInputSchema,
   getMoveableFoldersInputSchema,
   type MoveFolderInputSchema,
   moveFolderInputSchema,
   type ParentIdInputSchema,
   parentIdInputSchema,
+  shareFolderWithUserInputSchema,
+  type ShareFolderWithUserInputSchema,
 } from './folder.schema.js';
 import { FolderService } from './folder.service.js';
 
 @UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'folder' })
 export class FolderRouter {
-  constructor(private readonly folderService: FolderService) {}
+  constructor(
+    private readonly folderService: FolderService,
+    private readonly folderShareService: FolderShareService,
+  ) {}
 
   @Query({
     output: folderSchema,
@@ -151,6 +159,57 @@ export class FolderRouter {
   ) {
     try {
       return await this.folderService.deleteFolder(_ctx.user.id, data.id);
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Mutation({
+    input: shareFolderWithUserInputSchema,
+    output: z.object({ success: z.literal(true) }),
+  })
+  async shareFolderWithUser(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: ShareFolderWithUserInputSchema,
+  ) {
+    try {
+      return await this.folderShareService.shareFolderWithUser(
+        _ctx.user.id,
+        data.folderId,
+        data.targetUserEmail,
+        data.permission,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Query({
+    input: folderIdInputSchema,
+    output: z.array(folderShareRecipientSchema),
+  })
+  async listFolderShares(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: FolderIdInputSchema,
+  ) {
+    try {
+      return await this.folderShareService.listFolderShares(
+        _ctx.user.id,
+        data.folderId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Query({
+    output: z.array(folderSharedWithMeSchema),
+  })
+  async listSharedFoldersWithMe(@Ctx() _ctx: AuthContext) {
+    try {
+      return await this.folderShareService.listSharedFoldersWithMe(
+        _ctx.user.id,
+      );
     } catch (err) {
       mapToTRPCError(err);
     }

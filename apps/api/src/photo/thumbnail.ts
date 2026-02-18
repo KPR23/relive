@@ -1,8 +1,8 @@
 import sharp from 'sharp';
 import { PassThrough } from 'stream';
 import { pipeline } from 'stream/promises';
-import { B2Storage } from '../storage/b2.storage.js';
 import { readStreamHeadAndPassThrough } from '../helpers/readStreamHead.js';
+import { StorageService } from '../storage/storage.service.js';
 import { getExif } from './exif.js';
 import { ExifSchema } from './photo.schema.js';
 
@@ -20,7 +20,7 @@ export async function generateAndUploadThumbnail({
   originalKey,
   thumbKey,
 }: {
-  storage: B2Storage;
+  storage: StorageService;
   originalKey: string;
   thumbKey: string;
 }): Promise<{ width: number; height: number; exif: ExifSchema }> {

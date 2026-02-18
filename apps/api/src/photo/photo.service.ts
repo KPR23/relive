@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { photo, photoShare, PhotoStatusEnum } from '../db/schema.js';
+import { photo, photoShare, PhotoStatusEnum, user } from '../db/schema.js';
+import { FolderPermissionService } from '../folder/folder-permission.service.js';
 import { FolderService } from '../folder/folder.service.js';
 import { mapPhotosToResponse } from '../helpers/helpers.js';
-import { B2Storage } from '../storage/b2.storage.js';
+import { StorageService } from '../storage/storage.service.js';
 import { PhotoPermissionService } from './photo-permission.service.js';
 import {
   PhotoAlreadyInFolderError,
@@ -15,9 +16,10 @@ import {
 @Injectable()
 export class PhotoService {
   constructor(
-    private readonly storage: B2Storage,
+    private readonly storage: StorageService,
     private readonly photoPermissionService: PhotoPermissionService,
     private readonly folderService: FolderService,
+    private readonly folderPermissionService: FolderPermissionService,
   ) {}
 
   async listAllPhotos(userId: string) {
@@ -33,21 +35,37 @@ export class PhotoService {
   }
 
   async listPhotos(userId: string, folderId: string) {
-    await this.folderService.getOwnedFolderOrThrow(userId, folderId);
+    await this.folderPermissionService.getViewableFolderOrThrow(
+      userId,
+      folderId,
+    );
 
-    const photos = await db
-      .select()
+    const rows = await db
+      .select({
+        photo,
+        ownerName: user.name,
+      })
       .from(photo)
+      .leftJoin(user, eq(photo.ownerId, user.id))
       .where(
         and(
           eq(photo.folderId, folderId),
-          eq(photo.ownerId, userId),
           eq(photo.status, PhotoStatusEnum.READY),
+          this.photoPermissionService.buildViewableCondition(userId),
         ),
       )
       .orderBy(desc(photo.createdAt));
 
-    return mapPhotosToResponse(photos, this.storage);
+    const photos = await mapPhotosToResponse(
+      rows.map((r) => r.photo),
+      this.storage,
+    );
+
+    return photos.map((p, i) => ({
+      ...p,
+      ownerName:
+        rows[i].photo.ownerId !== userId ? (rows[i].ownerName ?? null) : null,
+    }));
   }
 
   async getThumbnailUrl(userId: string, photoId: string) {
@@ -90,7 +108,11 @@ export class PhotoService {
           photoId,
           tx,
         );
-      await this.folderService.getOwnedFolderOrThrow(userId, folderId, tx);
+      await this.folderPermissionService.getOwnedFolderOrThrow(
+        userId,
+        folderId,
+        tx,
+      );
 
       if (photoRecord.folderId === folderId) {
         throw new PhotoAlreadyInFolderError();

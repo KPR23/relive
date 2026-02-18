@@ -12,20 +12,6 @@ export const requestUploadSchema = z.object({
   originalName: z.string(),
 });
 
-export const createPendingPhotoSchema = z.object({
-  id: z.uuid(),
-  ownerId: z.string(),
-  folderId: z.uuid(),
-  filePath: z.string(),
-  originalName: z.string(),
-  mimeType: z.string(),
-});
-
-export const confirmUploadPhotoSchema = z.object({
-  photoId: z.uuid(),
-  ownerId: z.string(),
-});
-
 export const listPhotosSchema = z.object({
   folderId: z.uuid(),
 });
@@ -39,10 +25,36 @@ export const movePhotoToFolderInputSchema = z.object({
   folderId: z.uuid(),
 });
 
-export const photoListItemSchema = z.object({
-  photoId: z.string(),
-  folderId: z.string(),
+export const sharePhotoWithUserInputSchema = z.object({
+  photoId: z.uuid(),
+  targetUserEmail: z.email(),
+  permission: z.enum(sharePermissionEnum),
+});
+
+export const revokePhotoShareInputSchema = z.object({
+  photoId: z.uuid(),
+  targetUserId: z.string().min(1),
+});
+
+export const createPendingPhotoSchema = z.object({
+  id: z.uuid(),
+  ownerId: z.string().min(1),
+  folderId: z.uuid(),
+  filePath: z.string(),
   originalName: z.string(),
+  mimeType: z.string(),
+});
+
+export const confirmUploadPhotoSchema = z.object({
+  photoId: z.uuid(),
+  ownerId: z.string().min(1),
+});
+
+export const photoListItemSchema = z.object({
+  photoId: z.uuid(),
+  folderId: z.uuid(),
+  originalName: z.string(),
+  ownerName: z.string().nullish(),
   createdAt: dateFromString,
   takenAt: dateFromString,
   width: z.number().nullable(),
@@ -64,30 +76,15 @@ export const photoListItemSchema = z.object({
 export const photoListSchema = z.array(photoListItemSchema);
 
 export const sharedPhotosWithMeOutputSchema = z.object({
-  photos: z.array(
-    photoListItemSchema.extend({
-      ownerEmail: z.string().nullish(),
-    }),
-  ),
+  photos: z.array(photoListItemSchema),
 });
 
 export const photoShareListItemSchema = z.object({
-  id: z.string(),
+  id: z.uuid(),
   sharedWithId: z.string(),
   sharedWithEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
   expiresAt: dateFromString,
-});
-
-export const revokePhotoShareInputSchema = z.object({
-  photoId: z.uuid(),
-  targetUserId: z.string().min(1),
-});
-
-export const sharePhotoWithUserInputSchema = z.object({
-  photoId: z.uuid(),
-  targetUserEmail: z.email(),
-  permission: z.enum(sharePermissionEnum),
 });
 
 export const requestUploadOutputSchema = z.object({

@@ -7,7 +7,15 @@ import { PhotoLightbox } from './PhotoLightbox';
 
 const ROW_HEIGHT = 120;
 
-export function PhotoItem({ photo }: { photo: Photo | SharedPhoto }) {
+type PhotoSource = 'folder' | 'shared';
+
+export function PhotoItem({
+  photo,
+  source = 'folder',
+}: {
+  photo: Photo | SharedPhoto;
+  source?: PhotoSource;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const safeWidth = Math.max(photo.width ?? 0, 1);
@@ -37,6 +45,7 @@ export function PhotoItem({ photo }: { photo: Photo | SharedPhoto }) {
           thumbnailUrl={photo.thumbnailUrl}
           photo={photo}
           onClose={() => setIsOpen(false)}
+          source={source}
         />
       )}
     </>
