@@ -15,12 +15,11 @@ import { auth } from './auth.js';
 import { CleanupController } from './cleanup/cleanup.controller.js';
 import { env } from './env.server.js';
 import { FolderModule } from './folder/folder.module.js';
-import { PhotoModule } from './photo/photo.module.js';
-import { TrpcModule } from './trpc/trpc.module.js';
-import { UserService } from './user/user.service.js';
 import { AuthMiddleware } from './middleware.js';
-import { UserModule } from './user/user.module.js';
+import { PhotoModule } from './photo/photo.module.js';
 import { StorageModule } from './storage/storage.module.js';
+import { TrpcModule } from './trpc/trpc.module.js';
+import { UserModule } from './user/user.module.js';
 
 const isProduction = env.NODE_ENV === 'production';
 const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
@@ -57,7 +56,6 @@ const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
       useClass: ArcjetGuard,
     },
     AppService,
-    UserService,
     AuthMiddleware,
   ],
   controllers: [AppController, CleanupController],

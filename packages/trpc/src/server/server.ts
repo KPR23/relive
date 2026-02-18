@@ -9,10 +9,10 @@ const appRouter = t.router({
     listPhotosForFolder: publicProcedure.input(z.object({
       folderId: z.uuid(),
     })).output(z.array(z.object({
-      photoId: z.string(),
-      folderId: z.string(),
+      photoId: z.uuid(),
+      folderId: z.uuid(),
       originalName: z.string(),
-      ownerEmail: z.string().nullish().optional(),
+      ownerEmail: z.email().optional(),
       createdAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
         if (arg instanceof Date) return arg;
@@ -41,10 +41,10 @@ const appRouter = t.router({
       gpsAltitude: z.number().nullish(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listAllPhotos: publicProcedure.output(z.array(z.object({
-      photoId: z.string(),
-      folderId: z.string(),
+      photoId: z.uuid(),
+      folderId: z.uuid(),
       originalName: z.string(),
-      ownerEmail: z.string().nullish().optional(),
+      ownerEmail: z.email().optional(),
       createdAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
         if (arg instanceof Date) return arg;
@@ -75,7 +75,7 @@ const appRouter = t.router({
     listPhotoShares: publicProcedure.input(z.object({
       photoId: z.uuid(),
     })).output(z.array(z.object({
-      id: z.string(),
+      id: z.uuid(),
       sharedWithId: z.string(),
       sharedWithEmail: z.email(),
       permission: z.enum({
@@ -102,42 +102,38 @@ const appRouter = t.router({
       expiresAt: z.date(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     sharedPhotosWithMe: publicProcedure.output(z.object({
-      photos: z.array(
-        z.object({
-          photoId: z.string(),
-          folderId: z.string(),
-          originalName: z.string(),
-          ownerEmail: z.string().nullish().optional(),
-          createdAt: z.preprocess((arg) => {
-            if (arg === null || arg === undefined) return null;
-            if (arg instanceof Date) return arg;
-            if (typeof arg === 'string') return new Date(arg);
-            return null;
-          }, z.date().nullable()),
-          takenAt: z.preprocess((arg) => {
-            if (arg === null || arg === undefined) return null;
-            if (arg instanceof Date) return arg;
-            if (typeof arg === 'string') return new Date(arg);
-            return null;
-          }, z.date().nullable()),
-          width: z.number().nullable(),
-          height: z.number().nullable(),
-          thumbnailUrl: z.string(),
-          cameraMake: z.string().nullish(),
-          cameraModel: z.string().nullish(),
-          lensModel: z.string().nullish(),
-          exposureTime: z.number().nullish(),
-          fNumber: z.number().nullish(),
-          iso: z.number().nullish(),
-          focalLength: z.number().nullish(),
-          focalLength35mm: z.number().nullish(),
-          gpsLat: z.number().nullish(),
-          gpsLng: z.number().nullish(),
-          gpsAltitude: z.number().nullish(),
-        }).extend({
-          ownerEmail: z.string().nullish(),
-        }),
-      ),
+      photos: z.array(z.object({
+        photoId: z.uuid(),
+        folderId: z.uuid(),
+        originalName: z.string(),
+        ownerEmail: z.email().optional(),
+        createdAt: z.preprocess((arg) => {
+          if (arg === null || arg === undefined) return null;
+          if (arg instanceof Date) return arg;
+          if (typeof arg === 'string') return new Date(arg);
+          return null;
+        }, z.date().nullable()),
+        takenAt: z.preprocess((arg) => {
+          if (arg === null || arg === undefined) return null;
+          if (arg instanceof Date) return arg;
+          if (typeof arg === 'string') return new Date(arg);
+          return null;
+        }, z.date().nullable()),
+        width: z.number().nullable(),
+        height: z.number().nullable(),
+        thumbnailUrl: z.string(),
+        cameraMake: z.string().nullish(),
+        cameraModel: z.string().nullish(),
+        lensModel: z.string().nullish(),
+        exposureTime: z.number().nullish(),
+        fNumber: z.number().nullish(),
+        iso: z.number().nullish(),
+        focalLength: z.number().nullish(),
+        focalLength35mm: z.number().nullish(),
+        gpsLat: z.number().nullish(),
+        gpsLng: z.number().nullish(),
+        gpsAltitude: z.number().nullish(),
+      })),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     sharePhotoWithUser: publicProcedure.input(z.object({
       photoId: z.uuid(),
@@ -303,8 +299,8 @@ const appRouter = t.router({
       id: z.uuid(),
       folderId: z.uuid(),
       folderName: z.string(),
-      sharedByUserId: z.uuid(),
-      sharedBy: z.email().optional(),
+      sharedWithId: z.string(),
+      sharedWithEmail: z.email(),
       permission: z.enum({
         VIEW: 'VIEW',
         EDIT: 'EDIT',
@@ -320,8 +316,7 @@ const appRouter = t.router({
       id: z.uuid(),
       folderId: z.uuid(),
       folderName: z.string(),
-      sharedByUserId: z.uuid(),
-      sharedBy: z.email().optional(),
+      sharedByEmail: z.email().optional(),
       permission: z.enum({
         VIEW: 'VIEW',
         EDIT: 'EDIT',

@@ -27,8 +27,8 @@ import {
   parentIdInputSchema,
   shareFolderWithUserInputSchema,
   type ShareFolderWithUserInputSchema,
-  folderShareListItemSchema,
-  FolderShareListItem,
+  folderShareRecipientSchema,
+  folderSharedWithMeSchema,
 } from './folder.schema.js';
 import { FolderService } from './folder.service.js';
 import { FolderShareService } from './folder-share.service.js';
@@ -186,7 +186,7 @@ export class FolderRouter {
 
   @Query({
     input: folderIdInputSchema,
-    output: z.array(folderShareListItemSchema),
+    output: z.array(folderShareRecipientSchema),
   })
   async listFolderShares(
     @Ctx() _ctx: AuthContext,
@@ -203,11 +203,9 @@ export class FolderRouter {
   }
 
   @Query({
-    output: z.array(folderShareListItemSchema),
+    output: z.array(folderSharedWithMeSchema),
   })
-  async listSharedFoldersWithMe(
-    @Ctx() _ctx: AuthContext,
-  ): Promise<FolderShareListItem[]> {
+  async listSharedFoldersWithMe(@Ctx() _ctx: AuthContext) {
     try {
       return await this.folderShareService.listSharedFoldersWithMe(
         _ctx.user.id,

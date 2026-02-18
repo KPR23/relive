@@ -15,7 +15,10 @@ import {
   FolderAlreadySharedWithUserError,
   FolderCannotShareWithSelfError,
 } from './folder.errors.js';
-import { FolderShareListItem } from './folder.schema.js';
+import {
+  type FolderShareRecipient,
+  type FolderSharedWithMe,
+} from './folder.schema.js';
 
 @Injectable()
 export class FolderShareService {
@@ -26,7 +29,7 @@ export class FolderShareService {
 
   async listSharedFoldersWithMe(
     userId: string,
-  ): Promise<FolderShareListItem[]> {
+  ): Promise<FolderSharedWithMe[]> {
     const results = await db
       .select({
         folder,
@@ -46,8 +49,7 @@ export class FolderShareService {
       id: r.folder.id,
       folderId: r.folder.id,
       folderName: r.folder.name,
-      sharedByUserId: r.folder.ownerId,
-      sharedBy: r.ownerEmail ?? '',
+      sharedByEmail: r.ownerEmail ?? undefined,
       permission: sharePermissionEnum.VIEW,
       expiresAt: null,
     }));
@@ -112,7 +114,7 @@ export class FolderShareService {
   async listFolderShares(
     userId: string,
     folderId: string,
-  ): Promise<FolderShareListItem[]> {
+  ): Promise<FolderShareRecipient[]> {
     const results = await db
       .select({
         share: folderShare,
@@ -133,8 +135,8 @@ export class FolderShareService {
       id: r.share.id,
       folderId: r.share.folderId,
       folderName: r.folder.name,
-      sharedByUserId: r.folder.ownerId,
-      sharedBy: r.user?.email ?? '',
+      sharedWithId: r.share.sharedWithId,
+      sharedWithEmail: r.user?.email ?? '',
       permission: r.share.permission,
       expiresAt: r.share.expiresAt,
     }));

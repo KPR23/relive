@@ -21,7 +21,7 @@ export function Breadcrumbs({ folderId }: { folderId: string }) {
           <span key={f.id} className="flex items-center gap-1">
             <span className="text-gray-500">/</span>
             <Link
-              href={f.isRoot ? '/' : `/folder/${f.id}`}
+              href={`/folder/${f.id}`}
               className="text-blue-400 hover:text-blue-600 hover:underline"
             >
               {f.name}
