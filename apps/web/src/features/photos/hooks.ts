@@ -16,6 +16,7 @@ export function usePhotos(folderId: string) {
     {
       staleTime: 5 * 60 * 1000,
       cacheTime: 30 * 60 * 1000,
+      retry: false,
     },
   );
 }

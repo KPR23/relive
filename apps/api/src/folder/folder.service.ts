@@ -67,7 +67,7 @@ export class FolderService {
 
   async getAllParentsForFolder(userId: string, folderId: string, tx?: Tx) {
     const folderRecord =
-      await this.folderPermissionService.getOwnedFolderOrThrow(
+      await this.folderPermissionService.getViewableFolderOrThrow(
         userId,
         folderId,
         tx,
@@ -77,12 +77,12 @@ export class FolderService {
     let current = folderRecord;
     parents.push(current);
     while (current.parentId) {
-      const parentFolder =
-        await this.folderPermissionService.getOwnedFolderOrThrow(
-          userId,
-          current.parentId,
-          tx,
-        );
+      const parentFolder = await this.folderPermissionService.getViewableFolder(
+        userId,
+        current.parentId,
+        tx,
+      );
+      if (!parentFolder) break;
       parents.unshift(parentFolder);
       current = parentFolder;
     }

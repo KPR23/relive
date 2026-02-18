@@ -68,6 +68,18 @@ export class FolderPermissionService {
   }
 
   async getViewableFolderOrThrow(userId: string, folderId: string, tx?: Tx) {
+    const folderRecord = await this.getViewableFolder(userId, folderId, tx);
+    if (!folderRecord) {
+      throw new FolderNotFoundError();
+    }
+    return folderRecord;
+  }
+
+  async getViewableFolder(
+    userId: string,
+    folderId: string,
+    tx?: Tx,
+  ): Promise<(typeof folder.$inferSelect) | undefined> {
     const client = tx ?? db;
 
     const [folderRecord] = await client
@@ -80,10 +92,6 @@ export class FolderPermissionService {
         ),
       )
       .limit(1);
-
-    if (!folderRecord) {
-      throw new FolderNotFoundError();
-    }
 
     return folderRecord;
   }

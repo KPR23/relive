@@ -12,7 +12,7 @@ export const PhotosList = ({ folderId }: { folderId: string }) => {
   return (
     <div className="flex flex-wrap gap-1">
       {data.map((photo) => (
-        <PhotoItem key={photo.photoId} photo={photo} />
+        <PhotoItem key={photo.photoId} photo={photo} source="folder" />
       ))}
     </div>
   );

@@ -23,9 +23,14 @@ export function useFoldersByParentId(parentId: string) {
 }
 
 export function useAllParentsForFolder(folderId: string) {
-  return trpc.folder.getAllParentsForFolder.useQuery({
-    folderId,
-  });
+  return trpc.folder.getAllParentsForFolder.useQuery(
+    {
+      folderId,
+    },
+    {
+      retry: false,
+    },
+  );
 }
 
 export function useMoveableFolders(

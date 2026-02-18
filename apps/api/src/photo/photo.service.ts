@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { photo, photoShare, PhotoStatusEnum } from '../db/schema.js';
+import { photo, photoShare, PhotoStatusEnum, user } from '../db/schema.js';
 import { FolderPermissionService } from '../folder/folder-permission.service.js';
 import { FolderService } from '../folder/folder.service.js';
 import { mapPhotosToResponse } from '../helpers/helpers.js';
@@ -35,21 +35,37 @@ export class PhotoService {
   }
 
   async listPhotos(userId: string, folderId: string) {
-    await this.folderPermissionService.getOwnedFolderOrThrow(userId, folderId);
+    await this.folderPermissionService.getViewableFolderOrThrow(
+      userId,
+      folderId,
+    );
 
-    const photos = await db
-      .select()
+    const rows = await db
+      .select({
+        photo,
+        ownerEmail: user.email,
+      })
       .from(photo)
+      .leftJoin(user, eq(photo.ownerId, user.id))
       .where(
         and(
           eq(photo.folderId, folderId),
-          eq(photo.ownerId, userId),
           eq(photo.status, PhotoStatusEnum.READY),
+          this.photoPermissionService.buildViewableCondition(userId),
         ),
       )
       .orderBy(desc(photo.createdAt));
 
-    return mapPhotosToResponse(photos, this.storage);
+    const photos = await mapPhotosToResponse(
+      rows.map((r) => r.photo),
+      this.storage,
+    );
+
+    return photos.map((p, i) => {
+      const isNotOwner = rows[i]?.photo.ownerId !== userId;
+      const ownerEmail = isNotOwner ? rows[i]?.ownerEmail ?? null : undefined;
+      return ownerEmail !== undefined ? { ...p, ownerEmail } : p;
+    });
   }
 
   async getThumbnailUrl(userId: string, photoId: string) {
