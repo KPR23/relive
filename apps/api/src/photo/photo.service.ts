@@ -43,7 +43,7 @@ export class PhotoService {
     const rows = await db
       .select({
         photo,
-        ownerEmail: user.email,
+        ownerName: user.name,
       })
       .from(photo)
       .leftJoin(user, eq(photo.ownerId, user.id))
@@ -61,11 +61,11 @@ export class PhotoService {
       this.storage,
     );
 
-    return photos.map((p, i) => {
-      const isNotOwner = rows[i]?.photo.ownerId !== userId;
-      const ownerEmail = isNotOwner ? (rows[i]?.ownerEmail ?? null) : undefined;
-      return ownerEmail !== undefined ? { ...p, ownerEmail } : p;
-    });
+    return photos.map((p, i) => ({
+      ...p,
+      ownerName:
+        rows[i].photo.ownerId !== userId ? (rows[i].ownerName ?? null) : null,
+    }));
   }
 
   async getThumbnailUrl(userId: string, photoId: string) {

@@ -31,7 +31,7 @@ export class PhotoShareService {
     const rows = await db
       .select({
         photo,
-        ownerEmail: user.email,
+        ownerName: user.name,
       })
       .from(photo)
       .leftJoin(user, eq(photo.ownerId, user.id))
@@ -51,7 +51,7 @@ export class PhotoShareService {
     return {
       photos: photos.map((p, i) => ({
         ...p,
-        ownerEmail: rows[i]?.ownerEmail ?? null,
+        ownerName: rows[i]?.ownerName ?? null,
       })),
     };
   }

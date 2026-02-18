@@ -70,7 +70,7 @@ export const folderSharedWithMeSchema = z.object({
   id: z.uuid(),
   folderId: z.uuid(),
   folderName: z.string(),
-  sharedByEmail: z.email().optional(),
+  sharedByName: z.string().optional(),
   permission: z.enum(sharePermissionEnum),
   expiresAt: dateFromString,
 });

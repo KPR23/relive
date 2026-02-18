@@ -12,7 +12,7 @@ export function ListSharedFolders() {
       {sharedFolders?.map((sharedFolder) => (
         <Link key={sharedFolder.id} href={`/folder/${sharedFolder.id}`}>
           {sharedFolder.folderName} — shared by{' '}
-          {sharedFolder.sharedByEmail ?? '(nieznany)'}
+          {sharedFolder.sharedByName ?? '(nieznany)'}
         </Link>
       ))}
     </div>

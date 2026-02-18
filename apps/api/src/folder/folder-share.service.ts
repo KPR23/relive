@@ -31,7 +31,7 @@ export class FolderShareService {
     const results = await db
       .select({
         folder,
-        ownerEmail: user.email,
+        ownerName: user.name,
       })
       .from(folder)
       .leftJoin(user, eq(folder.ownerId, user.id))
@@ -47,7 +47,7 @@ export class FolderShareService {
       id: r.folder.id,
       folderId: r.folder.id,
       folderName: r.folder.name,
-      sharedByEmail: r.ownerEmail ?? undefined,
+      sharedByName: r.ownerName ?? undefined,
       permission: sharePermissionEnum.VIEW,
       expiresAt: null,
     }));

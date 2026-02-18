@@ -50,8 +50,8 @@ export function PhotoLightbox({
   const revokePhotoShare = useRevokePhotoShare();
   const sharedWith = useSharedWith(photo.photoId);
 
-  const ownerEmail = 'ownerEmail' in photo ? photo.ownerEmail : undefined;
-  const isOwner = source === 'folder' && ownerEmail === undefined;
+  const ownerName = 'ownerName' in photo ? photo.ownerName : undefined;
+  const isOwner = source === 'folder' && ownerName === undefined;
   const isFromSharedFolder = source === 'folder' && !isOwner;
   const isDirectlyShared = source === 'shared';
 
@@ -143,7 +143,7 @@ export function PhotoLightbox({
                 Z udostępnionego folderu przez
               </p>
               <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                {ownerEmail ?? '(nieznany)'}
+                {ownerName ?? '(nieznany)'}
               </p>
             </div>
           ) : isDirectlyShared ? (
@@ -152,7 +152,7 @@ export function PhotoLightbox({
                 Udostępnione przez
               </p>
               <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                {ownerEmail ?? '(nieznany)'}
+                {ownerName ?? '(nieznany)'}
               </p>
             </div>
           ) : isOwner ? (

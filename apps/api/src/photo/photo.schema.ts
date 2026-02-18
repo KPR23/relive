@@ -54,7 +54,7 @@ export const photoListItemSchema = z.object({
   photoId: z.uuid(),
   folderId: z.uuid(),
   originalName: z.string(),
-  ownerEmail: z.email().nullish(),
+  ownerName: z.string().nullish(),
   createdAt: dateFromString,
   takenAt: dateFromString,
   width: z.number().nullable(),
