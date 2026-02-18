@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
+import { FolderPermissionService } from '../folder/folder-permission.service.js';
 import { db } from '../db/index.js';
 import { photo, photoShare, PhotoStatusEnum } from '../db/schema.js';
 import { FolderService } from '../folder/folder.service.js';
@@ -18,6 +19,7 @@ export class PhotoService {
     private readonly storage: B2Storage,
     private readonly photoPermissionService: PhotoPermissionService,
     private readonly folderService: FolderService,
+    private readonly folderPermissionService: FolderPermissionService,
   ) {}
 
   async listAllPhotos(userId: string) {
@@ -33,7 +35,7 @@ export class PhotoService {
   }
 
   async listPhotos(userId: string, folderId: string) {
-    await this.folderService.getOwnedFolderOrThrow(userId, folderId);
+    await this.folderPermissionService.getOwnedFolderOrThrow(userId, folderId);
 
     const photos = await db
       .select()
@@ -90,7 +92,11 @@ export class PhotoService {
           photoId,
           tx,
         );
-      await this.folderService.getOwnedFolderOrThrow(userId, folderId, tx);
+      await this.folderPermissionService.getOwnedFolderOrThrow(
+        userId,
+        folderId,
+        tx,
+      );
 
       if (photoRecord.folderId === folderId) {
         throw new PhotoAlreadyInFolderError();

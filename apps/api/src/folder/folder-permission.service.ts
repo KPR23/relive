@@ -1,21 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, exists, gt, isNull, ne, or, SQL } from 'drizzle-orm';
+import { and, eq, exists, gt, isNull, or, SQL } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import {
-  folder,
-  folderShare,
-  photo,
-  photoShare,
-  sharePermissionEnum,
-} from '../db/schema.js';
+import { folder, folderShare, sharePermissionEnum } from '../db/schema.js';
 import { Tx } from '../helpers/helpers.js';
-import { FolderService } from './folder.service.js';
 import { FolderNotFoundError } from './folder.errors.js';
 
 @Injectable()
 export class FolderPermissionService {
-  constructor(private readonly folderService: FolderService) {}
-
   buildViewableCondition(userId: string, client: Tx | typeof db = db): SQL {
     return or(
       eq(folder.ownerId, userId),
