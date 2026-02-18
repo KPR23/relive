@@ -3,7 +3,7 @@ import { db } from '../db/index.js';
 import { photo } from '../db/schema.js';
 import { PhotoMissingThumbPathError } from '../photo/photo.errors.js';
 import { PhotoListItem } from '../photo/photo.schema.js';
-import type { B2Storage } from '../storage/b2.storage.js';
+import { StorageService } from '../storage/storage.service.js';
 
 export function asNumber(v: unknown): number | undefined {
   return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
@@ -32,7 +32,7 @@ export type Tx = Parameters<typeof db.transaction>[0] extends (
 
 export async function mapPhotosToResponse(
   photos: (typeof photo.$inferSelect)[],
-  storage: B2Storage,
+  storage: StorageService,
 ): Promise<PhotoListItem[]> {
   const photosWithThumbnails = await Promise.all(
     photos.map(async (photo) => {

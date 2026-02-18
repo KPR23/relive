@@ -9,9 +9,11 @@ import {
 } from 'nestjs-trpc';
 import z from 'zod';
 import { AuthMiddleware } from '../middleware.js';
-import { B2Storage } from '../storage/b2.storage.js';
+import { StorageService } from '../storage/storage.service.js';
 import type { AuthContext } from '../trpc/context.js';
 import { mapToTRPCError } from '../trpc/map-to-trpc.js';
+import { PhotoShareService } from './photo-share.service.js';
+import { PhotoUploadService } from './photo-upload.service.js';
 import {
   confirmUploadOutputSchema,
   listPhotosSchema,
@@ -22,25 +24,23 @@ import {
   type PhotoIdInputSchema,
   photoListSchema,
   photoShareListItemSchema,
-  sharedPhotosWithMeOutputSchema,
   requestUploadOutputSchema,
   requestUploadSchema,
   type RequestUploadSchema,
   revokePhotoShareInputSchema,
   type RevokePhotoShareInputSchema,
+  sharedPhotosWithMeOutputSchema,
   type SharePhotoWithUserInputSchema,
   sharePhotoWithUserInputSchema,
   signedUrlOutputSchema,
 } from './photo.schema.js';
 import { PhotoService } from './photo.service.js';
-import { PhotoUploadService } from './photo-upload.service.js';
-import { PhotoShareService } from './photo-share.service.js';
 
 @UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'photo' })
 export class PhotoRouter {
   constructor(
-    private readonly storage: B2Storage,
+    private readonly storage: StorageService,
     private readonly photoService: PhotoService,
     private readonly photoUploadService: PhotoUploadService,
     private readonly photoShareService: PhotoShareService,

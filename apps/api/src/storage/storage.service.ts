@@ -8,13 +8,12 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-
 import { Injectable } from '@nestjs/common';
 import { Readable } from 'stream';
 import { env } from '../env.server.js';
 
 @Injectable()
-export class B2Storage {
+export class StorageService {
   private client: S3Client;
   private bucket: string;
 
@@ -43,8 +42,8 @@ export class B2Storage {
   async deleteMany(keys: string[]): Promise<void> {
     if (keys.length === 0) return;
 
-    for (let i = 0; i < keys.length; i += B2Storage.DELETE_BATCH_SIZE) {
-      const batch = keys.slice(i, i + B2Storage.DELETE_BATCH_SIZE);
+    for (let i = 0; i < keys.length; i += StorageService.DELETE_BATCH_SIZE) {
+      const batch = keys.slice(i, i + StorageService.DELETE_BATCH_SIZE);
       const response = await this.client.send(
         new DeleteObjectsCommand({
           Bucket: this.bucket,

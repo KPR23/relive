@@ -9,7 +9,7 @@ import {
   user,
 } from '../db/schema.js';
 import { mapPhotosToResponse } from '../helpers/helpers.js';
-import { B2Storage } from '../storage/b2.storage.js';
+import { StorageService } from '../storage/storage.service.js';
 import { UserService } from '../user/user.service.js';
 import { PhotoPermissionService } from './photo-permission.service.js';
 import {
@@ -22,7 +22,7 @@ import { PhotoShareListItem } from './photo.schema.js';
 @Injectable()
 export class PhotoShareService {
   constructor(
-    private readonly storage: B2Storage,
+    private readonly storage: StorageService,
     private readonly photoPermissionService: PhotoPermissionService,
     private readonly userService: UserService,
   ) {}

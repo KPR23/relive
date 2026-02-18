@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
-import { FolderPermissionService } from '../folder/folder-permission.service.js';
 import { db } from '../db/index.js';
 import { photo, photoShare, PhotoStatusEnum } from '../db/schema.js';
+import { FolderPermissionService } from '../folder/folder-permission.service.js';
 import { FolderService } from '../folder/folder.service.js';
 import { mapPhotosToResponse } from '../helpers/helpers.js';
-import { B2Storage } from '../storage/b2.storage.js';
+import { StorageService } from '../storage/storage.service.js';
 import { PhotoPermissionService } from './photo-permission.service.js';
 import {
   PhotoAlreadyInFolderError,
@@ -16,7 +16,7 @@ import {
 @Injectable()
 export class PhotoService {
   constructor(
-    private readonly storage: B2Storage,
+    private readonly storage: StorageService,
     private readonly photoPermissionService: PhotoPermissionService,
     private readonly folderService: FolderService,
     private readonly folderPermissionService: FolderPermissionService,

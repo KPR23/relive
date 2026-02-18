@@ -20,6 +20,7 @@ import { TrpcModule } from './trpc/trpc.module.js';
 import { UserService } from './user/user.service.js';
 import { AuthMiddleware } from './middleware.js';
 import { UserModule } from './user/user.module.js';
+import { StorageModule } from './storage/storage.module.js';
 
 const isProduction = env.NODE_ENV === 'production';
 const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
@@ -48,6 +49,7 @@ const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
     PhotoModule,
     FolderModule,
     UserModule,
+    StorageModule,
   ],
   providers: [
     {

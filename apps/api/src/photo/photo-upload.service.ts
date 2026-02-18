@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { and, count, eq, inArray, lt, or } from 'drizzle-orm';
-import { FolderPermissionService } from '../folder/folder-permission.service.js';
 import { db } from '../db/index.js';
 import { photo, PhotoStatusEnum } from '../db/schema.js';
-import { B2Storage } from '../storage/b2.storage.js';
+import { FolderPermissionService } from '../folder/folder-permission.service.js';
+import { StorageService } from '../storage/storage.service.js';
 import {
   PhotoLimitReachedError,
   PhotoNotFoundError,
@@ -15,7 +15,7 @@ import { generateAndUploadThumbnail } from './thumbnail.js';
 @Injectable()
 export class PhotoUploadService {
   constructor(
-    private readonly storage: B2Storage,
+    private readonly storage: StorageService,
     private readonly folderPermissionService: FolderPermissionService,
   ) {}
 
