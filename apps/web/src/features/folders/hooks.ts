@@ -58,3 +58,20 @@ export function useDeleteFolder() {
     },
   });
 }
+
+export function useShareFolderWithUser() {
+  const utils = usePhotoUtils();
+  return trpc.folder.shareFolderWithUser.useMutation({
+    onSuccess: () => {
+      utils.folder.invalidate();
+    },
+  });
+}
+
+export function useListFolderShares(folderId: string) {
+  return trpc.folder.listFolderShares.useQuery({ folderId });
+}
+
+export function useListSharedFoldersWithMe() {
+  return trpc.folder.listSharedFoldersWithMe.useQuery();
+}

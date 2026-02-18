@@ -285,7 +285,51 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     deleteFolder: publicProcedure.input(z.object({
       id: z.uuid(),
-    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    shareFolderWithUser: publicProcedure.input(z.object({
+      folderId: z.uuid(),
+      targetUserEmail: z.email(),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+    })).output(z.object({ success: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listFolderShares: publicProcedure.input(z.object({
+      folderId: z.uuid(),
+    })).output(z.array(z.object({
+      id: z.string(),
+      folderId: z.string(),
+      folderName: z.string(),
+      sharedWithId: z.string(),
+      sharedWithEmail: z.email(),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+      expiresAt: z.preprocess((arg) => {
+        if (arg === null || arg === undefined) return null;
+        if (arg instanceof Date) return arg;
+        if (typeof arg === 'string') return new Date(arg);
+        return null;
+      }, z.date().nullable()),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listSharedFoldersWithMe: publicProcedure.output(z.array(z.object({
+      id: z.string(),
+      folderId: z.string(),
+      folderName: z.string(),
+      sharedWithId: z.string(),
+      sharedWithEmail: z.email(),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+      expiresAt: z.preprocess((arg) => {
+        if (arg === null || arg === undefined) return null;
+        if (arg instanceof Date) return arg;
+        if (typeof arg === 'string') return new Date(arg);
+        return null;
+      }, z.date().nullable()),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;

@@ -3,6 +3,7 @@
 import { AddPasskey } from '@/src/components/AddPasskey';
 import CreateFolderButton from '@/src/features/folders/components/CreateFolderButton';
 import { ListAllFolders } from '@/src/features/folders/components/ListAllFolders';
+import { ListSharedFolders } from '@/src/features/folders/components/ListSharedFolders';
 import { useRootFolder } from '@/src/features/folders/hooks';
 import { AllPhotosList } from '@/src/features/photos/components/AllPhotosList';
 import { UploadButton } from '@/src/features/photos/components/UploadButton';
@@ -72,6 +73,7 @@ export default function Root() {
         <Icon icon="solar:gallery-bold" width="24" height="24" />{' '}
         <Icon icon="solar:gallery-wide-linear" width="24" height="24" />
         <ListAllFolders parentId={rootFolder.id} />
+        <ListSharedFolders />
       </div>
       <div className="m-4">
         <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">

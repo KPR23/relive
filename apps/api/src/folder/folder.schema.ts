@@ -1,6 +1,7 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { folder } from '../db/schema.js';
+import { folder, sharePermissionEnum } from '../db/schema.js';
+import { dateFromString } from '../helpers/helpers.js';
 
 export const folderSelectSchema = createSelectSchema(folder);
 export const folderInsertSchema = createInsertSchema(folder);
@@ -52,6 +53,22 @@ export const deleteFolderInputSchema = z.object({
   id: z.uuid(),
 });
 
+export const shareFolderWithUserInputSchema = z.object({
+  folderId: z.uuid(),
+  targetUserEmail: z.email(),
+  permission: z.enum(sharePermissionEnum),
+});
+
+export const folderShareListItemSchema = z.object({
+  id: z.string(),
+  folderId: z.string(),
+  folderName: z.string(),
+  sharedWithId: z.string(),
+  sharedWithEmail: z.email(),
+  permission: z.enum(sharePermissionEnum),
+  expiresAt: dateFromString,
+});
+
 export type FolderSchema = z.infer<typeof folderSchema>;
 export type CreateFolderSchema = z.infer<typeof createFolderSchema>;
 export type ParentIdInputSchema = z.infer<typeof parentIdInputSchema>;
@@ -61,3 +78,7 @@ export type GetMoveableFoldersInputSchema = z.infer<
 >;
 export type MoveFolderInputSchema = z.infer<typeof moveFolderInputSchema>;
 export type DeleteFolderInputSchema = z.infer<typeof deleteFolderInputSchema>;
+export type ShareFolderWithUserInputSchema = z.infer<
+  typeof shareFolderWithUserInputSchema
+>;
+export type FolderShareListItem = z.infer<typeof folderShareListItemSchema>;
