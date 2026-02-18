@@ -46,8 +46,8 @@ export class FolderShareService {
       id: r.folder.id,
       folderId: r.folder.id,
       folderName: r.folder.name,
-      sharedWithId: r.folder.ownerId,
-      sharedWithEmail: r.ownerEmail ?? '',
+      sharedByUserId: r.folder.ownerId,
+      sharedBy: r.ownerEmail ?? '',
       permission: sharePermissionEnum.VIEW,
       expiresAt: null,
     }));
@@ -133,8 +133,8 @@ export class FolderShareService {
       id: r.share.id,
       folderId: r.share.folderId,
       folderName: r.folder.name,
-      sharedWithId: r.share.sharedWithId,
-      sharedWithEmail: r.user?.email ?? '',
+      sharedByUserId: r.folder.ownerId,
+      sharedBy: r.user?.email ?? '',
       permission: r.share.permission,
       expiresAt: r.share.expiresAt,
     }));

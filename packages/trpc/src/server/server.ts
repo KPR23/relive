@@ -300,11 +300,11 @@ const appRouter = t.router({
     listFolderShares: publicProcedure.input(z.object({
       folderId: z.uuid(),
     })).output(z.array(z.object({
-      id: z.string(),
-      folderId: z.string(),
+      id: z.uuid(),
+      folderId: z.uuid(),
       folderName: z.string(),
-      sharedWithId: z.string(),
-      sharedWithEmail: z.email(),
+      sharedByUserId: z.uuid(),
+      sharedBy: z.email().optional(),
       permission: z.enum({
         VIEW: 'VIEW',
         EDIT: 'EDIT',
@@ -317,11 +317,11 @@ const appRouter = t.router({
       }, z.date().nullable()),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listSharedFoldersWithMe: publicProcedure.output(z.array(z.object({
-      id: z.string(),
-      folderId: z.string(),
+      id: z.uuid(),
+      folderId: z.uuid(),
       folderName: z.string(),
-      sharedWithId: z.string(),
-      sharedWithEmail: z.email(),
+      sharedByUserId: z.uuid(),
+      sharedBy: z.email().optional(),
       permission: z.enum({
         VIEW: 'VIEW',
         EDIT: 'EDIT',

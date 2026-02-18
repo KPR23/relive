@@ -60,11 +60,11 @@ export const shareFolderWithUserInputSchema = z.object({
 });
 
 export const folderShareListItemSchema = z.object({
-  id: z.string(),
-  folderId: z.string(),
+  id: z.uuid(),
+  folderId: z.uuid(),
   folderName: z.string(),
-  sharedWithId: z.string(),
-  sharedWithEmail: z.email(),
+  sharedByUserId: z.uuid(),
+  sharedBy: z.email().optional(),
   permission: z.enum(sharePermissionEnum),
   expiresAt: dateFromString,
 });
