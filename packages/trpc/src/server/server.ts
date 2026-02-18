@@ -12,7 +12,7 @@ const appRouter = t.router({
       photoId: z.uuid(),
       folderId: z.uuid(),
       originalName: z.string(),
-      ownerEmail: z.email().optional(),
+      ownerEmail: z.email().nullish(),
       createdAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
         if (arg instanceof Date) return arg;
@@ -44,7 +44,7 @@ const appRouter = t.router({
       photoId: z.uuid(),
       folderId: z.uuid(),
       originalName: z.string(),
-      ownerEmail: z.email().optional(),
+      ownerEmail: z.email().nullish(),
       createdAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
         if (arg instanceof Date) return arg;
@@ -106,7 +106,7 @@ const appRouter = t.router({
         photoId: z.uuid(),
         folderId: z.uuid(),
         originalName: z.string(),
-        ownerEmail: z.email().optional(),
+        ownerEmail: z.email().nullish(),
         createdAt: z.preprocess((arg) => {
           if (arg === null || arg === undefined) return null;
           if (arg instanceof Date) return arg;

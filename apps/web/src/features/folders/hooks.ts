@@ -77,10 +77,7 @@ export function useShareFolderWithUser() {
     createAppMutation({
       successMessage: 'Folder shared successfully!',
       invalidate: async () => {
-        await Promise.all([
-          utils.folder.invalidate(),
-          utils.folder.listSharedFoldersWithMe.invalidate(),
-        ]);
+        await utils.folder.invalidate();
       },
     }),
   );

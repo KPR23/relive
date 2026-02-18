@@ -38,7 +38,7 @@ export const revokePhotoShareInputSchema = z.object({
 
 export const createPendingPhotoSchema = z.object({
   id: z.uuid(),
-  ownerId: z.string(),
+  ownerId: z.string().min(1),
   folderId: z.uuid(),
   filePath: z.string(),
   originalName: z.string(),
@@ -47,14 +47,14 @@ export const createPendingPhotoSchema = z.object({
 
 export const confirmUploadPhotoSchema = z.object({
   photoId: z.uuid(),
-  ownerId: z.string(),
+  ownerId: z.string().min(1),
 });
 
 export const photoListItemSchema = z.object({
   photoId: z.uuid(),
   folderId: z.uuid(),
   originalName: z.string(),
-  ownerEmail: z.email().optional(),
+  ownerEmail: z.email().nullish(),
   createdAt: dateFromString,
   takenAt: dateFromString,
   width: z.number().nullable(),

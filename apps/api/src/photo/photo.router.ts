@@ -8,7 +8,7 @@ import {
   UseMiddlewares,
 } from 'nestjs-trpc';
 import z from 'zod';
-import { AuthMiddleware } from '../middleware.js';
+import { AuthMiddleware } from '../auth/middleware.js';
 import { StorageService } from '../storage/storage.service.js';
 import type { AuthContext } from '../trpc/context.js';
 import { mapToTRPCError } from '../trpc/map-to-trpc.js';

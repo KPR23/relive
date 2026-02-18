@@ -1,8 +1,8 @@
-import { TRPCMiddleware, MiddlewareOptions } from 'nestjs-trpc';
 import { Injectable } from '@nestjs/common';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { TRPCError } from '@trpc/server';
-import type { BaseContext } from './trpc/context.js';
+import { MiddlewareOptions, TRPCMiddleware } from 'nestjs-trpc';
+import type { BaseContext } from '../trpc/context.js';
 
 @Injectable()
 export class AuthMiddleware implements TRPCMiddleware {

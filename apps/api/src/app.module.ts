@@ -11,13 +11,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { auth } from './auth.js';
+import { auth } from './auth/auth.js';
 import { CleanupController } from './cleanup/cleanup.controller.js';
 import { env } from './env.server.js';
 import { FolderModule } from './folder/folder.module.js';
-import { AuthMiddleware } from './middleware.js';
 import { PhotoModule } from './photo/photo.module.js';
-import { StorageModule } from './storage/storage.module.js';
 import { TrpcModule } from './trpc/trpc.module.js';
 import { UserModule } from './user/user.module.js';
 
@@ -48,7 +46,6 @@ const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
     PhotoModule,
     FolderModule,
     UserModule,
-    StorageModule,
   ],
   providers: [
     {
@@ -56,7 +53,6 @@ const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
       useClass: ArcjetGuard,
     },
     AppService,
-    AuthMiddleware,
   ],
   controllers: [AppController, CleanupController],
 })

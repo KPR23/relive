@@ -27,9 +27,7 @@ export class FolderShareService {
     private readonly userService: UserService,
   ) {}
 
-  async listSharedFoldersWithMe(
-    userId: string,
-  ): Promise<FolderSharedWithMe[]> {
+  async listSharedFoldersWithMe(userId: string): Promise<FolderSharedWithMe[]> {
     const results = await db
       .select({
         folder,
@@ -66,13 +64,14 @@ export class FolderShareService {
         throw new FolderCannotShareWithSelfError();
       }
 
-      const folder = await this.folderPermissionService.getOwnedFolderOrThrow(
-        userId,
-        folderId,
-        tx,
-      );
+      const folderRecord =
+        await this.folderPermissionService.getOwnedFolderOrThrow(
+          userId,
+          folderId,
+          tx,
+        );
 
-      if (folder.isRoot === true) {
+      if (folderRecord.isRoot === true) {
         throw new CannotShareRootFolderError();
       }
 

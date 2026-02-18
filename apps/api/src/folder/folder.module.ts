@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuthMiddlewareModule } from '../auth/auth.module.js';
 import { UserModule } from '../user/user.module.js';
 import { FolderPermissionService } from './folder-permission.service.js';
 import { FolderShareService } from './folder-share.service.js';
@@ -6,7 +7,7 @@ import { FolderRouter } from './folder.router.js';
 import { FolderService } from './folder.service.js';
 
 @Module({
-  imports: [UserModule],
+  imports: [AuthMiddlewareModule, UserModule],
   providers: [
     FolderService,
     FolderRouter,

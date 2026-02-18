@@ -6,19 +6,22 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
-import { AuthMiddleware } from '../middleware.js';
+import { z } from 'zod';
+import { AuthMiddleware } from '../auth/middleware.js';
 import { type AuthContext } from '../trpc/context.js';
 import { mapToTRPCError } from '../trpc/map-to-trpc.js';
-import { z } from 'zod';
+import { FolderShareService } from './folder-share.service.js';
 import {
   type CreateFolderSchema,
   createFolderSchema,
   type DeleteFolderInputSchema,
   deleteFolderInputSchema,
   type Folder,
-  folderSchema,
   type FolderIdInputSchema,
   folderIdInputSchema,
+  folderSchema,
+  folderSharedWithMeSchema,
+  folderShareRecipientSchema,
   type GetMoveableFoldersInputSchema,
   getMoveableFoldersInputSchema,
   type MoveFolderInputSchema,
@@ -27,11 +30,8 @@ import {
   parentIdInputSchema,
   shareFolderWithUserInputSchema,
   type ShareFolderWithUserInputSchema,
-  folderShareRecipientSchema,
-  folderSharedWithMeSchema,
 } from './folder.schema.js';
 import { FolderService } from './folder.service.js';
-import { FolderShareService } from './folder-share.service.js';
 
 @UseMiddlewares(AuthMiddleware)
 @Router({ alias: 'folder' })
