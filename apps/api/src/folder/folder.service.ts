@@ -12,12 +12,8 @@ import {
   ParentFolderIdRequiredError,
 } from './folder.errors.js';
 import { CreateFolderSchema, Folder } from './folder.schema.js';
+import { Tx } from '../helpers/helpers.js';
 
-export type Tx = Parameters<typeof db.transaction>[0] extends (
-  tx: infer T,
-) => any
-  ? T
-  : never;
 @Injectable()
 export class FolderService {
   async getFolderById(userId: string, id: string, tx?: Tx) {

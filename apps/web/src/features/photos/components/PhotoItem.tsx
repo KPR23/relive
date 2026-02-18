@@ -2,12 +2,12 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { Photo } from '../../../lib/types';
+import { Photo, SharedPhoto } from '../../../lib/types';
 import { PhotoLightbox } from './PhotoLightbox';
 
 const ROW_HEIGHT = 120;
 
-export function PhotoItem({ photo }: { photo: Photo }) {
+export function PhotoItem({ photo }: { photo: Photo | SharedPhoto }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const safeWidth = Math.max(photo.width ?? 0, 1);

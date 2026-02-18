@@ -33,6 +33,17 @@ function isZodError(cause: unknown): cause is ZodError {
         error: TRPCError;
       }) {
         const { shape, error } = opts;
+        if (
+          error.message === 'Output validation failed' &&
+          isZodError(error.cause)
+        ) {
+          const zodError = error.cause;
+          const flattened = flattenError(zodError);
+          console.error(
+            '[Output validation failed]',
+            JSON.stringify(flattened, null, 2),
+          );
+        }
         if (error.code === 'BAD_REQUEST' && isZodError(error.cause)) {
           const zodError = error.cause;
           return {

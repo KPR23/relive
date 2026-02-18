@@ -1,9 +1,10 @@
+import { Toaster } from '@/src/components/ui/sonner';
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import { ThemeToggle } from '../components/ThemeToggle';
 import TRPCProvider from '../providers/TRPCProvider';
 import ThemeProvider from '../providers/ThemeProvider';
-import { ThemeToggle } from '../components/ThemeToggle';
 import './globals.css';
 
 const geistSans = localFont({
@@ -40,6 +41,7 @@ export default function RootLayout({
         >
           <TRPCProvider>
             {children}
+            <Toaster />
             <ThemeToggle />
             <Analytics />
           </TRPCProvider>
