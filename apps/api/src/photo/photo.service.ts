@@ -63,7 +63,7 @@ export class PhotoService {
 
     return photos.map((p, i) => {
       const isNotOwner = rows[i]?.photo.ownerId !== userId;
-      const ownerEmail = isNotOwner ? rows[i]?.ownerEmail ?? null : undefined;
+      const ownerEmail = isNotOwner ? (rows[i]?.ownerEmail ?? null) : undefined;
       return ownerEmail !== undefined ? { ...p, ownerEmail } : p;
     });
   }

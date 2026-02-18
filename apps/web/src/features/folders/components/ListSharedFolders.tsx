@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useListFolderShares, useListSharedFoldersWithMe } from '../hooks';
+import { useListSharedFoldersWithMe } from '../hooks';
 
 export function ListSharedFolders() {
   const { data: sharedFolders } = useListSharedFoldersWithMe();

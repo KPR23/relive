@@ -79,7 +79,7 @@ export class FolderPermissionService {
     userId: string,
     folderId: string,
     tx?: Tx,
-  ): Promise<(typeof folder.$inferSelect) | undefined> {
+  ): Promise<typeof folder.$inferSelect | undefined> {
     const client = tx ?? db;
 
     const [folderRecord] = await client
