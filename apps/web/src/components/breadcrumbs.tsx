@@ -11,7 +11,7 @@ export function Breadcrumbs({ folderId }: { folderId: string }) {
     <div className="flex items-center gap-1">
       <Link
         href="/"
-        className="text-blue-600 hover:underline dark:text-blue-400"
+        className="text-blue-400 hover:text-blue-600 hover:underline"
       >
         Strona główna
       </Link>
@@ -22,7 +22,7 @@ export function Breadcrumbs({ folderId }: { folderId: string }) {
             <span className="text-gray-500">/</span>
             <Link
               href={f.isRoot ? '/' : `/folder/${f.id}`}
-              className="text-blue-600 hover:underline dark:text-blue-400"
+              className="text-blue-400 hover:text-blue-600 hover:underline"
             >
               {f.name}
             </Link>
