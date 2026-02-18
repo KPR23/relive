@@ -40,8 +40,8 @@ export const movePhotoToFolderInputSchema = z.object({
 });
 
 export const photoListItemSchema = z.object({
-  photoId: z.uuid(),
-  folderId: z.uuid(),
+  photoId: z.string(),
+  folderId: z.string(),
   originalName: z.string(),
   createdAt: dateFromString,
   takenAt: dateFromString,
@@ -63,6 +63,14 @@ export const photoListItemSchema = z.object({
 
 export const photoListSchema = z.array(photoListItemSchema);
 
+export const sharedPhotosWithMeOutputSchema = z.object({
+  photos: z.array(
+    photoListItemSchema.extend({
+      ownerEmail: z.string().nullish(),
+    }),
+  ),
+});
+
 export const photoShareListItemSchema = z.object({
   id: z.string(),
   sharedWithId: z.string(),
@@ -73,7 +81,7 @@ export const photoShareListItemSchema = z.object({
 
 export const revokePhotoShareInputSchema = z.object({
   photoId: z.uuid(),
-  targetUserId: z.uuid(),
+  targetUserId: z.string().min(1),
 });
 
 export const sharePhotoWithUserInputSchema = z.object({

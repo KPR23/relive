@@ -2,18 +2,20 @@
 
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { Photo } from '../../../lib/types';
+import { Photo, SharedPhoto } from '../../../lib/types';
 import { useMoveableFolders } from '../../folders/hooks';
 import {
   useMovePhotoToFolder,
   usePhotoUrl,
   useRemovePhoto,
   useRemovePhotoFromFolder,
+  useRevokePhotoShare,
+  useSharedWith,
   useSharePhotoWithUser,
 } from '../hooks';
 
 interface PhotoLightboxProps {
-  photo: Photo;
+  photo: Photo | SharedPhoto;
   thumbnailUrl: string;
   onClose: () => void;
 }
@@ -41,6 +43,10 @@ export function PhotoLightbox({
   const removePhotoFromFolder = useRemovePhotoFromFolder();
   const removePhoto = useRemovePhoto();
   const sharePhotoWithUser = useSharePhotoWithUser();
+  const revokePhotoShare = useRevokePhotoShare();
+  const sharedWith = useSharedWith(photo.photoId);
+
+  const isSharedWithMe = 'ownerEmail' in photo && photo.ownerEmail;
 
   const { data } = usePhotoUrl(photo.photoId, {
     enabled: !removePhoto.isPending && !removePhoto.isSuccess,
@@ -124,73 +130,139 @@ export function PhotoLightbox({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-80 shrink-0 overflow-y-auto rounded-xl bg-white/90 p-6 shadow-xl backdrop-blur-md dark:bg-gray-900/90">
-          <div className="space-y-2">
-            <button
-              onClick={handleRemoveFromFolder}
-              disabled={removePhotoFromFolder.isPending}
-              className="w-full rounded-md bg-red-500 py-2 text-sm font-medium text-white transition hover:bg-red-600 disabled:opacity-50"
-            >
-              {removePhotoFromFolder.isPending
-                ? 'Removing...'
-                : 'Remove from folder'}
-            </button>
+          {isSharedWithMe ? (
+            <div className="rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Shared by
+              </p>
+              <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                {photo.ownerEmail}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* ===== Delete / Move ===== */}
+              <div className="space-y-2">
+                <button
+                  onClick={handleRemoveFromFolder}
+                  disabled={removePhotoFromFolder.isPending}
+                  className="w-full rounded-md bg-red-500 py-2 text-sm font-medium text-white transition hover:bg-red-600 disabled:opacity-50"
+                >
+                  {removePhotoFromFolder.isPending
+                    ? 'Removing...'
+                    : 'Remove from folder'}
+                </button>
 
-            <button
-              onClick={handleRemovePhoto}
-              disabled={removePhoto.isPending}
-              className="w-full rounded-md bg-red-700 py-2 text-sm font-medium text-white transition hover:bg-red-800 disabled:opacity-50"
-            >
-              {removePhoto.isPending ? 'Deleting...' : 'Delete permanently'}
-            </button>
-          </div>
+                <button
+                  onClick={handleRemovePhoto}
+                  disabled={removePhoto.isPending}
+                  className="w-full rounded-md bg-red-700 py-2 text-sm font-medium text-white transition hover:bg-red-800 disabled:opacity-50"
+                >
+                  {removePhoto.isPending ? 'Deleting...' : 'Delete permanently'}
+                </button>
+              </div>
 
-          <div className="mt-6">
-            <label className="mb-1 block text-sm font-medium">
-              Move to folder
-            </label>
-            <select
-              ref={selectRef}
-              onFocus={() => setShouldLoadFolders(true)}
-              onChange={(e) => {
-                const folderId = e.target.value;
-                if (!folderId) return;
+              {/* ===== Move ===== */}
+              <div className="mt-6">
+                <label className="mb-1 block text-sm font-medium">
+                  Move to folder
+                </label>
+                <select
+                  ref={selectRef}
+                  onFocus={() => setShouldLoadFolders(true)}
+                  onChange={(e) => {
+                    const folderId = e.target.value;
+                    if (!folderId) return;
 
-                movePhotoToFolder.mutate({
-                  photoId: photo.photoId,
-                  folderId,
-                });
-              }}
-              disabled={movePhotoToFolder.isPending}
-              className="w-full rounded-md border px-3 py-2 text-sm disabled:opacity-50"
-            >
-              <option value="">
-                {isLoadingFolders ? 'Loading...' : 'Select folder'}
-              </option>
-              {folders?.map((folder) => (
-                <option key={folder.id} value={folder.id}>
-                  {folder.name}
-                </option>
-              ))}
-            </select>
-          </div>
+                    movePhotoToFolder.mutate({
+                      photoId: photo.photoId,
+                      folderId,
+                    });
+                  }}
+                  disabled={movePhotoToFolder.isPending}
+                  className="w-full rounded-md border px-3 py-2 text-sm disabled:opacity-50"
+                >
+                  <option value="">
+                    {isLoadingFolders ? 'Loading...' : 'Select folder'}
+                  </option>
+                  {folders?.map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <form onSubmit={handleSharePhoto} className="mt-6 space-y-2">
-            <label className="block text-sm font-medium">Share with user</label>
-            <input
-              type="email"
-              value={targetUserEmail}
-              onChange={(e) => setTargetUserEmail(e.target.value)}
-              placeholder="user@email.com"
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-            <button
-              type="submit"
-              disabled={sharePhotoWithUser.isPending}
-              className="w-full rounded-md bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              {sharePhotoWithUser.isPending ? 'Sharing...' : 'Share'}
-            </button>
-          </form>
+              {/* ===== Share form ===== */}
+              <form onSubmit={handleSharePhoto} className="mt-6 space-y-2">
+                <label className="block text-sm font-medium">
+                  Share with user
+                </label>
+                <input
+                  type="email"
+                  value={targetUserEmail}
+                  onChange={(e) => setTargetUserEmail(e.target.value)}
+                  placeholder="user@email.com"
+                  className="w-full rounded-md border px-3 py-2 text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={sharePhotoWithUser.isPending}
+                  className="w-full rounded-md bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {sharePhotoWithUser.isPending ? 'Sharing...' : 'Share'}
+                </button>
+              </form>
+
+              {/* ===== Shared With List ===== */}
+              <div className="mt-8">
+                <h3 className="mb-2 text-sm font-semibold">Shared with</h3>
+
+                {sharedWith.isLoading && (
+                  <p className="text-xs text-gray-500">Loading...</p>
+                )}
+
+                {!sharedWith.isLoading &&
+                  (!sharedWith.data || sharedWith.data.length === 0) && (
+                    <p className="text-xs text-gray-500">
+                      Not shared with anyone
+                    </p>
+                  )}
+
+                <ul className="space-y-2">
+                  {sharedWith.data?.map((share) => (
+                    <li
+                      key={share.id}
+                      className="flex items-center justify-between rounded-md bg-gray-100 px-3 py-2 text-xs dark:bg-gray-800"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {share.sharedWithEmail}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          {share.permission}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          revokePhotoShare.mutate({
+                            photoId: photo.photoId,
+                            targetUserId: share.sharedWithId,
+                          })
+                        }
+                        disabled={revokePhotoShare.isPending}
+                        className="ml-2 rounded p-1 text-red-500 hover:bg-red-100 hover:text-red-700 disabled:opacity-50 dark:hover:bg-red-900/30"
+                        aria-label={`Revoke access for ${share.sharedWithEmail}`}
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="relative flex-1">

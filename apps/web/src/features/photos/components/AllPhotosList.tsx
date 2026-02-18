@@ -25,11 +25,11 @@ export const AllPhotosList = () => {
       <h2 className="text-xl font-bold text-blue-800 dark:text-blue-400">
         Photos shared with me
       </h2>
-      {!sharedPhotosWithMe || sharedPhotosWithMe.length === 0 ? (
+      {!sharedPhotosWithMe?.photos || sharedPhotosWithMe.photos.length === 0 ? (
         <p>No shared photos with me</p>
       ) : (
         <div className="flex flex-wrap gap-1">
-          {sharedPhotosWithMe.map((photo) => (
+          {sharedPhotosWithMe.photos.map((photo) => (
             <PhotoItem key={photo.photoId} photo={photo} />
           ))}
         </div>

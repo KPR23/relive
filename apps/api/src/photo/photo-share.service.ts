@@ -27,9 +27,13 @@ export class PhotoShareService {
   ) {}
 
   async sharedPhotosWithMe(userId: string) {
-    const photos = await db
-      .select()
+    const rows = await db
+      .select({
+        photo,
+        ownerEmail: user.email,
+      })
       .from(photo)
+      .leftJoin(user, eq(photo.ownerId, user.id))
       .where(
         and(
           eq(photo.status, PhotoStatusEnum.READY),
@@ -38,7 +42,17 @@ export class PhotoShareService {
         ),
       );
 
-    return mapPhotosToResponse(photos, this.storage);
+    const photos = await mapPhotosToResponse(
+      rows.map((r) => r.photo),
+      this.storage,
+    );
+
+    return {
+      photos: photos.map((p, i) => ({
+        ...p,
+        ownerEmail: rows[i]?.ownerEmail ?? null,
+      })),
+    };
   }
 
   private async sharePhotoWithUserId(

@@ -51,6 +51,23 @@ export function useSharePhotoWithUser() {
   );
 }
 
+export function useSharedWith(photoId: string) {
+  return trpc.photo.listPhotoShares.useQuery({ photoId });
+}
+
+export function useRevokePhotoShare() {
+  const utils = usePhotoUtils();
+
+  return trpc.photo.revokePhotoShare.useMutation(
+    createAppMutation({
+      successMessage: 'Photo share revoked successfully!',
+      invalidate: async () => {
+        await utils.photo.listPhotoShares.invalidate();
+      },
+    }),
+  );
+}
+
 export function usePhotoUrl(photoId: string, options?: { enabled?: boolean }) {
   return trpc.photo.getPhotoUrl.useQuery(
     { photoId },

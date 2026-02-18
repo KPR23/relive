@@ -22,6 +22,7 @@ import {
   type PhotoIdInputSchema,
   photoListSchema,
   photoShareListItemSchema,
+  sharedPhotosWithMeOutputSchema,
   requestUploadOutputSchema,
   requestUploadSchema,
   type RequestUploadSchema,
@@ -122,7 +123,7 @@ export class PhotoRouter {
     }
   }
 
-  @Query({ output: photoListSchema })
+  @Query({ output: sharedPhotosWithMeOutputSchema })
   async sharedPhotosWithMe(@Ctx() _ctx: AuthContext) {
     try {
       return await this.photoShareService.sharedPhotosWithMe(_ctx.user.id);
