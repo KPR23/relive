@@ -14,6 +14,7 @@ import {
   useSharePhotoWithUser,
 } from '../hooks';
 import { downloadPhoto } from './DownloadPhoto';
+import { SHARE_FOREVER_DATE } from '../../../../../../packages/constants';
 
 type PhotoSource = 'folder' | 'shared';
 
@@ -35,7 +36,8 @@ export function PhotoLightbox({
   const [targetUserEmail, setTargetUserEmail] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
-
+  const [expiresMode, setExpiresMode] = useState<'forever' | 'date'>('forever');
+  const [expiresAt, setExpiresAt] = useState<string>('');
   const selectRef = useRef<HTMLSelectElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -99,22 +101,37 @@ export function PhotoLightbox({
     e.preventDefault();
 
     if (!targetUserEmail.trim()) return;
+    if (expiresMode === 'date' && !expiresAt.trim()) return;
+
+    const expiresAtDate =
+      expiresMode === 'forever'
+        ? new Date(SHARE_FOREVER_DATE)
+        : new Date(expiresAt);
 
     sharePhotoWithUser.mutate(
       {
         photoId: photo.photoId,
         targetUserEmail,
         permission: 'VIEW',
+        expiresAt: expiresAtDate,
       },
       {
         onSuccess: () => {
           setTargetUserEmail('');
+          setExpiresMode('forever');
+          setExpiresAt('');
         },
       },
     );
 
     setTargetUserEmail('');
+    setExpiresMode('forever');
+    setExpiresAt('');
   };
+
+  const canShare =
+    targetUserEmail.trim() &&
+    (expiresMode === 'forever' || (expiresMode === 'date' && expiresAt.trim()));
 
   return (
     <div
@@ -139,7 +156,7 @@ export function PhotoLightbox({
         className="relative flex h-[90vh] w-[95vw] max-w-[1600px] gap-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-80 shrink-0 overflow-y-auto rounded-xl bg-white/90 p-6 shadow-xl backdrop-blur-md dark:bg-gray-900/90">
+        <div className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto rounded-xl bg-white/90 p-6 shadow-xl backdrop-blur-md dark:bg-gray-900/90">
           {isFromSharedFolder ? (
             <div className="rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
@@ -179,30 +196,6 @@ export function PhotoLightbox({
                 >
                   {removePhoto.isPending ? 'Deleting...' : 'Delete permanently'}
                 </button>
-
-                <a
-                  href={data?.signedUrl}
-                  download={photo.originalName}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    if (!data?.signedUrl) return;
-                    setIsDownloading(true);
-                    setDownloadError(null);
-                    try {
-                      await downloadPhoto(data.signedUrl, photo.originalName);
-                    } catch {
-                      setDownloadError('Download failed. Please try again.');
-                    } finally {
-                      setIsDownloading(false);
-                    }
-                  }}
-                  className={`flex w-full items-center justify-center rounded-md py-2 text-sm font-medium text-white transition ${isDownloading ? 'cursor-not-allowed bg-green-400 opacity-50' : 'bg-green-500 hover:bg-green-600'}`}
-                >
-                  {isDownloading ? 'Downloading...' : 'Download'}
-                </a>
-                {downloadError && (
-                  <p className="mt-2 text-sm text-red-500">{downloadError}</p>
-                )}
               </div>
 
               {/* ===== Move ===== */}
@@ -248,9 +241,46 @@ export function PhotoLightbox({
                   placeholder="user@email.com"
                   className="w-full rounded-md border px-3 py-2 text-sm"
                 />
+                <label className="block text-sm font-medium">
+                  Ważność udostępnienia
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="expiresMode"
+                      value="forever"
+                      checked={expiresMode === 'forever'}
+                      onChange={() => setExpiresMode('forever')}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Na zawsze</span>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="expiresMode"
+                      value="date"
+                      checked={expiresMode === 'date'}
+                      onChange={() => setExpiresMode('date')}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Do daty</span>
+                  </label>
+                </div>
+                {expiresMode === 'date' && (
+                  <input
+                    type="datetime-local"
+                    min={new Date().toISOString().slice(0, 16)}
+                    value={expiresAt}
+                    onChange={(e) => setExpiresAt(e.target.value)}
+                    required
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  />
+                )}
                 <button
                   type="submit"
-                  disabled={sharePhotoWithUser.isPending}
+                  disabled={!canShare || sharePhotoWithUser.isPending}
                   className="w-full rounded-md bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                   {sharePhotoWithUser.isPending ? 'Sharing...' : 'Share'}
@@ -285,6 +315,27 @@ export function PhotoLightbox({
                         <span className="text-[10px] text-gray-500">
                           {share.permission}
                         </span>
+                        <span className="text-[10px] text-gray-500">
+                          {share.status}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          {share.expiresAt &&
+                          new Date(share.expiresAt).getFullYear() >=
+                            SHARE_FOREVER_DATE.getFullYear()
+                            ? 'Na zawsze'
+                            : share.expiresAt
+                              ? new Date(share.expiresAt).toLocaleDateString(
+                                  'pl-PL',
+                                  {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: 'numeric',
+                                  },
+                                )
+                              : ''}
+                        </span>
                       </div>
 
                       <button
@@ -306,6 +357,29 @@ export function PhotoLightbox({
               </div>
             </>
           ) : null}
+          <a
+            href={data?.signedUrl}
+            download={photo.originalName}
+            onClick={async (e) => {
+              e.preventDefault();
+              if (!data?.signedUrl) return;
+              setIsDownloading(true);
+              setDownloadError(null);
+              try {
+                await downloadPhoto(data.signedUrl, photo.originalName);
+              } catch {
+                setDownloadError('Download failed. Please try again.');
+              } finally {
+                setIsDownloading(false);
+              }
+            }}
+            className={`flex w-full items-center justify-center rounded-md py-2 text-sm font-medium text-white transition ${isDownloading ? 'cursor-not-allowed bg-green-400 opacity-50' : 'bg-green-500 hover:bg-green-600'}`}
+          >
+            {isDownloading ? 'Downloading...' : 'Download'}
+          </a>
+          {downloadError && (
+            <p className="mt-2 text-sm text-red-500">{downloadError}</p>
+          )}
         </div>
 
         <div className="relative flex-1">
@@ -319,6 +393,7 @@ export function PhotoLightbox({
 
           {data && (
             <Image
+              key={data.signedUrl}
               src={data.signedUrl}
               alt={photo.originalName}
               fill

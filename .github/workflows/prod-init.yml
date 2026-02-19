@@ -1,8 +1,6 @@
-name: CI Production Deployment
+name: CI Production Initial Deployment
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 

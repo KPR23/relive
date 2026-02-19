@@ -1,0 +1,1 @@
+ALTER TABLE "photo_share" ALTER COLUMN "expires_at" SET NOT NULL;

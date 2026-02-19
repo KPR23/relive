@@ -13,7 +13,6 @@ import { StorageService } from '../storage/storage.service.js';
 import { UserService } from '../user/user.service.js';
 import { PhotoPermissionService } from './photo-permission.service.js';
 import {
-  PhotoAlreadySharedWithUserError,
   PhotoCannotShareWithSelfError,
   PhotoShareNotFoundError,
 } from './photo.errors.js';
@@ -61,6 +60,7 @@ export class PhotoShareService {
     photoId: string,
     targetUserId: string,
     permission: SharePermission,
+    expiresAt: Date,
   ) {
     return db.transaction(async (tx) => {
       if (userId === targetUserId) {
@@ -73,20 +73,22 @@ export class PhotoShareService {
         tx,
       );
 
-      const result = await tx
+      await tx
         .insert(photoShare)
         .values({
           id: crypto.randomUUID(),
-          ownerId: userId,
           photoId: photoId,
           sharedWithId: targetUserId,
           permission: permission,
+          expiresAt,
         })
-        .onConflictDoNothing();
-
-      if (result.rowCount === 0) {
-        throw new PhotoAlreadySharedWithUserError();
-      }
+        .onConflictDoUpdate({
+          target: [photoShare.photoId, photoShare.sharedWithId],
+          set: {
+            expiresAt,
+            permission: permission,
+          },
+        });
 
       return { success: true };
     });
@@ -97,6 +99,7 @@ export class PhotoShareService {
     photoId: string,
     targetUserEmail: string,
     permission: SharePermission,
+    expiresAt: Date,
   ) {
     const targetUser = await this.userService.getUserByEmail(targetUserEmail);
 
@@ -105,6 +108,7 @@ export class PhotoShareService {
       photoId,
       targetUser.id,
       permission,
+      expiresAt,
     );
   }
 
@@ -119,15 +123,17 @@ export class PhotoShareService {
       })
       .from(photoShare)
       .innerJoin(user, eq(photoShare.sharedWithId, user.id))
-      .where(
-        and(eq(photoShare.photoId, photoId), eq(photoShare.ownerId, userId)),
-      );
+      .innerJoin(photo, eq(photoShare.photoId, photo.id))
+      .where(and(eq(photoShare.photoId, photoId), eq(photo.ownerId, userId)));
+
+    const now = new Date();
 
     return results.map((r) => ({
       id: r.share.id,
       sharedWithId: r.share.sharedWithId,
       sharedWithEmail: r.user?.email ?? '',
       permission: r.share.permission,
+      status: now > r.share.expiresAt ? 'EXPIRED' : 'ACTIVE',
       expiresAt: r.share.expiresAt,
     }));
   }
@@ -160,4 +166,6 @@ export class PhotoShareService {
       return { success: true };
     });
   }
+
+  async createShareLink() {}
 }

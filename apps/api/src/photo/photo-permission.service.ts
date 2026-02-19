@@ -25,10 +25,7 @@ export class PhotoPermissionService {
             and(
               eq(photoShare.photoId, photo.id),
               eq(photoShare.sharedWithId, userId),
-              or(
-                isNull(photoShare.expiresAt),
-                gt(photoShare.expiresAt, new Date()),
-              ),
+              gt(photoShare.expiresAt, new Date()),
             ),
           ),
       ),
@@ -64,10 +61,7 @@ export class PhotoPermissionService {
               eq(photoShare.photoId, photo.id),
               eq(photoShare.sharedWithId, userId),
               eq(photoShare.permission, sharePermissionEnum.EDIT),
-              or(
-                isNull(photoShare.expiresAt),
-                gt(photoShare.expiresAt, new Date()),
-              ),
+              gt(photoShare.expiresAt, new Date()),
             ),
           ),
       ),
