@@ -38,6 +38,6 @@ jobs:
         run: pnpm build
 
       - name: Run database migrations
-        run: pnpm db:migrate
+        run: pnpm --filter api db:migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
