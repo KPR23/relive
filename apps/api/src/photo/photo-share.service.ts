@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, count, eq, ne } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   photo,
@@ -13,7 +13,6 @@ import { StorageService } from '../storage/storage.service.js';
 import { UserService } from '../user/user.service.js';
 import { PhotoPermissionService } from './photo-permission.service.js';
 import {
-  PhotoAlreadySharedWithUserError,
   PhotoCannotShareWithSelfError,
   PhotoShareNotFoundError,
 } from './photo.errors.js';
