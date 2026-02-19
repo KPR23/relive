@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, ne } from 'drizzle-orm';
+import { and, eq, gt, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   folder,
@@ -32,13 +32,22 @@ export class FolderShareService {
       .select({
         folder,
         ownerName: user.name,
+        permission: folderShare.permission,
+        expiresAt: folderShare.expiresAt,
       })
       .from(folder)
+      .innerJoin(
+        folderShare,
+        and(
+          eq(folderShare.folderId, folder.id),
+          eq(folderShare.sharedWithId, userId),
+          gt(folderShare.expiresAt, new Date()),
+        ),
+      )
       .leftJoin(user, eq(folder.ownerId, user.id))
       .where(
         and(
           eq(folder.isRoot, false),
-          this.folderPermissionService.buildViewableCondition(userId),
           ne(folder.ownerId, userId),
         ),
       );
@@ -48,8 +57,8 @@ export class FolderShareService {
       folderId: r.folder.id,
       folderName: r.folder.name,
       sharedByName: r.ownerName ?? undefined,
-      permission: sharePermissionEnum.VIEW,
-      expiresAt: null,
+      permission: r.permission,
+      expiresAt: r.expiresAt,
     }));
   }
 
@@ -58,6 +67,7 @@ export class FolderShareService {
     folderId: string,
     targetUserId: string,
     permission: SharePermission,
+    expiresAt: Date,
   ) {
     return db.transaction(async (tx) => {
       if (userId === targetUserId) {
@@ -79,10 +89,10 @@ export class FolderShareService {
         .insert(folderShare)
         .values({
           id: crypto.randomUUID(),
-          ownerId: userId,
           folderId,
           sharedWithId: targetUserId,
           permission,
+          expiresAt,
         })
         .onConflictDoNothing();
 
@@ -99,6 +109,7 @@ export class FolderShareService {
     folderId: string,
     targetUserEmail: string,
     permission: SharePermission,
+    expiresAt: Date,
   ) {
     const targetUser = await this.userService.getUserByEmail(targetUserEmail);
 
@@ -107,6 +118,7 @@ export class FolderShareService {
       folderId,
       targetUser.id,
       permission,
+      expiresAt,
     );
   }
 
@@ -124,11 +136,10 @@ export class FolderShareService {
       .innerJoin(folder, eq(folderShare.folderId, folder.id))
       .innerJoin(user, eq(folderShare.sharedWithId, user.id))
       .where(
-        and(
-          eq(folderShare.folderId, folderId),
-          eq(folderShare.ownerId, userId),
-        ),
+        and(eq(folderShare.folderId, folderId), eq(folder.ownerId, userId)),
       );
+
+    const now = new Date();
 
     return results.map((r) => ({
       id: r.share.id,
@@ -137,6 +148,7 @@ export class FolderShareService {
       sharedWithId: r.share.sharedWithId,
       sharedWithEmail: r.user?.email ?? '',
       permission: r.share.permission,
+      status: now > r.share.expiresAt ? 'EXPIRED' : 'ACTIVE',
       expiresAt: r.share.expiresAt,
     }));
   }

@@ -178,6 +178,7 @@ export class FolderRouter {
         data.folderId,
         data.targetUserEmail,
         data.permission,
+        data.expiresAt,
       );
     } catch (err) {
       mapToTRPCError(err);

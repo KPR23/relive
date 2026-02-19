@@ -296,7 +296,7 @@ export const folderShare = pgTable(
       .references(() => user.id, { onDelete: 'cascade' }),
 
     permission: sharePermission('permission').notNull(),
-    expiresAt: timestamp('expires_at'),
+    expiresAt: timestamp('expires_at').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
@@ -327,7 +327,7 @@ export const photoShareLink = pgTable(
       .notNull()
       .references(() => photo.id, { onDelete: 'cascade' }),
     permission: sharePermission('permission').notNull(),
-    expiresAt: timestamp('expires_at'),
+    expiresAt: timestamp('expires_at').notNull(),
     passwordHash: text('password_hash'),
     revokedAt: timestamp('revoked_at'),
     createdBy: text('created_by')
@@ -359,7 +359,7 @@ export const folderShareLink = pgTable(
       .notNull()
       .references(() => folder.id, { onDelete: 'cascade' }),
     permission: sharePermission('permission').notNull(),
-    expiresAt: timestamp('expires_at'),
+    expiresAt: timestamp('expires_at').notNull(),
     passwordHash: text('password_hash'),
     revokedAt: timestamp('revoked_at'),
     createdBy: text('created_by')

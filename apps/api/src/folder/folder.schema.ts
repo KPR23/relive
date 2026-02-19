@@ -54,6 +54,10 @@ export const shareFolderWithUserInputSchema = z.object({
   folderId: z.uuid(),
   targetUserEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
+  expiresAt: z.preprocess(
+    (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+    z.date(),
+  ),
 });
 
 export const folderShareRecipientSchema = z.object({
@@ -63,6 +67,7 @@ export const folderShareRecipientSchema = z.object({
   sharedWithId: z.string(),
   sharedWithEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
+  status: z.enum(['ACTIVE', 'EXPIRED']),
   expiresAt: dateFromString,
 });
 

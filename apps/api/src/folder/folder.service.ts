@@ -138,10 +138,23 @@ export class FolderService {
 
   async getFolderChildren(userId: string, parentId: string, tx?: Tx) {
     const client = tx ?? db;
+
+    await this.folderPermissionService.getViewableFolderOrThrow(
+      userId,
+      parentId,
+      tx,
+    );
+
     return client
       .select()
       .from(folder)
-      .where(and(eq(folder.ownerId, userId), eq(folder.parentId, parentId)));
+      .where(
+        and(
+          eq(folder.parentId, parentId),
+          this.folderPermissionService.buildViewableCondition(userId, client),
+        ),
+      )
+      .orderBy(folder.name);
   }
 
   async createFolder(userId: string, data: CreateFolderSchema) {

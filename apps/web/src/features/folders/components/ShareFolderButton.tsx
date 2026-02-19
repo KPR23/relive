@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  useListFolderShares,
-  useShareFolderWithUser,
-} from '../hooks';
+import { useListFolderShares, useShareFolderWithUser } from '../hooks';
 import { Icon } from '@iconify-icon/react';
 
 interface ShareFolderButtonProps {
@@ -16,12 +13,32 @@ const PERMISSIONS = [
   { value: 'EDIT', label: 'Edycja' },
 ] as const;
 
-export default function ShareFolderButton({ folderId }: ShareFolderButtonProps) {
+const EXPIRATION_OPTIONS = [
+  { value: '7', label: '7 dni' },
+  { value: '30', label: '30 dni' },
+  { value: '365', label: '1 rok' },
+  { value: 'never', label: 'Bez wygaśnięcia' },
+] as const;
+
+function getExpiresAt(daysOrNever: string): Date {
+  if (daysOrNever === 'never') {
+    return new Date('2099-12-31');
+  }
+  const days = parseInt(daysOrNever, 10);
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date;
+}
+
+export default function ShareFolderButton({
+  folderId,
+}: ShareFolderButtonProps) {
   const shareFolder = useShareFolderWithUser();
   const { data: shares, isLoading: isSharesLoading } =
     useListFolderShares(folderId);
   const [email, setEmail] = useState('');
   const [permission, setPermission] = useState<'VIEW' | 'EDIT'>('VIEW');
+  const [expiresIn, setExpiresIn] = useState<string>('365');
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -32,11 +49,13 @@ export default function ShareFolderButton({ folderId }: ShareFolderButtonProps) 
         folderId,
         targetUserEmail: email.trim(),
         permission,
+        expiresAt: getExpiresAt(expiresIn),
       },
       {
         onSuccess: () => {
           setEmail('');
           setPermission('VIEW');
+          setExpiresIn('365');
         },
       },
     );
@@ -65,7 +84,7 @@ export default function ShareFolderButton({ folderId }: ShareFolderButtonProps) 
           <div
             role="dialog"
             aria-label="Udostępnij folder"
-            className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-amber-700/30 bg-amber-950/95 p-4 shadow-xl backdrop-blur-sm dark:border-amber-600/20 dark:bg-amber-950/90"
+            className="absolute top-full right-0 z-50 mt-2 w-80 rounded-xl border border-amber-700/30 bg-amber-950/95 p-4 shadow-xl backdrop-blur-sm dark:border-amber-600/20 dark:bg-amber-950/90"
           >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-amber-100">
@@ -95,7 +114,7 @@ export default function ShareFolderButton({ folderId }: ShareFolderButtonProps) 
                   value={email}
                   placeholder="jan@example.com"
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-amber-700/40 bg-amber-900/30 px-3 py-2 text-sm text-amber-100 placeholder-amber-500/60 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50 dark:border-amber-600/30 dark:bg-amber-900/20"
+                  className="w-full rounded-lg border border-amber-700/40 bg-amber-900/30 px-3 py-2 text-sm text-amber-100 placeholder-amber-500/60 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 focus:outline-none dark:border-amber-600/30 dark:bg-amber-900/20"
                   required
                 />
               </div>
@@ -112,7 +131,7 @@ export default function ShareFolderButton({ folderId }: ShareFolderButtonProps) 
                   onChange={(e) =>
                     setPermission(e.target.value as 'VIEW' | 'EDIT')
                   }
-                  className="w-full rounded-lg border border-amber-700/40 bg-amber-900/30 px-3 py-2 text-sm text-amber-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50 dark:border-amber-600/30 dark:bg-amber-900/20"
+                  className="w-full rounded-lg border border-amber-700/40 bg-amber-900/30 px-3 py-2 text-sm text-amber-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 focus:outline-none dark:border-amber-600/30 dark:bg-amber-900/20"
                 >
                   {PERMISSIONS.map((p) => (
                     <option key={p.value} value={p.value}>
@@ -121,10 +140,30 @@ export default function ShareFolderButton({ folderId }: ShareFolderButtonProps) 
                   ))}
                 </select>
               </div>
+              <div>
+                <label
+                  htmlFor="share-expires"
+                  className="mb-1 block text-xs font-medium text-amber-300/90"
+                >
+                  Wygaśnięcie dostępu
+                </label>
+                <select
+                  id="share-expires"
+                  value={expiresIn}
+                  onChange={(e) => setExpiresIn(e.target.value)}
+                  className="w-full rounded-lg border border-amber-700/40 bg-amber-900/30 px-3 py-2 text-sm text-amber-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 focus:outline-none dark:border-amber-600/30 dark:bg-amber-900/20"
+                >
+                  {EXPIRATION_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <button
                 type="submit"
                 disabled={shareFolder.isPending || !email.trim()}
-                className="w-full rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-amber-50 transition-colors hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-amber-50 transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {shareFolder.isPending ? 'Udostępnianie...' : 'Udostępnij'}
               </button>

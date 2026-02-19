@@ -299,6 +299,10 @@ const appRouter = t.router({
         VIEW: 'VIEW',
         EDIT: 'EDIT',
       } as const),
+      expiresAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
     })).output(z.object({ success: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listFolderShares: publicProcedure.input(z.object({
       folderId: z.uuid(),
@@ -312,6 +316,7 @@ const appRouter = t.router({
         VIEW: 'VIEW',
         EDIT: 'EDIT',
       } as const),
+      status: z.enum(['ACTIVE', 'EXPIRED']),
       expiresAt: z.preprocess((arg) => {
         if (arg === null || arg === undefined) return null;
         if (arg instanceof Date) return arg;
