@@ -186,7 +186,7 @@ export function PhotoLightbox({
                     if (!data?.signedUrl) return;
                     downloadPhoto(data.signedUrl, photo.originalName);
                   }}
-                  className="flex w-full items-center justify-center rounded-md bg-green-500 py-2 text-sm font-medium text-white transition hover:bg-green-600 disabled:opacity-50"
+                  className="flex w-full items-center justify-center rounded-md bg-green-500 py-2 text-sm font-medium text-white transition hover:bg-green-600"
                 >
                   Download
                 </a>
