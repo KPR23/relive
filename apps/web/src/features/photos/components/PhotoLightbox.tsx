@@ -14,6 +14,7 @@ import {
   useSharePhotoWithUser,
 } from '../hooks';
 import { downloadPhoto } from './DownloadPhoto';
+import { SHARE_FOREVER_DATE } from '../../../../../../packages/constants';
 
 type PhotoSource = 'folder' | 'shared';
 
@@ -104,7 +105,7 @@ export function PhotoLightbox({
 
     const expiresAtDate =
       expiresMode === 'forever'
-        ? new Date('9999-12-31T23:59:59.999Z')
+        ? new Date(SHARE_FOREVER_DATE)
         : new Date(expiresAt);
 
     sharePhotoWithUser.mutate(
@@ -319,7 +320,8 @@ export function PhotoLightbox({
                         </span>
                         <span className="text-[10px] text-gray-500">
                           {share.expiresAt &&
-                          new Date(share.expiresAt).getFullYear() >= 9999
+                          new Date(share.expiresAt).getFullYear() >=
+                            SHARE_FOREVER_DATE.getFullYear()
                             ? 'Na zawsze'
                             : share.expiresAt
                               ? new Date(share.expiresAt).toLocaleDateString(

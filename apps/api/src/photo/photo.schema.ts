@@ -25,9 +25,6 @@ export const movePhotoToFolderInputSchema = z.object({
   folderId: z.uuid(),
 });
 
-/** Data daleko w przyszłości używana jako "na zawsze" dla udostępnień */
-export const PHOTO_SHARE_FOREVER_DATE = new Date('9999-12-31T23:59:59.999Z');
-
 export const sharePhotoWithUserInputSchema = z.object({
   photoId: z.uuid(),
   targetUserEmail: z.email(),
