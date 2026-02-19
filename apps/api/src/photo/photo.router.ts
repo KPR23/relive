@@ -145,6 +145,7 @@ export class PhotoRouter {
         data.photoId,
         data.targetUserEmail,
         data.permission,
+        data.expiresAt,
       );
     } catch (err) {
       mapToTRPCError(err);

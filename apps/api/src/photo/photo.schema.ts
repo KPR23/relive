@@ -29,6 +29,12 @@ export const sharePhotoWithUserInputSchema = z.object({
   photoId: z.uuid(),
   targetUserEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
+  expiresAt: z.preprocess((arg) => {
+    if (arg === null || arg === undefined) return undefined;
+    if (arg instanceof Date) return arg;
+    if (typeof arg === 'string') return new Date(arg);
+    return undefined;
+  }, z.date().optional()),
 });
 
 export const revokePhotoShareInputSchema = z.object({

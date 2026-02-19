@@ -61,6 +61,7 @@ export class PhotoShareService {
     photoId: string,
     targetUserId: string,
     permission: SharePermission,
+    expiresAt?: Date,
   ) {
     return db.transaction(async (tx) => {
       if (userId === targetUserId) {
@@ -73,6 +74,9 @@ export class PhotoShareService {
         tx,
       );
 
+      const finalExpiresAt =
+        expiresAt ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+
       const result = await tx
         .insert(photoShare)
         .values({
@@ -81,6 +85,7 @@ export class PhotoShareService {
           photoId: photoId,
           sharedWithId: targetUserId,
           permission: permission,
+          expiresAt: finalExpiresAt,
         })
         .onConflictDoNothing();
 
@@ -97,6 +102,7 @@ export class PhotoShareService {
     photoId: string,
     targetUserEmail: string,
     permission: SharePermission,
+    expiresAt?: Date,
   ) {
     const targetUser = await this.userService.getUserByEmail(targetUserEmail);
 
@@ -105,6 +111,7 @@ export class PhotoShareService {
       photoId,
       targetUser.id,
       permission,
+      expiresAt,
     );
   }
 
@@ -160,4 +167,6 @@ export class PhotoShareService {
       return { success: true };
     });
   }
+
+  async createShareLink() {}
 }

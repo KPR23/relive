@@ -142,6 +142,12 @@ const appRouter = t.router({
         VIEW: 'VIEW',
         EDIT: 'EDIT',
       } as const),
+      expiresAt: z.preprocess((arg) => {
+        if (arg === null || arg === undefined) return undefined;
+        if (arg instanceof Date) return arg;
+        if (typeof arg === 'string') return new Date(arg);
+        return undefined;
+      }, z.date().optional()),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     movePhotoToFolder: publicProcedure.input(z.object({
       photoId: z.uuid(),
