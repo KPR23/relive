@@ -32,7 +32,13 @@
     },
     "patchedDependencies": {
       "nestjs-trpc@1.6.1": "patches/nestjs-trpc@1.6.1.patch"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "msw",
+      "sharp",
+      "unrs-resolver"
+    ]
   },
   "packageManager": "pnpm@10.30.0",
   "engines": {
