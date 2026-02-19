@@ -25,6 +25,9 @@ export const movePhotoToFolderInputSchema = z.object({
   folderId: z.uuid(),
 });
 
+/** Data daleko w przyszłości używana jako "na zawsze" dla udostępnień */
+export const PHOTO_SHARE_FOREVER_DATE = new Date('9999-12-31T23:59:59.999Z');
+
 export const sharePhotoWithUserInputSchema = z.object({
   photoId: z.uuid(),
   targetUserEmail: z.email(),
@@ -34,7 +37,7 @@ export const sharePhotoWithUserInputSchema = z.object({
     if (arg instanceof Date) return arg;
     if (typeof arg === 'string') return new Date(arg);
     return undefined;
-  }, z.date().optional()),
+  }, z.date()),
 });
 
 export const revokePhotoShareInputSchema = z.object({
@@ -90,6 +93,7 @@ export const photoShareListItemSchema = z.object({
   sharedWithId: z.string(),
   sharedWithEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
+  status: z.enum(['ACTIVE', 'EXPIRED']),
   expiresAt: dateFromString,
 });
 

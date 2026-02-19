@@ -246,9 +246,6 @@ export const photoShare = pgTable(
     id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    ownerId: text('owner_id')
-      .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
     photoId: text('photo_id')
       .notNull()
       .references(() => photo.id, { onDelete: 'cascade' }),
@@ -256,8 +253,12 @@ export const photoShare = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     permission: sharePermission('permission').notNull(),
-    expiresAt: timestamp('expires_at'),
+    expiresAt: timestamp('expires_at').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
   (table) => [
     index('photo_share_photo_idx').on(table.photoId),
@@ -267,11 +268,6 @@ export const photoShare = pgTable(
 );
 
 export const photoShareRelations = relations(photoShare, ({ one }) => ({
-  owner: one(user, {
-    fields: [photoShare.ownerId],
-    references: [user.id],
-    relationName: 'photoShare_owner',
-  }),
   photo: one(photo, {
     fields: [photoShare.photoId],
     references: [photo.id],
@@ -305,6 +301,10 @@ export const folderShare = pgTable(
     permission: sharePermission('permission').notNull(),
     expiresAt: timestamp('expires_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
   (table) => [
     index('folder_share_folder_idx').on(table.folderId),

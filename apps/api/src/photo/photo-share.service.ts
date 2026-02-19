@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, ne } from 'drizzle-orm';
+import { and, count, eq, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   photo,
@@ -61,7 +61,7 @@ export class PhotoShareService {
     photoId: string,
     targetUserId: string,
     permission: SharePermission,
-    expiresAt?: Date,
+    expiresAt: Date,
   ) {
     return db.transaction(async (tx) => {
       if (userId === targetUserId) {
@@ -74,24 +74,22 @@ export class PhotoShareService {
         tx,
       );
 
-      const finalExpiresAt =
-        expiresAt ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-
-      const result = await tx
+      await tx
         .insert(photoShare)
         .values({
           id: crypto.randomUUID(),
-          ownerId: userId,
           photoId: photoId,
           sharedWithId: targetUserId,
           permission: permission,
-          expiresAt: finalExpiresAt,
+          expiresAt,
         })
-        .onConflictDoNothing();
-
-      if (result.rowCount === 0) {
-        throw new PhotoAlreadySharedWithUserError();
-      }
+        .onConflictDoUpdate({
+          target: [photoShare.photoId, photoShare.sharedWithId],
+          set: {
+            expiresAt,
+            permission: permission,
+          },
+        });
 
       return { success: true };
     });
@@ -102,7 +100,7 @@ export class PhotoShareService {
     photoId: string,
     targetUserEmail: string,
     permission: SharePermission,
-    expiresAt?: Date,
+    expiresAt: Date,
   ) {
     const targetUser = await this.userService.getUserByEmail(targetUserEmail);
 
@@ -126,15 +124,17 @@ export class PhotoShareService {
       })
       .from(photoShare)
       .innerJoin(user, eq(photoShare.sharedWithId, user.id))
-      .where(
-        and(eq(photoShare.photoId, photoId), eq(photoShare.ownerId, userId)),
-      );
+      .innerJoin(photo, eq(photoShare.photoId, photo.id))
+      .where(and(eq(photoShare.photoId, photoId), eq(photo.ownerId, userId)));
+
+    const now = new Date();
 
     return results.map((r) => ({
       id: r.share.id,
       sharedWithId: r.share.sharedWithId,
       sharedWithEmail: r.user?.email ?? '',
       permission: r.share.permission,
+      status: now > r.share.expiresAt ? 'EXPIRED' : 'ACTIVE',
       expiresAt: r.share.expiresAt,
     }));
   }
