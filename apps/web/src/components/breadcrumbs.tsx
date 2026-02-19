@@ -13,7 +13,7 @@ export function Breadcrumbs({ folderId }: { folderId: string }) {
         href="/"
         className="text-blue-400 hover:text-blue-600 hover:underline"
       >
-        Strona główna
+        Home page
       </Link>
       {folders
         .filter((f) => !f.isRoot)

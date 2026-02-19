@@ -13,6 +13,7 @@ import {
   useSharedWith,
   useSharePhotoWithUser,
 } from '../hooks';
+import { downloadPhoto } from './DownloadPhoto';
 
 type PhotoSource = 'folder' | 'shared';
 
@@ -176,6 +177,19 @@ export function PhotoLightbox({
                 >
                   {removePhoto.isPending ? 'Deleting...' : 'Delete permanently'}
                 </button>
+
+                <a
+                  href={data?.signedUrl}
+                  download={photo.originalName}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!data?.signedUrl) return;
+                    downloadPhoto(data.signedUrl, photo.originalName);
+                  }}
+                  className="flex w-full items-center justify-center rounded-md bg-green-500 py-2 text-sm font-medium text-white transition hover:bg-green-600 disabled:opacity-50"
+                >
+                  Download
+                </a>
               </div>
 
               {/* ===== Move ===== */}
