@@ -13,6 +13,7 @@ import {
   useSharedWith,
   useSharePhotoWithUser,
 } from '../hooks';
+import { downloadPhoto } from './DownloadPhoto';
 
 type PhotoSource = 'folder' | 'shared';
 
@@ -32,6 +33,8 @@ export function PhotoLightbox({
   const [isFullLoaded, setIsFullLoaded] = useState(false);
   const [shouldLoadFolders, setShouldLoadFolders] = useState(false);
   const [targetUserEmail, setTargetUserEmail] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const selectRef = useRef<HTMLSelectElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -176,6 +179,30 @@ export function PhotoLightbox({
                 >
                   {removePhoto.isPending ? 'Deleting...' : 'Delete permanently'}
                 </button>
+
+                <a
+                  href={data?.signedUrl}
+                  download={photo.originalName}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    if (!data?.signedUrl) return;
+                    setIsDownloading(true);
+                    setDownloadError(null);
+                    try {
+                      await downloadPhoto(data.signedUrl, photo.originalName);
+                    } catch {
+                      setDownloadError('Download failed. Please try again.');
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }}
+                  className={`flex w-full items-center justify-center rounded-md py-2 text-sm font-medium text-white transition ${isDownloading ? 'cursor-not-allowed bg-green-400 opacity-50' : 'bg-green-500 hover:bg-green-600'}`}
+                >
+                  {isDownloading ? 'Downloading...' : 'Download'}
+                </a>
+                {downloadError && (
+                  <p className="mt-2 text-sm text-red-500">{downloadError}</p>
+                )}
               </div>
 
               {/* ===== Move ===== */}
