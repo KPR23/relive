@@ -1,8 +1,6 @@
-name: CI Production Deployment
+name: CI Production Initial Deployment
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -36,8 +34,3 @@ jobs:
 
       - name: Build
         run: pnpm build
-
-      - name: Run database migrations
-        run: pnpm --filter api db:migrate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
