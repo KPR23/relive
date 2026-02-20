@@ -1,13 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, gt, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import {
-  folder,
-  folderShare,
-  SharePermission,
-  sharePermissionEnum,
-  user,
-} from '../db/schema.js';
+import { folder, folderShare, SharePermission, user } from '../db/schema.js';
 import { UserService } from '../user/user.service.js';
 import { FolderPermissionService } from './folder-permission.service.js';
 import {
@@ -16,8 +10,8 @@ import {
   FolderCannotShareWithSelfError,
 } from './folder.errors.js';
 import {
-  type FolderShareRecipient,
   type FolderSharedWithMe,
+  type FolderShareRecipient,
 } from './folder.schema.js';
 
 @Injectable()
@@ -45,12 +39,7 @@ export class FolderShareService {
         ),
       )
       .leftJoin(user, eq(folder.ownerId, user.id))
-      .where(
-        and(
-          eq(folder.isRoot, false),
-          ne(folder.ownerId, userId),
-        ),
-      );
+      .where(and(eq(folder.isRoot, false), ne(folder.ownerId, userId)));
 
     return results.map((r) => ({
       id: r.folder.id,

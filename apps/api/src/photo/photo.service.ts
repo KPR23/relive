@@ -210,7 +210,7 @@ export class PhotoService {
     const withFullUrls = await Promise.all(
       mapped.map(async (m, i) => {
         const { signedUrl } = await this.storage.getSignedUrl(
-          photos[i]!.filePath,
+          photos[i].filePath,
         );
         return { ...m, fullUrl: signedUrl };
       }),

@@ -20,11 +20,7 @@ interface SharedContentProps {
   onPasswordSubmit: (password: string) => void;
 }
 
-export function SharedContent({
-  data,
-  token,
-  onPasswordSubmit,
-}: SharedContentProps) {
+export function SharedContent({ data, onPasswordSubmit }: SharedContentProps) {
   const [password, setPassword] = useState('');
   const [lightboxPhoto, setLightboxPhoto] =
     useState<SharedPhotoWithFullUrl | null>(null);
@@ -119,8 +115,6 @@ export function SharedContent({
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           {photos.map((photo: SharedPhotoWithFullUrl) => {
-            const fullUrl =
-              'fullUrl' in photo ? photo.fullUrl : photo.thumbnailUrl;
             return (
               <button
                 key={photo.photoId}

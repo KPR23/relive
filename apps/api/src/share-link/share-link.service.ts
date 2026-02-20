@@ -144,7 +144,9 @@ export class ShareLinkService {
     const link = await this.findLinkByTokenOrThrow(token);
 
     const expiresAt =
-      link.expiresAt instanceof Date ? link.expiresAt : new Date(link.expiresAt);
+      link.expiresAt instanceof Date
+        ? link.expiresAt
+        : new Date(link.expiresAt);
     if (link.revokedAt || expiresAt.getTime() < Date.now()) {
       throw new ShareLinkExpiredError();
     }
