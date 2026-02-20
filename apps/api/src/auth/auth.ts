@@ -8,6 +8,7 @@ import { env } from '../env.server.js';
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.FRONTEND_URL,
+  trustedOrigins: [env.FRONTEND_URL],
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,
@@ -18,6 +19,19 @@ export const auth = betterAuth({
     minPasswordLength: 8,
   },
   plugins: [passkey()],
+  advanced:
+    env.NODE_ENV === 'production'
+      ? {
+          cookies: {
+            state: {
+              attributes: {
+                sameSite: 'none',
+                secure: true,
+              },
+            },
+          },
+        }
+      : undefined,
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID as string,
