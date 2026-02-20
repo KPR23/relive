@@ -8,7 +8,11 @@ import { env } from '../env.server.js';
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.FRONTEND_URL,
-  trustedOrigins: [env.FRONTEND_URL],
+  trustedOrigins: [
+    env.FRONTEND_URL,
+    'https://github.com', // GitHub OAuth callback - redirect origin
+    'https://accounts.google.com', // Google OAuth callback - redirect origin
+  ],
   advanced: {
     storeStateStrategy: 'database',
     defaultCookieAttributes: (() => {
