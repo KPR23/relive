@@ -1,0 +1,504 @@
+import 'reflect-metadata';
+import core__default from 'arcjet';
+export * from 'arcjet';
+import findIp, { parseProxy } from '@arcjet/ip';
+import { ArcjetHeaders } from '@arcjet/headers';
+import { baseUrl, isDevelopment, logLevel, platform } from '@arcjet/env';
+import { Logger } from '@arcjet/logger';
+import { createClient } from '@arcjet/protocol/client.js';
+import { createTransport } from '@arcjet/transport';
+import { readBody } from '@arcjet/body';
+import { Inject, SetMetadata } from '@nestjs/common';
+
+// NestJS requires this. Usually it is imported via their runtime but we
+// import it to be sure.
+// TODO: Deduplicate with other packages
+function errorMessage(err) {
+    if (err) {
+        if (typeof err === "string") {
+            return err;
+        }
+        if (typeof err === "object" &&
+            "message" in err &&
+            typeof err.message === "string") {
+            return err.message;
+        }
+    }
+    return "Unknown problem";
+}
+/**
+ * Create a remote client.
+ *
+ * @param options
+ *   Configuration (optional).
+ * @returns
+ *   Client.
+ */
+function createRemoteClient(options) {
+    const url = options?.baseUrl ?? baseUrl(process.env);
+    const timeout = options?.timeout ?? (isDevelopment(process.env) ? 1000 : 500);
+    // Transport is the HTTP client that the client uses to make requests.
+    const transport = createTransport(url);
+    const sdkStack = "NESTJS";
+    const sdkVersion = "1.0.0-beta.16";
+    return createClient({
+        transport,
+        baseUrl: url,
+        timeout,
+        sdkStack,
+        sdkVersion,
+    });
+}
+function cookiesToString(cookies) {
+    if (typeof cookies === "undefined") {
+        return "";
+    }
+    // This should never be the case with a cookie header, but we are safe
+    if (Array.isArray(cookies)) {
+        return cookies.join("; ");
+    }
+    return cookies;
+}
+function arcjet(options) {
+    const client = options.client ?? createRemoteClient();
+    const log = options.log
+        ? options.log
+        : new Logger({
+            level: logLevel(process.env),
+        });
+    const proxies = Array.isArray(options.proxies)
+        ? options.proxies.map(parseProxy)
+        : undefined;
+    if (isDevelopment(process.env)) {
+        log.warn("Arcjet will use 127.0.0.1 when missing public IP address in development mode");
+    }
+    function toArcjetRequest(request, props) {
+        // We pull the cookies from the request before wrapping them in ArcjetHeaders
+        const cookies = cookiesToString(request.headers?.cookie);
+        // We construct an ArcjetHeaders to normalize over Headers
+        const headers = new ArcjetHeaders(request.headers);
+        const xArcjetIp = isDevelopment(process.env)
+            ? headers.get("x-arcjet-ip")
+            : undefined;
+        let ip = xArcjetIp ||
+            findIp({
+                ip: request.ip,
+                socket: request.socket,
+                headers,
+            }, { platform: platform(process.env), proxies });
+        if (ip === "") {
+            // If the `ip` is empty but we're in development mode, we default the IP
+            // so the request doesn't fail.
+            if (isDevelopment(process.env)) {
+                ip = "127.0.0.1";
+            }
+            else {
+                log.warn(`Client IP address is missing. If this is a dev environment set the ARCJET_ENV env var to "development"`);
+            }
+        }
+        const method = request.method ?? "";
+        let host = "";
+        // We use `id` to determine if the request object is from Fastify
+        // This is mostly to avoid a deprecation warning in Express
+        if (typeof request.id === "string") {
+            if (typeof request.host === "string") {
+                host = request.host;
+            }
+            else {
+                host = headers.get("host") ?? "";
+            }
+        }
+        else {
+            host = headers.get("host") ?? "";
+        }
+        let path = "";
+        let query = "";
+        let protocol = "";
+        if (typeof request.protocol === "string") {
+            if (request.protocol === "https") {
+                protocol = "https:";
+            }
+            else {
+                protocol = "http:";
+            }
+        }
+        else {
+            if (typeof request.socket?.encrypted !== "undefined") {
+                protocol = request.socket.encrypted ? "https:" : "http:";
+            }
+            else {
+                protocol = "http:";
+            }
+        }
+        // Do some very simple validation, but also try/catch around URL parsing
+        if (typeof request.url !== "undefined" &&
+            request.url !== "" &&
+            host !== "") {
+            try {
+                const url = new URL(request.url, `${protocol}//${host}`);
+                path = url.pathname;
+                query = url.search;
+                protocol = url.protocol;
+            }
+            catch {
+                // If the parsing above fails, just set the path as whatever url we
+                // received.
+                path = request.url ?? "";
+                log.warn('Unable to parse URL. Using "%s" as `path`.', path);
+            }
+        }
+        else {
+            path = request.url ?? "";
+        }
+        return {
+            ...props,
+            ip,
+            method,
+            protocol,
+            host,
+            path,
+            headers,
+            cookies,
+            query,
+        };
+    }
+    function withClient(aj) {
+        return Object.freeze({
+            withRule(rule) {
+                const client = aj.withRule(rule);
+                return withClient(client);
+            },
+            async protect(request, ...[props]) {
+                // TODO(#220): The generic manipulations get really mad here, so we cast
+                // Further investigation makes it seem like it has something to do with
+                // the definition of `props` in the signature but it's hard to track down
+                const req = toArcjetRequest(request, props ?? {});
+                const getBody = async () => {
+                    try {
+                        // If request.body is present then the body was likely read by a package like express' `body-parser`.
+                        // If it's not present then we attempt to read the bytes from the IncomingMessage ourselves.
+                        if (typeof request.body === "string") {
+                            return request.body;
+                        }
+                        else if (typeof request.body !== "undefined" &&
+                            // BigInt cannot be serialized with JSON.stringify
+                            typeof request.body !== "bigint") {
+                            return JSON.stringify(request.body);
+                        }
+                        if (typeof request.on === "function" &&
+                            typeof request.removeListener === "function") {
+                            let expectedLength;
+                            // TODO: This shouldn't need to build headers again but the type
+                            // for `req` above is overly relaxed
+                            const headers = new ArcjetHeaders(request.headers);
+                            const expectedLengthStr = headers.get("content-length");
+                            if (typeof expectedLengthStr === "string") {
+                                try {
+                                    expectedLength = parseInt(expectedLengthStr, 10);
+                                }
+                                catch {
+                                    // If the expected length couldn't be parsed we'll just not set one.
+                                }
+                            }
+                            // Awaited to throw if it rejects and we'll just return undefined
+                            const body = await readBody(request, {
+                                // We will process 1mb bodies
+                                limit: 1048576,
+                                expectedLength,
+                            });
+                            return body;
+                        }
+                        log.warn("no body available");
+                        return;
+                    }
+                    catch (e) {
+                        log.error("failed to get request body: %s", errorMessage(e));
+                        return;
+                    }
+                };
+                return aj.protect({ getBody }, req);
+            },
+        });
+    }
+    const aj = core__default({ ...options, client, log });
+    return withClient(aj);
+}
+/**
+ * Symbol for Arcjet.
+ *
+ * Used as a label of providers that should be available in other modules.
+ */
+const ARCJET = Symbol("ARCJET");
+const ARCJET_OPTIONS = Symbol("ARCJET_OPTIONS");
+const ARCJET_WITH_RULES = Symbol("ARCJET_WITH_RULES");
+function requestFromContext(context) {
+    const contextType = context.getType();
+    switch (contextType) {
+        case "graphql": {
+            // The `req` property should exist on the context at position 2
+            // https://github.com/nestjs/graphql/blob/8d19548dd8cb8c6d6003552673a6646603d2e22f/packages/graphql/lib/services/gql-execution-context.ts#L37
+            const ctx = context.getArgByIndex(2);
+            if (typeof ctx === "object" && ctx !== null && "req" in ctx) {
+                return ctx.req;
+            }
+            // If it isn't there for some reason, we just return undefined
+            return;
+        }
+        case "http": {
+            // The request object is at position 0
+            // https://github.com/nestjs/nest/blob/9825529f405fa6064eb98d8ecb2a5d3d5f1e41f9/packages/core/helpers/execution-context-host.ts#L52
+            return context.getArgByIndex(0);
+        }
+        case "ws": {
+            // TODO: Figure out if we can support "ws" context types
+            return;
+        }
+        case "rpc": {
+            // TODO: Figure out if we can support "rpc" context types
+            return;
+        }
+        default: {
+            // Avoiding the _exhaustive check to avoid some TypeScript errors in with
+            // different compiler options
+            return;
+        }
+    }
+}
+/**
+ * Nest guard for the Arcjet Nest integration.
+ *
+ * See: <https://docs.nestjs.com/guards>.
+ */
+let ArcjetGuard = class ArcjetGuard {
+    aj;
+    /**
+     * Create a Nest guard for the Arcjet.
+     *
+     * @param aj
+     *   Arcjet Nest integration.
+     * @returns
+     *   Arcjet Nest guard.
+     */
+    constructor(aj) {
+        this.aj = aj;
+    }
+    async canActivate(context) {
+        let aj = this.aj;
+        // If rules have been added with the decorator, augment the client
+        const rules = getAllAndMerge(ARCJET_WITH_RULES, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        if (Array.isArray(rules)) {
+            aj = rules.reduce((aj, rule) => aj.withRule(rule), aj);
+        }
+        const request = requestFromContext(context);
+        // If we cannot access the request, we "fail open" by allowing the request
+        if (typeof request === "undefined") {
+            return true;
+        }
+        const decision = await aj.protect(request);
+        if (decision.isDenied()) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+};
+ArcjetGuard = decorate([param(0, Inject(ARCJET))], ArcjetGuard);
+/**
+ * Create Nest modules for the Arcjet Nest integration.
+ *
+ * See: <https://docs.nestjs.com/modules>.
+ */
+class ArcjetModule {
+    /**
+     * Create a Nest module for the Arcjet Nest integration.
+     *
+     * You can pass your API key and any default rules that you want to apply to
+     * every route.
+     * This is usually in the `app.module.ts` file.
+     *
+     * @param options
+     *   Configuration (required).
+     * @returns
+     *   Dynamic Nest module.
+     */
+    static forRoot(options) {
+        const ArcjetProvider = {
+            provide: ARCJET,
+            useFactory(options) {
+                return arcjet(options);
+            },
+            inject: [ARCJET_OPTIONS],
+        };
+        return {
+            global: options.isGlobal || false,
+            module: this,
+            providers: [
+                {
+                    provide: ARCJET_OPTIONS,
+                    useValue: options,
+                },
+                ArcjetProvider,
+            ],
+            exports: [ARCJET],
+        };
+    }
+    /**
+     * Create a Nest module for the Arcjet Nest integration,
+     * asynchronously.
+     *
+     * You can pass your API key and any default rules that you want to apply to
+     * every route.
+     * This is usually in the `app.module.ts` file.
+     *
+     * @param options
+     *   Configuration (required).
+     * @returns
+     *   Dynamic Nest module.
+     */
+    static forRootAsync(options) {
+        const ArcjetProvider = {
+            provide: ARCJET,
+            useFactory(options) {
+                return arcjet(options);
+            },
+            inject: [ARCJET_OPTIONS],
+        };
+        const providers = [ArcjetProvider];
+        // This is a combination of the `createAsyncProviders` and
+        // `createAsyncOptionsProvider` functions in `ConfigurableModuleBuilder`.
+        // We don't use `ConfigurableModuleBuilder` because we rely on more complex
+        // types for our rules.
+        // Ref:
+        // https://github.com/nestjs/nest/blob/44c4f8fa8d74d0e9e5470c20eff7919b749bb1df/packages/common/module-utils/configurable-module.builder.ts#L275
+        // https://github.com/nestjs/nest/blob/44c4f8fa8d74d0e9e5470c20eff7919b749bb1df/packages/common/module-utils/configurable-module.builder.ts#L299
+        if (options.useFactory) {
+            providers.push({
+                provide: ARCJET_OPTIONS,
+                useFactory: options.useFactory,
+                inject: options.inject || [],
+            });
+        }
+        else if (options.useExisting) {
+            providers.push({
+                provide: ARCJET_OPTIONS,
+                useFactory: async (optionsFactory) => await optionsFactory.create(),
+                inject: [options.useExisting],
+            });
+        }
+        else if (options.useClass) {
+            providers.push({
+                provide: ARCJET_OPTIONS,
+                useFactory: async (optionsFactory) => await optionsFactory.create(),
+                inject: [options.useClass],
+            });
+            providers.push({
+                provide: options.useClass,
+                useClass: options.useClass,
+            });
+        }
+        if (options.useExisting || options.useFactory) {
+            if (options.inject && options.provideInjectionTokensFrom) {
+                providers.push(...getInjectionProviders(options.provideInjectionTokensFrom, options.inject));
+            }
+        }
+        return {
+            global: options.isGlobal || false,
+            module: this,
+            providers,
+            exports: [ARCJET],
+        };
+    }
+}
+/**
+ * Decorator that binds Arcjet rules to the scope of the controller or method,
+ * depending on its context.
+ *
+ * When `@WithArcjetRules` is used at the controller level,
+ * the rules will be applied to every handler (method) in the controller.
+ *
+ * When `@WithArcjetRules` is used at the individual handler level,
+ * the rules will apply only to that specific method.
+ *
+ * @param rules
+ *   List of rules.
+ * @returns
+ *   Decorator.
+ */
+function WithArcjetRules(rules) {
+    return SetMetadata(ARCJET_WITH_RULES, rules);
+}
+/* Begin utilties pulled from TypeScript's tslib */
+// Wraps `Reflect.decorate` to avoid restrictions on `reflect-metadata` types.
+// WARNING: This requires `reflect-metadata` be imported into the environment,
+// which Nest.js does for their applications; however, we also require it as a
+// peerDependency and import it in this adapter
+function decorate(decorators, target, key, desc) {
+    return Reflect.decorate(decorators, target, key, desc);
+}
+// Creates a decorator for a constructor parameter. Pulled out of `tslib` to
+// avoid build failures.
+function param(paramIndex, decorator) {
+    return function (target, key) {
+        decorator(target, key, paramIndex);
+    };
+}
+/* End utilities pulled from TypeScript's tslib */
+/* Begin utilities pulled from Nest.js */
+// Taken from Nest.js to avoid needing to dependency inject Reflector which is
+// just calling static functions and doesn't need to be a class
+const isUndefined = (obj) => typeof obj === "undefined";
+const isNil = (val) => isUndefined(val) || val === null;
+const isObject = (fn) => !isNil(fn) && typeof fn === "object";
+const isEmpty = (array) => !(array && array.length > 0);
+function getAllAndMerge(metadataKeyOrDecorator, targets) {
+    const metadataKey = metadataKeyOrDecorator.KEY ?? metadataKeyOrDecorator;
+    const metadataCollection = (targets || [])
+        .map((target) => Reflect.getMetadata(metadataKey, target))
+        .filter((item) => item !== undefined);
+    if (isEmpty(metadataCollection)) {
+        return metadataCollection;
+    }
+    return metadataCollection.reduce((a, b) => {
+        if (Array.isArray(a)) {
+            return a.concat(b);
+        }
+        if (isObject(a) && isObject(b)) {
+            return {
+                ...a,
+                ...b,
+            };
+        }
+        return [a, b];
+    });
+}
+// The below are taken from Nest.js to avoid needing to avoid using the
+// `ConfigurableModuleBuilder` which essentially makes everything `any` typed
+function isOptionalFactoryDependency(x) {
+    return !!(x?.token && !x?.prototype);
+}
+function mapInjectToTokens(t) {
+    return isOptionalFactoryDependency(t) ? t.token : t;
+}
+function getInjectionProviders(providers, tokens) {
+    const result = [];
+    let search = tokens?.map(mapInjectToTokens) ?? [];
+    while (search.length > 0) {
+        const match = (providers ?? []).filter((p) => !result.includes(p) && // this prevents circular loops and duplication
+            (search.includes(p) || search.includes(p?.provide)));
+        result.push(...match);
+        // get injection tokens of the matched providers, if any
+        search = match
+            .filter((p) => p?.inject)
+            .flatMap((p) => p.inject)
+            .filter((p) => typeof p !== "undefined")
+            .map(mapInjectToTokens);
+    }
+    return result;
+}
+/* End utilities pulled from Nest.js */
+
+export { ARCJET, ArcjetGuard, ArcjetModule, WithArcjetRules, createRemoteClient };
