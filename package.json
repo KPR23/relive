@@ -35,7 +35,7 @@
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",
-      "msw",
+      "esbuild",
       "sharp",
       "unrs-resolver"
     ]
