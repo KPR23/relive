@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { useGetSharedContent } from '@/src/features/share-link/hooks';
 
 import Link from 'next/link';
@@ -13,6 +14,15 @@ export default function SharedPage() {
   const [password, setPassword] = useState<string | undefined>();
 
   const { data, isLoading, error } = useGetSharedContent(token, password);
+
+  useEffect(() => {
+    if (error) {
+      setPassword(undefined);
+      if (error.message === 'Invalid password') {
+        toast.error('Invalid password');
+      }
+    }
+  }, [error]);
 
   if (isLoading) {
     return (

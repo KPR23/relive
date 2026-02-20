@@ -15,7 +15,6 @@ import {
   createPhotoShareLinkInputSchema,
   createShareLinkOutputSchema,
   getByTokenInputSchema,
-  getShareLinkByTokenResponseSchema,
   listFolderShareLinksInputSchema,
   listPhotoShareLinksInputSchema,
   revokeShareLinkInputSchema,
@@ -133,10 +132,7 @@ export class ShareLinkRouter {
     }
   }
 
-  @Query({
-    input: getByTokenInputSchema,
-    output: getShareLinkByTokenResponseSchema,
-  })
+  @Query({ input: getByTokenInputSchema })
   async getSharedContent(@Input() data: { token: string; password?: string }) {
     try {
       const link = await this.shareLinkService.getByToken(

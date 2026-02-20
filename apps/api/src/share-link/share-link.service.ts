@@ -143,12 +143,18 @@ export class ShareLinkService {
   ): Promise<GetByTokenInternalResponse> {
     const link = await this.findLinkByTokenOrThrow(token);
 
-    const expiresAt =
-      link.expiresAt instanceof Date
-        ? link.expiresAt
-        : new Date(link.expiresAt);
-    if (link.revokedAt || expiresAt.getTime() < Date.now()) {
+    if (link.revokedAt) {
       throw new ShareLinkExpiredError();
+    }
+
+    if (link.expiresAt) {
+      const expiresAt =
+        link.expiresAt instanceof Date
+          ? link.expiresAt
+          : new Date(link.expiresAt);
+      if (expiresAt.getTime() < Date.now()) {
+        throw new ShareLinkExpiredError();
+      }
     }
 
     const requiresPassword = !!link.passwordHash;

@@ -60,7 +60,7 @@ export function SharedContent({ data, onPasswordSubmit }: SharedContentProps) {
 
   if (data.type === 'photo' && 'data' in data) {
     const photo = data.data;
-    const imageUrl = 'fullUrl' in photo ? photo.fullUrl : photo.thumbnailUrl;
+    const imageUrl = photo.fullUrl;
     return (
       <div className="space-y-4">
         <Link
