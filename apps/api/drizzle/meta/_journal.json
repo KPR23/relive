@@ -43,6 +43,13 @@
       "when": 1771511291914,
       "tag": "0005_wonderful_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771591113406,
+      "tag": "0006_ordinary_ogun",
+      "breakpoints": true
     }
   ]
 }
