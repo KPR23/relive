@@ -13,6 +13,7 @@ import {
 } from '@/src/features/share-link/hooks';
 import { Icon } from '@iconify-icon/react';
 import { toast } from 'sonner';
+import { env } from '@/src/env.client';
 
 interface ShareFolderButtonProps {
   folderId: string;
@@ -31,10 +32,7 @@ const EXPIRATION_OPTIONS = [
   { value: 'custom', label: 'Custom date' },
 ] as const;
 
-function getExpiresAt(
-  daysOrNever: string,
-  customDate?: string,
-): Date {
+function getExpiresAt(daysOrNever: string, customDate?: string): Date {
   if (daysOrNever === 'never') {
     return new Date('2099-12-31');
   }
@@ -104,10 +102,10 @@ export default function ShareFolderButton({
       },
       {
         onSuccess: (data) => {
-          const url =
-            typeof window !== 'undefined'
-              ? `${window.location.origin}/s/${data.token}`
-              : `/s/${data.token}`;
+          const base =
+            env.NEXT_PUBLIC_APP_URL?.toString() ??
+            (typeof window !== 'undefined' ? window.location.origin : '');
+          const url = `${base}/shared/${data.token}`;
           setCreatedLink(url);
           setLinkCustomExpiresAt('');
         },
@@ -364,7 +362,7 @@ export default function ShareFolderButton({
                           className="flex items-center justify-between gap-2 rounded-lg border border-amber-700/20 bg-amber-900/20 px-2 py-1.5 text-xs"
                         >
                           <div className="min-w-0 flex-1">
-                            <span className="truncate block text-amber-200">
+                            <span className="block truncate text-amber-200">
                               ...{link.token.slice(-8)}
                             </span>
                             <span className="text-amber-400/80">
@@ -419,7 +417,9 @@ export default function ShareFolderButton({
                       className="flex items-center justify-between gap-2 text-sm text-amber-200/90"
                     >
                       <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <span className="truncate">{share.sharedWithEmail}</span>
+                        <span className="truncate">
+                          {share.sharedWithEmail}
+                        </span>
                         <span className="shrink-0 rounded bg-amber-800/40 px-2 py-0.5 text-xs text-amber-300">
                           {share.permission === 'EDIT' ? 'Edit' : 'View'}
                         </span>

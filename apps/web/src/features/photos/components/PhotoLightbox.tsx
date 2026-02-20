@@ -181,7 +181,7 @@ export function PhotoLightbox({
           const base =
             env.NEXT_PUBLIC_APP_URL?.toString() ??
             (typeof window !== 'undefined' ? window.location.origin : '');
-          const url = `${base}/s/${data.token}`;
+          const url = `${base}/shared/${data.token}`;
           setCreatedLink(url);
           setLinkCustomExpiresAt('');
         },
