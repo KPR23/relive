@@ -10,6 +10,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { randomBytes } from 'node:crypto';
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -286,10 +287,6 @@ export const folderShare = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
 
-    ownerId: text('owner_id')
-      .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
-
     folderId: text('folder_id')
       .notNull()
       .references(() => folder.id, { onDelete: 'cascade' }),
@@ -299,7 +296,7 @@ export const folderShare = pgTable(
       .references(() => user.id, { onDelete: 'cascade' }),
 
     permission: sharePermission('permission').notNull(),
-    expiresAt: timestamp('expires_at'),
+    expiresAt: timestamp('expires_at').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
@@ -316,12 +313,96 @@ export const folderShare = pgTable(
   ],
 );
 
-export const folderShareRelations = relations(folderShare, ({ one }) => ({
-  owner: one(user, {
-    fields: [folderShare.ownerId],
-    references: [user.id],
-    relationName: 'folderShare_owner',
+export const photoShareLink = pgTable(
+  'photo_share_link',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    token: text('token')
+      .notNull()
+      .unique()
+      .$defaultFn(() => randomBytes(64).toString('base64url')),
+    photoId: text('photo_id')
+      .notNull()
+      .references(() => photo.id, { onDelete: 'cascade' }),
+    permission: sharePermission('permission').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    passwordHash: text('password_hash'),
+    revokedAt: timestamp('revoked_at'),
+    createdBy: text('created_by')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('photo_share_link_photo_idx').on(table.photoId),
+    index('photo_share_link_token_idx').on(table.token),
+  ],
+);
+
+export const folderShareLink = pgTable(
+  'folder_share_link',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    token: text('token')
+      .notNull()
+      .unique()
+      .$defaultFn(() => randomBytes(64).toString('base64url')),
+    folderId: text('folder_id')
+      .notNull()
+      .references(() => folder.id, { onDelete: 'cascade' }),
+    permission: sharePermission('permission').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    passwordHash: text('password_hash'),
+    revokedAt: timestamp('revoked_at'),
+    createdBy: text('created_by')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('folder_share_link_folder_idx').on(table.folderId),
+    index('folder_share_link_token_idx').on(table.token),
+  ],
+);
+
+export const photoShareLinkRelations = relations(photoShareLink, ({ one }) => ({
+  photo: one(photo, {
+    fields: [photoShareLink.photoId],
+    references: [photo.id],
   }),
+  createdByUser: one(user, {
+    fields: [photoShareLink.createdBy],
+    references: [user.id],
+  }),
+}));
+
+export const folderShareLinkRelations = relations(
+  folderShareLink,
+  ({ one }) => ({
+    folder: one(folder, {
+      fields: [folderShareLink.folderId],
+      references: [folder.id],
+    }),
+    createdByUser: one(user, {
+      fields: [folderShareLink.createdBy],
+      references: [user.id],
+    }),
+  }),
+);
+
+export const folderShareRelations = relations(folderShare, ({ one }) => ({
   folder: one(folder, {
     fields: [folderShare.folderId],
     references: [folder.id],
@@ -345,9 +426,10 @@ export const folderRelations = relations(folder, ({ one, many }) => ({
   }),
   children: many(folder, { relationName: 'folderHierarchy' }),
   photos: many(photo),
+  shareLinks: many(folderShareLink),
 }));
 
-export const photoRelations = relations(photo, ({ one }) => ({
+export const photoRelations = relations(photo, ({ one, many }) => ({
   owner: one(user, {
     fields: [photo.ownerId],
     references: [user.id],
@@ -356,4 +438,5 @@ export const photoRelations = relations(photo, ({ one }) => ({
     fields: [photo.folderId],
     references: [folder.id],
   }),
+  shareLinks: many(photoShareLink),
 }));

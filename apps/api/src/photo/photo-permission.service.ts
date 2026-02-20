@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, exists, gt, isNull, or, SQL } from 'drizzle-orm';
+import { and, eq, exists, gt, or, SQL } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   folderShare,
@@ -38,10 +38,7 @@ export class PhotoPermissionService {
             and(
               eq(folderShare.folderId, photo.folderId),
               eq(folderShare.sharedWithId, userId),
-              or(
-                isNull(folderShare.expiresAt),
-                gt(folderShare.expiresAt, new Date()),
-              ),
+              gt(folderShare.expiresAt, new Date()),
             ),
           ),
       ),
@@ -75,10 +72,7 @@ export class PhotoPermissionService {
               eq(folderShare.folderId, photo.folderId),
               eq(folderShare.sharedWithId, userId),
               eq(folderShare.permission, sharePermissionEnum.EDIT),
-              or(
-                isNull(folderShare.expiresAt),
-                gt(folderShare.expiresAt, new Date()),
-              ),
+              gt(folderShare.expiresAt, new Date()),
             ),
           ),
       ),

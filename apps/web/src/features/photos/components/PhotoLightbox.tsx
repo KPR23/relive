@@ -14,7 +14,14 @@ import {
   useSharePhotoWithUser,
 } from '../hooks';
 import { downloadPhoto } from './DownloadPhoto';
+import {
+  useCreatePhotoShareLink,
+  useListPhotoShareLinks,
+  useRevokeShareLink,
+} from '@/src/features/share-link/hooks';
 import { SHARE_FOREVER_DATE } from '../../../../../../packages/constants';
+import { toast } from 'sonner';
+import { env } from '../../../env.client';
 
 type PhotoSource = 'folder' | 'shared';
 
@@ -38,6 +45,11 @@ export function PhotoLightbox({
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [expiresMode, setExpiresMode] = useState<'forever' | 'date'>('forever');
   const [expiresAt, setExpiresAt] = useState<string>('');
+  const [linkPermission, setLinkPermission] = useState<'VIEW' | 'EDIT'>('VIEW');
+  const [linkExpiresIn, setLinkExpiresIn] = useState<string>('365');
+  const [linkCustomExpiresAt, setLinkCustomExpiresAt] = useState<string>('');
+  const [linkPassword, setLinkPassword] = useState('');
+  const [createdLink, setCreatedLink] = useState<string | null>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -52,11 +64,14 @@ export function PhotoLightbox({
   const removePhotoFromFolder = useRemovePhotoFromFolder();
   const removePhoto = useRemovePhoto();
   const sharePhotoWithUser = useSharePhotoWithUser();
+  const createPhotoShareLink = useCreatePhotoShareLink();
   const revokePhotoShare = useRevokePhotoShare();
+  const revokeShareLink = useRevokeShareLink();
   const sharedWith = useSharedWith(photo.photoId);
+  const { data: photoShareLinks } = useListPhotoShareLinks(photo.photoId);
 
   const ownerName = 'ownerName' in photo ? photo.ownerName : undefined;
-  const isOwner = source === 'folder' && ownerName === undefined;
+  const isOwner = source === 'folder' && ownerName == null;
   const isFromSharedFolder = source === 'folder' && !isOwner;
   const isDirectlyShared = source === 'shared';
 
@@ -133,6 +148,55 @@ export function PhotoLightbox({
     targetUserEmail.trim() &&
     (expiresMode === 'forever' || (expiresMode === 'date' && expiresAt.trim()));
 
+  const LINK_EXPIRATION_OPTIONS = [
+    { value: '7', label: '7 days' },
+    { value: '30', label: '30 days' },
+    { value: '365', label: '1 year' },
+    { value: 'never', label: 'Never expires' },
+    { value: 'custom', label: 'Custom date' },
+  ] as const;
+
+  const getLinkExpiresAt = (daysOrNever: string, customDate?: string): Date => {
+    if (daysOrNever === 'never') return new Date('2099-12-31');
+    if (daysOrNever === 'custom' && customDate) return new Date(customDate);
+    const days = parseInt(daysOrNever, 10);
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date;
+  };
+
+  const handleCreatePhotoLink = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (linkExpiresIn === 'custom' && !linkCustomExpiresAt.trim()) return;
+    setCreatedLink(null);
+    createPhotoShareLink.mutate(
+      {
+        photoId: photo.photoId,
+        permission: linkPermission,
+        expiresAt: getLinkExpiresAt(linkExpiresIn, linkCustomExpiresAt),
+        password: linkPassword.trim() || undefined,
+      },
+      {
+        onSuccess: (data) => {
+          const base =
+            env.NEXT_PUBLIC_APP_URL?.toString() ??
+            (typeof window !== 'undefined' ? window.location.origin : '');
+          const url = `${base}/shared/${data.token}`;
+          setCreatedLink(url);
+          setLinkCustomExpiresAt('');
+        },
+      },
+    );
+  };
+
+  const copyPhotoLink = () => {
+    if (createdLink) {
+      void navigator.clipboard.writeText(createdLink).then(() => {
+        toast.success('Link copied');
+      });
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
@@ -160,19 +224,19 @@ export function PhotoLightbox({
           {isFromSharedFolder ? (
             <div className="rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                Z udostępnionego folderu przez
+                From shared folder by
               </p>
               <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                {ownerName ?? '(nieznany)'}
+                {ownerName ?? '(unknown)'}
               </p>
             </div>
           ) : isDirectlyShared ? (
             <div className="rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
               <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Udostępnione przez
+                Shared by
               </p>
               <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                {ownerName ?? '(nieznany)'}
+                {ownerName ?? '(unknown)'}
               </p>
             </div>
           ) : isOwner ? (
@@ -242,7 +306,7 @@ export function PhotoLightbox({
                   className="w-full rounded-md border px-3 py-2 text-sm"
                 />
                 <label className="block text-sm font-medium">
-                  Ważność udostępnienia
+                  Share expiration
                 </label>
                 <div className="flex gap-4">
                   <label className="flex cursor-pointer items-center gap-2">
@@ -254,7 +318,7 @@ export function PhotoLightbox({
                       onChange={() => setExpiresMode('forever')}
                       className="rounded"
                     />
-                    <span className="text-sm">Na zawsze</span>
+                    <span className="text-sm">Forever</span>
                   </label>
                   <label className="flex cursor-pointer items-center gap-2">
                     <input
@@ -265,7 +329,7 @@ export function PhotoLightbox({
                       onChange={() => setExpiresMode('date')}
                       className="rounded"
                     />
-                    <span className="text-sm">Do daty</span>
+                    <span className="text-sm">Until date</span>
                   </label>
                 </div>
                 {expiresMode === 'date' && (
@@ -322,10 +386,10 @@ export function PhotoLightbox({
                           {share.expiresAt &&
                           new Date(share.expiresAt).getFullYear() >=
                             SHARE_FOREVER_DATE.getFullYear()
-                            ? 'Na zawsze'
+                            ? 'Forever'
                             : share.expiresAt
                               ? new Date(share.expiresAt).toLocaleDateString(
-                                  'pl-PL',
+                                  'en-US',
                                   {
                                     year: 'numeric',
                                     month: 'long',
@@ -354,6 +418,154 @@ export function PhotoLightbox({
                     </li>
                   ))}
                 </ul>
+              </div>
+
+              {/* ===== Share link ===== */}
+              <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
+                <h3 className="mb-2 text-sm font-semibold">Share via link</h3>
+                <form onSubmit={handleCreatePhotoLink} className="space-y-2">
+                  <select
+                    value={linkPermission}
+                    onChange={(e) =>
+                      setLinkPermission(e.target.value as 'VIEW' | 'EDIT')
+                    }
+                    className="w-full rounded-md border px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
+                  >
+                    <option value="VIEW">View</option>
+                    <option value="EDIT">Edit</option>
+                  </select>
+                  <select
+                    value={linkExpiresIn}
+                    onChange={(e) => setLinkExpiresIn(e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
+                  >
+                    {LINK_EXPIRATION_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  {linkExpiresIn === 'custom' && (
+                    <input
+                      type="datetime-local"
+                      min={new Date().toISOString().slice(0, 16)}
+                      value={linkCustomExpiresAt}
+                      onChange={(e) => setLinkCustomExpiresAt(e.target.value)}
+                      required={linkExpiresIn === 'custom'}
+                      className="w-full rounded-md border px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
+                    />
+                  )}
+                  <input
+                    type="password"
+                    value={linkPassword}
+                    onChange={(e) => setLinkPassword(e.target.value)}
+                    placeholder="Password (optional)"
+                    className="w-full rounded-md border px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
+                  />
+                  <button
+                    type="submit"
+                    disabled={
+                      createPhotoShareLink.isPending ||
+                      (linkExpiresIn === 'custom' &&
+                        !linkCustomExpiresAt.trim())
+                    }
+                    className="w-full rounded-md bg-blue-600 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {createPhotoShareLink.isPending
+                      ? 'Creating...'
+                      : 'Create link'}
+                  </button>
+                </form>
+                {createPhotoShareLink.isError && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {createPhotoShareLink.error?.message ?? 'An error occurred'}
+                  </p>
+                )}
+                {createdLink && (
+                  <div className="mt-2 flex gap-1">
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdLink}
+                      className="flex-1 rounded-md border px-2 py-1.5 text-xs dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={copyPhotoLink}
+                      className="rounded-md bg-blue-600 px-2 py-1.5 text-xs text-white hover:bg-blue-700"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                )}
+
+                {photoShareLinks && photoShareLinks.length > 0 && (
+                  <div className="mt-3">
+                    <h4 className="mb-2 text-sm font-semibold">Share links</h4>
+                    <ul className="space-y-2">
+                      {photoShareLinks.map((link) => {
+                        const linkUrl =
+                          typeof window !== 'undefined'
+                            ? `${window.location.origin}/s/${link.token}`
+                            : `/s/${link.token}`;
+                        const isRevoked = !!link.revokedAt;
+                        const isExpired =
+                          link.expiresAt &&
+                          new Date(link.expiresAt).getTime() < Date.now();
+                        const status = isRevoked
+                          ? 'Revoked'
+                          : isExpired
+                            ? 'Expired'
+                            : 'Active';
+                        return (
+                          <li
+                            key={link.id}
+                            className="flex items-center justify-between gap-2 rounded-md bg-gray-100 px-3 py-2 text-xs dark:bg-gray-800"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <span className="block truncate font-medium">
+                                ...{link.token.slice(-8)}
+                              </span>
+                              <span className="text-[10px] text-gray-500">
+                                {link.permission} · {status}
+                                {link.hasPassword && ' · 🔒'}
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 gap-1">
+                              {!isRevoked && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    void navigator.clipboard.writeText(linkUrl);
+                                    toast.success('Link copied');
+                                  }}
+                                  className="rounded px-2 py-0.5 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                >
+                                  Copy
+                                </button>
+                              )}
+                              {!isRevoked && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    revokeShareLink.mutate({
+                                      token: link.token,
+                                    })
+                                  }
+                                  disabled={revokeShareLink.isPending}
+                                  className="rounded p-1 text-red-500 hover:bg-red-100 hover:text-red-700 disabled:opacity-50 dark:hover:bg-red-900/30"
+                                  aria-label="Revoke link"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
               </div>
             </>
           ) : null}

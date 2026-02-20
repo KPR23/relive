@@ -166,6 +166,4 @@ export class PhotoShareService {
       return { success: true };
     });
   }
-
-  async createShareLink() {}
 }

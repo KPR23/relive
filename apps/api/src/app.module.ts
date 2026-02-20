@@ -18,6 +18,7 @@ import { FolderModule } from './folder/folder.module.js';
 import { PhotoModule } from './photo/photo.module.js';
 import { TrpcModule } from './trpc/trpc.module.js';
 import { UserModule } from './user/user.module.js';
+import { ShareLinkModule } from './share-link/share-link.module.js';
 
 const isProduction = env.NODE_ENV === 'production';
 const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
@@ -46,6 +47,7 @@ const devBots: ArcjetWellKnownBot[] = isProduction ? [] : ['CURL'];
     PhotoModule,
     FolderModule,
     UserModule,
+    ShareLinkModule,
   ],
   providers: [
     {

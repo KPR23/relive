@@ -10,6 +10,7 @@ import { PhotoPermissionService } from './photo-permission.service.js';
 import {
   PhotoAlreadyInFolderError,
   PhotoAlreadyInRootFolderError,
+  PhotoNotFoundError,
   PhotoRemoveFailedError,
   ThumbnailNotFoundError,
 } from './photo.errors.js';
@@ -31,7 +32,7 @@ export class PhotoService {
       )
       .orderBy(desc(photo.createdAt));
 
-    return mapPhotosToResponse(photos, this.storage);
+    return await mapPhotosToResponse(photos, this.storage);
   }
 
   async listPhotos(userId: string, folderId: string) {
@@ -170,5 +171,51 @@ export class PhotoService {
 
       return { success: true };
     });
+  }
+
+  async getPhotoForShareLink(photoId: string) {
+    const [photoRecord] = await db
+      .select()
+      .from(photo)
+      .where(
+        and(eq(photo.id, photoId), eq(photo.status, PhotoStatusEnum.READY)),
+      );
+
+    if (!photoRecord) {
+      throw new PhotoNotFoundError();
+    }
+
+    const [mapped] = await mapPhotosToResponse([photoRecord], this.storage);
+    const { signedUrl } = await this.storage.getSignedUrl(photoRecord.filePath);
+
+    return { ...mapped, fullUrl: signedUrl };
+  }
+
+  async listPhotosForShareLink(folderId: string) {
+    const photos = await db
+      .select()
+      .from(photo)
+      .where(
+        and(
+          eq(photo.folderId, folderId),
+          eq(photo.status, PhotoStatusEnum.READY),
+        ),
+      );
+
+    if (photos.length === 0) {
+      return [];
+    }
+
+    const mapped = await mapPhotosToResponse(photos, this.storage);
+    const withFullUrls = await Promise.all(
+      mapped.map(async (m, i) => {
+        const { signedUrl } = await this.storage.getSignedUrl(
+          photos[i].filePath,
+        );
+        return { ...m, fullUrl: signedUrl };
+      }),
+    );
+
+    return withFullUrls;
   }
 }

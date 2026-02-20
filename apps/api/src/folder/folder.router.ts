@@ -28,6 +28,8 @@ import {
   moveFolderInputSchema,
   type ParentIdInputSchema,
   parentIdInputSchema,
+  revokeFolderShareInputSchema,
+  type RevokeFolderShareInputSchema,
   shareFolderWithUserInputSchema,
   type ShareFolderWithUserInputSchema,
 } from './folder.schema.js';
@@ -178,6 +180,26 @@ export class FolderRouter {
         data.folderId,
         data.targetUserEmail,
         data.permission,
+        data.expiresAt,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Mutation({
+    input: revokeFolderShareInputSchema,
+    output: z.object({ success: z.literal(true) }),
+  })
+  async revokeFolderShare(
+    @Ctx() _ctx: AuthContext,
+    @Input() data: RevokeFolderShareInputSchema,
+  ) {
+    try {
+      return await this.folderShareService.revokeFolderShare(
+        _ctx.user.id,
+        data.folderId,
+        data.targetUserId,
       );
     } catch (err) {
       mapToTRPCError(err);

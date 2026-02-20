@@ -19,10 +19,7 @@ export class FolderPermissionService {
             and(
               eq(folderShare.folderId, folder.id),
               eq(folderShare.sharedWithId, userId),
-              or(
-                isNull(folderShare.expiresAt),
-                gt(folderShare.expiresAt, new Date()),
-              ),
+              gt(folderShare.expiresAt, new Date()),
             ),
           ),
       ),

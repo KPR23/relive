@@ -1,23 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, ne } from 'drizzle-orm';
+import { and, eq, gt, ne } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import {
-  folder,
-  folderShare,
-  SharePermission,
-  sharePermissionEnum,
-  user,
-} from '../db/schema.js';
+import { folder, folderShare, SharePermission, user } from '../db/schema.js';
 import { UserService } from '../user/user.service.js';
 import { FolderPermissionService } from './folder-permission.service.js';
 import {
   CannotShareRootFolderError,
   FolderAlreadySharedWithUserError,
   FolderCannotShareWithSelfError,
+  FolderShareNotFoundError,
 } from './folder.errors.js';
 import {
-  type FolderShareRecipient,
   type FolderSharedWithMe,
+  type FolderShareRecipient,
 } from './folder.schema.js';
 
 @Injectable()
@@ -32,24 +27,28 @@ export class FolderShareService {
       .select({
         folder,
         ownerName: user.name,
+        permission: folderShare.permission,
+        expiresAt: folderShare.expiresAt,
       })
       .from(folder)
-      .leftJoin(user, eq(folder.ownerId, user.id))
-      .where(
+      .innerJoin(
+        folderShare,
         and(
-          eq(folder.isRoot, false),
-          this.folderPermissionService.buildViewableCondition(userId),
-          ne(folder.ownerId, userId),
+          eq(folderShare.folderId, folder.id),
+          eq(folderShare.sharedWithId, userId),
+          gt(folderShare.expiresAt, new Date()),
         ),
-      );
+      )
+      .leftJoin(user, eq(folder.ownerId, user.id))
+      .where(and(eq(folder.isRoot, false), ne(folder.ownerId, userId)));
 
     return results.map((r) => ({
       id: r.folder.id,
       folderId: r.folder.id,
       folderName: r.folder.name,
       sharedByName: r.ownerName ?? undefined,
-      permission: sharePermissionEnum.VIEW,
-      expiresAt: null,
+      permission: r.permission,
+      expiresAt: r.expiresAt,
     }));
   }
 
@@ -58,6 +57,7 @@ export class FolderShareService {
     folderId: string,
     targetUserId: string,
     permission: SharePermission,
+    expiresAt: Date,
   ) {
     return db.transaction(async (tx) => {
       if (userId === targetUserId) {
@@ -79,10 +79,10 @@ export class FolderShareService {
         .insert(folderShare)
         .values({
           id: crypto.randomUUID(),
-          ownerId: userId,
           folderId,
           sharedWithId: targetUserId,
           permission,
+          expiresAt,
         })
         .onConflictDoNothing();
 
@@ -99,6 +99,7 @@ export class FolderShareService {
     folderId: string,
     targetUserEmail: string,
     permission: SharePermission,
+    expiresAt: Date,
   ) {
     const targetUser = await this.userService.getUserByEmail(targetUserEmail);
 
@@ -107,7 +108,37 @@ export class FolderShareService {
       folderId,
       targetUser.id,
       permission,
+      expiresAt,
     );
+  }
+
+  async revokeFolderShare(
+    userId: string,
+    folderId: string,
+    targetUserId: string,
+  ) {
+    return db.transaction(async (tx) => {
+      await this.folderPermissionService.getOwnedFolderOrThrow(
+        userId,
+        folderId,
+        tx,
+      );
+
+      const result = await tx
+        .delete(folderShare)
+        .where(
+          and(
+            eq(folderShare.folderId, folderId),
+            eq(folderShare.sharedWithId, targetUserId),
+          ),
+        );
+
+      if (result.rowCount === 0) {
+        throw new FolderShareNotFoundError();
+      }
+
+      return { success: true };
+    });
   }
 
   async listFolderShares(
@@ -124,11 +155,10 @@ export class FolderShareService {
       .innerJoin(folder, eq(folderShare.folderId, folder.id))
       .innerJoin(user, eq(folderShare.sharedWithId, user.id))
       .where(
-        and(
-          eq(folderShare.folderId, folderId),
-          eq(folderShare.ownerId, userId),
-        ),
+        and(eq(folderShare.folderId, folderId), eq(folder.ownerId, userId)),
       );
+
+    const now = new Date();
 
     return results.map((r) => ({
       id: r.share.id,
@@ -137,6 +167,7 @@ export class FolderShareService {
       sharedWithId: r.share.sharedWithId,
       sharedWithEmail: r.user?.email ?? '',
       permission: r.share.permission,
+      status: now > r.share.expiresAt ? 'EXPIRED' : 'ACTIVE',
       expiresAt: r.share.expiresAt,
     }));
   }

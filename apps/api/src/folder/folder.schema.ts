@@ -23,6 +23,12 @@ export const folderSchema = z.object({
   ),
 });
 
+export const folderForShareLinkSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+});
+
 export const createFolderSchema = z.object({
   name: z.string().min(1, 'Folder name is required'),
   description: z.string().optional().nullable(),
@@ -54,6 +60,15 @@ export const shareFolderWithUserInputSchema = z.object({
   folderId: z.uuid(),
   targetUserEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
+  expiresAt: z.preprocess(
+    (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+    z.date(),
+  ),
+});
+
+export const revokeFolderShareInputSchema = z.object({
+  folderId: z.uuid(),
+  targetUserId: z.string().min(1, 'targetUserId is required'),
 });
 
 export const folderShareRecipientSchema = z.object({
@@ -63,6 +78,7 @@ export const folderShareRecipientSchema = z.object({
   sharedWithId: z.string(),
   sharedWithEmail: z.email(),
   permission: z.enum(sharePermissionEnum),
+  status: z.enum(['ACTIVE', 'EXPIRED']),
   expiresAt: dateFromString,
 });
 
@@ -89,5 +105,9 @@ export type DeleteFolderInputSchema = z.infer<typeof deleteFolderInputSchema>;
 export type ShareFolderWithUserInputSchema = z.infer<
   typeof shareFolderWithUserInputSchema
 >;
+export type RevokeFolderShareInputSchema = z.infer<
+  typeof revokeFolderShareInputSchema
+>;
 export type FolderShareRecipient = z.infer<typeof folderShareRecipientSchema>;
 export type FolderSharedWithMe = z.infer<typeof folderSharedWithMeSchema>;
+export type FolderForShareLink = z.infer<typeof folderForShareLinkSchema>;
