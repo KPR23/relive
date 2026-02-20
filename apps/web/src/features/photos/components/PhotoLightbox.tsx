@@ -156,10 +156,7 @@ export function PhotoLightbox({
     { value: 'custom', label: 'Custom date' },
   ] as const;
 
-  const getLinkExpiresAt = (
-    daysOrNever: string,
-    customDate?: string,
-  ): Date => {
+  const getLinkExpiresAt = (daysOrNever: string, customDate?: string): Date => {
     if (daysOrNever === 'never') return new Date('2099-12-31');
     if (daysOrNever === 'custom' && customDate) return new Date(customDate);
     const days = parseInt(daysOrNever, 10);
@@ -181,10 +178,10 @@ export function PhotoLightbox({
       },
       {
         onSuccess: (data) => {
-          const url =
-            typeof window !== 'undefined'
-              ? `${env.NEXT_PUBLIC_APP_URL?.toString()}/s/${data.token}`
-              : `/s/${data.token}`;
+          const base =
+            env.NEXT_PUBLIC_APP_URL?.toString() ??
+            (typeof window !== 'undefined' ? window.location.origin : '');
+          const url = `${base}/s/${data.token}`;
           setCreatedLink(url);
           setLinkCustomExpiresAt('');
         },
@@ -425,9 +422,7 @@ export function PhotoLightbox({
 
               {/* ===== Share link ===== */}
               <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
-                <h3 className="mb-2 text-sm font-semibold">
-                  Share via link
-                </h3>
+                <h3 className="mb-2 text-sm font-semibold">Share via link</h3>
                 <form onSubmit={handleCreatePhotoLink} className="space-y-2">
                   <select
                     value={linkPermission}
@@ -471,7 +466,8 @@ export function PhotoLightbox({
                     type="submit"
                     disabled={
                       createPhotoShareLink.isPending ||
-                      (linkExpiresIn === 'custom' && !linkCustomExpiresAt.trim())
+                      (linkExpiresIn === 'custom' &&
+                        !linkCustomExpiresAt.trim())
                     }
                     className="w-full rounded-md bg-blue-600 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
                   >
@@ -540,9 +536,7 @@ export function PhotoLightbox({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    void navigator.clipboard.writeText(
-                                      linkUrl,
-                                    );
+                                    void navigator.clipboard.writeText(linkUrl);
                                     toast.success('Link copied');
                                   }}
                                   className="rounded px-2 py-0.5 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30"
