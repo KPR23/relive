@@ -18,7 +18,7 @@ import {
 } from './share-link.errors.js';
 import type {
   CreateShareLinkOutputSchema,
-  GetShareLinkByTokenResponse,
+  GetByTokenInternalResponse,
   ShareLinkByToken,
 } from './share-link.schema.js';
 
@@ -140,7 +140,7 @@ export class ShareLinkService {
   async getByToken(
     token: string,
     password?: string,
-  ): Promise<GetShareLinkByTokenResponse> {
+  ): Promise<GetByTokenInternalResponse> {
     const link = await this.findLinkByTokenOrThrow(token);
 
     const expiresAt =

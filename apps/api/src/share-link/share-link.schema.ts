@@ -4,8 +4,17 @@ import {
   sharePermissionEnum,
   type SharePermission,
 } from '../db/schema.js';
+import { folderForShareLinkSchema } from '../folder/folder.schema.js';
+import { photoListItemSchema } from '../photo/photo.schema.js';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
+
+const photoForShareLinkDataSchema = photoListItemSchema.extend({
+  fullUrl: z.string(),
+});
+const folderForShareLinkDataSchema = folderForShareLinkSchema.extend({
+  photos: z.array(photoListItemSchema.extend({ fullUrl: z.string() })),
+});
 
 const datePreprocess = z.preprocess(
   (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
@@ -130,6 +139,30 @@ export const getShareLinkByTokenResponseSchema = z.discriminatedUnion(
     }),
     z.object({
       requiresPassword: z.literal(false),
+      type: z.literal('photo'),
+      data: photoForShareLinkDataSchema,
+    }),
+    z.object({
+      requiresPassword: z.literal(false),
+      type: z.literal('folder'),
+      data: folderForShareLinkDataSchema,
+    }),
+  ],
+);
+
+export type GetShareLinkByTokenResponse = z.infer<
+  typeof getShareLinkByTokenResponseSchema
+>;
+
+export const getByTokenInternalResponseSchema = z.discriminatedUnion(
+  'requiresPassword',
+  [
+    z.object({
+      requiresPassword: z.literal(true),
+      type: z.enum(['photo', 'folder']),
+    }),
+    z.object({
+      requiresPassword: z.literal(false),
       resourceId: z.string(),
       type: z.enum(['photo', 'folder']),
       permission: z.enum(sharePermissionEnum),
@@ -137,8 +170,8 @@ export const getShareLinkByTokenResponseSchema = z.discriminatedUnion(
   ],
 );
 
-export type GetShareLinkByTokenResponse = z.infer<
-  typeof getShareLinkByTokenResponseSchema
+export type GetByTokenInternalResponse = z.infer<
+  typeof getByTokenInternalResponseSchema
 >;
 
 export type GetByTokenInputSchema = z.infer<typeof getByTokenInputSchema>;

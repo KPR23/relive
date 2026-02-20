@@ -41,3 +41,10 @@ export class ShareLinkPasswordRequiredError extends AppError {
     super(message);
   }
 }
+
+export class ShareLinkUnsupportedTypeError extends AppError {
+  readonly code = 'BAD_REQUEST';
+  constructor(message = 'Unsupported share link type') {
+    super(message);
+  }
+}

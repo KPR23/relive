@@ -15,6 +15,7 @@ import {
   createPhotoShareLinkInputSchema,
   createShareLinkOutputSchema,
   getByTokenInputSchema,
+  getShareLinkByTokenResponseSchema,
   listFolderShareLinksInputSchema,
   listPhotoShareLinksInputSchema,
   revokeShareLinkInputSchema,
@@ -25,6 +26,7 @@ import { mapToTRPCError } from '../trpc/map-to-trpc.js';
 import { AuthMiddleware } from '../auth/middleware.js';
 import { PhotoService } from '../photo/photo.service.js';
 import { FolderService } from '../folder/folder.service.js';
+import { ShareLinkUnsupportedTypeError } from './share-link.errors.js';
 
 @Router({ alias: 'share' })
 export class ShareLinkRouter {
@@ -131,7 +133,10 @@ export class ShareLinkRouter {
     }
   }
 
-  @Query({ input: getByTokenInputSchema })
+  @Query({
+    input: getByTokenInputSchema,
+    output: getShareLinkByTokenResponseSchema,
+  })
   async getSharedContent(@Input() data: { token: string; password?: string }) {
     try {
       const link = await this.shareLinkService.getByToken(
@@ -165,6 +170,8 @@ export class ShareLinkRouter {
           data: { ...folderData, photos },
         };
       }
+
+      throw new ShareLinkUnsupportedTypeError();
     } catch (err) {
       mapToTRPCError(err);
     }
