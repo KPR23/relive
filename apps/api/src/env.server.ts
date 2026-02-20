@@ -43,9 +43,6 @@ const envSchema = z.object({
     .optional()
     .default('http://localhost:3000'),
 
-  // Cookie domain for cross-subdomain (e.g. .vercel.app when app + api on different *.vercel.app)
-  COOKIE_DOMAIN: z.string().optional(),
-
   // Server
   PORT: z.coerce.number().optional().default(8000),
 
