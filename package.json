@@ -10,17 +10,17 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "prettier": "^3.8.1",
+    "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.8.10",
-    "typescript": "5.9.3"
+    "turbo": "^2.8.9",
+    "typescript": "5.9.2"
   },
   "pnpm": {
     "overrides": {
       "@trpc/server": "10.45.4",
       "@trpc/client": "10.45.4",
       "@trpc/react-query": "10.45.4",
-      "typescript": "5.9.3",
+      "typescript": "5.9.2",
       "zod": "^4.3.5",
       "rxjs": "^7.8.2"
     },
@@ -40,7 +40,7 @@
       "unrs-resolver"
     ]
   },
-  "packageManager": "pnpm@10.30.0",
+  "packageManager": "pnpm@10.28.2",
   "engines": {
     "node": ">=18"
   }
