@@ -14,7 +14,7 @@ export const signInWithGitHub = async () => {
   await authClient.signIn.social({
     provider: 'github',
     callbackURL: env.NEXT_PUBLIC_APP_URL,
-    errorCallbackURL: '/login',
+    errorCallbackURL: '/auth-error',
   });
 };
 
@@ -22,7 +22,7 @@ export const signInWithGoogle = async () => {
   await authClient.signIn.social({
     provider: 'google',
     callbackURL: env.NEXT_PUBLIC_APP_URL,
-    errorCallbackURL: '/login',
+    errorCallbackURL: '/auth-error',
   });
 };
 
