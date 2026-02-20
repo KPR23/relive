@@ -41,6 +41,11 @@ export const auth = betterAuth({
           : {}),
       }
     : undefined,
+  account: isProduction
+    ? {
+        storeStateStrategy: 'database',
+      }
+    : undefined,
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID as string,
