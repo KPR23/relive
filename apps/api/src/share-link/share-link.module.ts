@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
+import { ShareLinkRouter } from './share-link.router.js';
 import { ShareLinkService } from './share-link.service.js';
-import { PhotoPermissionService } from '../photo/photo-permission.service.js';
-import { FolderPermissionService } from '../folder/folder-permission.service.js';
+import { PhotoModule } from '../photo/photo.module.js';
+import { FolderModule } from '../folder/folder.module.js';
 
 @Module({
-  providers: [
-    ShareLinkService,
-    PhotoPermissionService,
-    FolderPermissionService,
-  ],
+  imports: [PhotoModule, FolderModule],
+  providers: [ShareLinkService, ShareLinkRouter],
   exports: [ShareLinkService],
 })
 export class ShareLinkModule {}

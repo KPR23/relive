@@ -10,9 +10,15 @@ import {
   CannotMoveFolderCreatesCycleError,
   CannotMoveFolderToSelfError,
   CannotMoveRootFolderError,
+  FolderNotFoundError,
   ParentFolderIdRequiredError,
 } from './folder.errors.js';
-import { CreateFolderSchema, Folder } from './folder.schema.js';
+import {
+  CreateFolderSchema,
+  Folder,
+  FolderForShareLink,
+  folderForShareLinkSchema,
+} from './folder.schema.js';
 
 @Injectable()
 export class FolderService {
@@ -237,5 +243,22 @@ export class FolderService {
 
       return tx.delete(folder).where(eq(folder.id, id));
     });
+  }
+
+  async getFolderForShareLink(folderId: string): Promise<FolderForShareLink> {
+    const [folderRecord] = await db
+      .select({
+        id: folder.id,
+        name: folder.name,
+        description: folder.description,
+      })
+      .from(folder)
+      .where(eq(folder.id, folderId));
+
+    if (!folderRecord) {
+      throw new FolderNotFoundError();
+    }
+
+    return folderForShareLinkSchema.parse(folderRecord);
   }
 }

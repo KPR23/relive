@@ -23,6 +23,12 @@ export const folderSchema = z.object({
   ),
 });
 
+export const folderForShareLinkSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+});
+
 export const createFolderSchema = z.object({
   name: z.string().min(1, 'Folder name is required'),
   description: z.string().optional().nullable(),
@@ -96,3 +102,4 @@ export type ShareFolderWithUserInputSchema = z.infer<
 >;
 export type FolderShareRecipient = z.infer<typeof folderShareRecipientSchema>;
 export type FolderSharedWithMe = z.infer<typeof folderSharedWithMeSchema>;
+export type FolderForShareLink = z.infer<typeof folderForShareLinkSchema>;
