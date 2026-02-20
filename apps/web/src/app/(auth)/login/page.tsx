@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSocialLoading, setIsSocialLoading] = useState(false);
 
   useEffect(() => {
     if (session.data) {
@@ -140,20 +141,35 @@ export default function LoginPage() {
           </div>
         </div>
         <button
-          className="bg-primary rounded-md px-4 py-2 text-white"
-          onClick={() => signInWithGitHub()}
+          className="bg-primary disabled:bg-gray rounded-md px-4 py-2 text-white disabled:cursor-not-allowed"
+          disabled={isSocialLoading}
+          onClick={async () => {
+            if (isSocialLoading) return;
+            setIsSocialLoading(true);
+            await signInWithGitHub();
+          }}
         >
           Sign in with GitHub
         </button>
         <button
-          className="bg-primary rounded-md px-4 py-2 text-blue-500"
-          onClick={() => signInWithGoogle()}
+          className="bg-primary disabled:bg-gray rounded-md px-4 py-2 text-blue-500 disabled:cursor-not-allowed"
+          disabled={isSocialLoading}
+          onClick={async () => {
+            if (isSocialLoading) return;
+            setIsSocialLoading(true);
+            await signInWithGoogle();
+          }}
         >
           Sign in with Google
         </button>
         <button
-          className="bg-primary rounded-md px-4 py-2 text-white"
-          onClick={() => signInWithPasskey()}
+          className="bg-primary disabled:bg-gray rounded-md px-4 py-2 text-white disabled:cursor-not-allowed"
+          disabled={isSocialLoading}
+          onClick={async () => {
+            if (isSocialLoading) return;
+            setIsSocialLoading(true);
+            await signInWithPasskey();
+          }}
         >
           Sign in with passkey
         </button>
