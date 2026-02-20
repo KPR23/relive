@@ -5,10 +5,16 @@ import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { env } from '../env.server.js';
 
+const isProduction = env.NODE_ENV === 'production';
+
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.FRONTEND_URL,
   trustedOrigins: [env.FRONTEND_URL],
+  trustedProxyHeaders: true,
+  callbacks: {
+    redirect: () => env.FRONTEND_URL,
+  },
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,
@@ -19,19 +25,22 @@ export const auth = betterAuth({
     minPasswordLength: 8,
   },
   plugins: [passkey()],
-  advanced:
-    env.NODE_ENV === 'production'
-      ? {
-          cookies: {
-            state: {
-              attributes: {
-                sameSite: 'none',
-                secure: true,
+  advanced: isProduction
+    ? {
+        defaultCookieAttributes: {
+          sameSite: 'none',
+          secure: true,
+        },
+        ...(env.COOKIE_DOMAIN || env.FRONTEND_URL.includes('vercel.app')
+          ? {
+              crossSubDomainCookies: {
+                enabled: true,
+                domain: env.COOKIE_DOMAIN ?? '.vercel.app',
               },
-            },
-          },
-        }
-      : undefined,
+            }
+          : {}),
+      }
+    : undefined,
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID as string,
