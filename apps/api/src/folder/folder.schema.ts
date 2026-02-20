@@ -66,6 +66,11 @@ export const shareFolderWithUserInputSchema = z.object({
   ),
 });
 
+export const revokeFolderShareInputSchema = z.object({
+  folderId: z.uuid(),
+  targetUserId: z.string().min(1, 'targetUserId is required'),
+});
+
 export const folderShareRecipientSchema = z.object({
   id: z.uuid(),
   folderId: z.uuid(),
@@ -99,6 +104,9 @@ export type MoveFolderInputSchema = z.infer<typeof moveFolderInputSchema>;
 export type DeleteFolderInputSchema = z.infer<typeof deleteFolderInputSchema>;
 export type ShareFolderWithUserInputSchema = z.infer<
   typeof shareFolderWithUserInputSchema
+>;
+export type RevokeFolderShareInputSchema = z.infer<
+  typeof revokeFolderShareInputSchema
 >;
 export type FolderShareRecipient = z.infer<typeof folderShareRecipientSchema>;
 export type FolderSharedWithMe = z.infer<typeof folderSharedWithMeSchema>;

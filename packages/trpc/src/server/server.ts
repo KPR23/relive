@@ -304,6 +304,10 @@ const appRouter = t.router({
         z.date(),
       ),
     })).output(z.object({ success: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    revokeFolderShare: publicProcedure.input(z.object({
+      folderId: z.uuid(),
+      targetUserId: z.string().min(1, 'targetUserId is required'),
+    })).output(z.object({ success: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     listFolderShares: publicProcedure.input(z.object({
       folderId: z.uuid(),
     })).output(z.array(z.object({

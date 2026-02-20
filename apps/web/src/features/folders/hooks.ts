@@ -83,6 +83,18 @@ export function useShareFolderWithUser() {
   );
 }
 
+export function useRevokeFolderShare() {
+  const utils = usePhotoUtils();
+  return trpc.folder.revokeFolderShare.useMutation(
+    createAppMutation({
+      successMessage: 'Folder share revoked',
+      invalidate: async () => {
+        await utils.folder.invalidate();
+      },
+    }),
+  );
+}
+
 export function useListFolderShares(folderId: string) {
   return trpc.folder.listFolderShares.useQuery({ folderId });
 }

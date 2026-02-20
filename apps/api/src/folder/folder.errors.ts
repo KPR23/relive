@@ -76,3 +76,10 @@ export class CannotDeleteFolderWithChildrenError extends AppError {
     super(message);
   }
 }
+
+export class FolderShareNotFoundError extends AppError {
+  readonly code = 'NOT_FOUND';
+  constructor(message = 'Folder share not found') {
+    super(message);
+  }
+}

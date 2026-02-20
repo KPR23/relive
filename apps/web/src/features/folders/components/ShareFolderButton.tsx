@@ -1,7 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useListFolderShares, useShareFolderWithUser } from '../hooks';
+import {
+  useListFolderShares,
+  useRevokeFolderShare,
+  useShareFolderWithUser,
+} from '../hooks';
 import {
   useCreateFolderShareLink,
   useListFolderShareLinks,
@@ -47,6 +51,7 @@ export default function ShareFolderButton({
   folderId,
 }: ShareFolderButtonProps) {
   const shareFolder = useShareFolderWithUser();
+  const revokeFolderShare = useRevokeFolderShare();
   const createFolderShareLink = useCreateFolderShareLink();
   const revokeShareLink = useRevokeShareLink();
   const { data: shares, isLoading: isSharesLoading } =
@@ -411,12 +416,28 @@ export default function ShareFolderButton({
                   {shares.map((share) => (
                     <li
                       key={share.id}
-                      className="flex items-center justify-between text-sm text-amber-200/90"
+                      className="flex items-center justify-between gap-2 text-sm text-amber-200/90"
                     >
-                      <span>{share.sharedWithEmail}</span>
-                      <span className="rounded bg-amber-800/40 px-2 py-0.5 text-xs text-amber-300">
-                        {share.permission === 'EDIT' ? 'Edit' : 'View'}
-                      </span>
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="truncate">{share.sharedWithEmail}</span>
+                        <span className="shrink-0 rounded bg-amber-800/40 px-2 py-0.5 text-xs text-amber-300">
+                          {share.permission === 'EDIT' ? 'Edit' : 'View'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          revokeFolderShare.mutate({
+                            folderId,
+                            targetUserId: share.sharedWithId,
+                          })
+                        }
+                        disabled={revokeFolderShare.isPending}
+                        className="shrink-0 rounded px-2 py-0.5 text-red-400 transition-colors hover:bg-red-900/30 disabled:opacity-50"
+                        aria-label={`Revoke share for ${share.sharedWithEmail}`}
+                      >
+                        Revoke
+                      </button>
                     </li>
                   ))}
                 </ul>

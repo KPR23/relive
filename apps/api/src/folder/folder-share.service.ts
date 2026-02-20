@@ -8,6 +8,7 @@ import {
   CannotShareRootFolderError,
   FolderAlreadySharedWithUserError,
   FolderCannotShareWithSelfError,
+  FolderShareNotFoundError,
 } from './folder.errors.js';
 import {
   type FolderSharedWithMe,
@@ -109,6 +110,35 @@ export class FolderShareService {
       permission,
       expiresAt,
     );
+  }
+
+  async revokeFolderShare(
+    userId: string,
+    folderId: string,
+    targetUserId: string,
+  ) {
+    return db.transaction(async (tx) => {
+      await this.folderPermissionService.getOwnedFolderOrThrow(
+        userId,
+        folderId,
+        tx,
+      );
+
+      const result = await tx
+        .delete(folderShare)
+        .where(
+          and(
+            eq(folderShare.folderId, folderId),
+            eq(folderShare.sharedWithId, targetUserId),
+          ),
+        );
+
+      if (result.rowCount === 0) {
+        throw new FolderShareNotFoundError();
+      }
+
+      return { success: true };
+    });
   }
 
   async listFolderShares(
