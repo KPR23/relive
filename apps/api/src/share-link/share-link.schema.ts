@@ -7,17 +7,22 @@ import {
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
+const datePreprocess = z.preprocess(
+  (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+  z.date(),
+);
+
 export const createPhotoShareLinkInputSchema = z.object({
   photoId: z.uuid(),
   permission: z.enum(sharePermissionEnum),
-  expiresAt: z.date(),
+  expiresAt: datePreprocess,
   password: z.string().optional(),
 });
 
 export const createFolderShareLinkInputSchema = z.object({
   folderId: z.uuid(),
   permission: z.enum(sharePermissionEnum),
-  expiresAt: z.date(),
+  expiresAt: datePreprocess,
   password: z.string().optional(),
 });
 
@@ -82,6 +87,39 @@ export const getByTokenInputSchema = z.object({
   token: z.string(),
   password: z.string().optional(),
 });
+
+export const listFolderShareLinksInputSchema = z.object({
+  folderId: z.uuid(),
+});
+
+export const listPhotoShareLinksInputSchema = z.object({
+  photoId: z.uuid(),
+});
+
+export const revokeShareLinkInputSchema = z.object({
+  token: z.string(),
+});
+
+const dateSchema = z.preprocess(
+  (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+  z.date(),
+);
+const dateNullableSchema = z.preprocess(
+  (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+  z.date().nullable(),
+);
+
+export const shareLinkListItemSchema = z.object({
+  id: z.string(),
+  token: z.string(),
+  expiresAt: dateSchema,
+  revokedAt: dateNullableSchema,
+  permission: z.enum(sharePermissionEnum),
+  createdAt: dateSchema,
+  hasPassword: z.boolean(),
+});
+
+export type ShareLinkListItem = z.infer<typeof shareLinkListItemSchema>;
 
 export const getShareLinkByTokenResponseSchema = z.discriminatedUnion(
   'requiresPassword',

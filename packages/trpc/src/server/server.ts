@@ -340,6 +340,93 @@ const appRouter = t.router({
         return null;
       }, z.date().nullable()),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  share: t.router({
+    createPhotoShareLink: publicProcedure.input(z.object({
+      photoId: z.uuid(),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+      expiresAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      password: z.string().optional(),
+    })).output(z.object({
+      token: z.string(),
+      expiresAt: z.date(),
+      createdBy: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createFolderShareLink: publicProcedure.input(z.object({
+      folderId: z.uuid(),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+      expiresAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      password: z.string().optional(),
+    })).output(z.object({
+      token: z.string(),
+      expiresAt: z.date(),
+      createdBy: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listFolderShareLinks: publicProcedure.input(z.object({
+      folderId: z.uuid(),
+    })).output(z.array(z.object({
+      id: z.string(),
+      token: z.string(),
+      expiresAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      revokedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date().nullable(),
+      ),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      hasPassword: z.boolean(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listPhotoShareLinks: publicProcedure.input(z.object({
+      photoId: z.uuid(),
+    })).output(z.array(z.object({
+      id: z.string(),
+      token: z.string(),
+      expiresAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      revokedAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date().nullable(),
+      ),
+      permission: z.enum({
+        VIEW: 'VIEW',
+        EDIT: 'EDIT',
+      } as const),
+      createdAt: z.preprocess(
+        (arg) => (typeof arg === 'string' ? new Date(arg) : arg),
+        z.date(),
+      ),
+      hasPassword: z.boolean(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    revokeShareLink: publicProcedure.input(z.object({
+      token: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getSharedContent: publicProcedure.input(z.object({
+      token: z.string(),
+      password: z.string().optional(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });
 export type AppRouter = typeof appRouter;

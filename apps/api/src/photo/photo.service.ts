@@ -185,9 +185,10 @@ export class PhotoService {
       throw new PhotoNotFoundError();
     }
 
-    const mapped = await mapPhotosToResponse([photoRecord], this.storage);
+    const [mapped] = await mapPhotosToResponse([photoRecord], this.storage);
+    const { signedUrl } = await this.storage.getSignedUrl(photoRecord.filePath);
 
-    return mapped[0];
+    return { ...mapped, fullUrl: signedUrl };
   }
 
   async listPhotosForShareLink(folderId: string) {
@@ -202,11 +203,19 @@ export class PhotoService {
       );
 
     if (photos.length === 0) {
-      throw new PhotoNotFoundError();
+      return [];
     }
 
     const mapped = await mapPhotosToResponse(photos, this.storage);
+    const withFullUrls = await Promise.all(
+      mapped.map(async (m, i) => {
+        const { signedUrl } = await this.storage.getSignedUrl(
+          photos[i]!.filePath,
+        );
+        return { ...m, fullUrl: signedUrl };
+      }),
+    );
 
-    return mapped;
+    return withFullUrls;
   }
 }

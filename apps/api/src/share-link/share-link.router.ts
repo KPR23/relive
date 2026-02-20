@@ -6,6 +6,7 @@ import {
   Router,
   UseMiddlewares,
 } from 'nestjs-trpc';
+import { z } from 'zod';
 import { ShareLinkService } from './share-link.service.js';
 import {
   type CreateFolderShareLinkInputSchema,
@@ -14,6 +15,10 @@ import {
   createPhotoShareLinkInputSchema,
   createShareLinkOutputSchema,
   getByTokenInputSchema,
+  listFolderShareLinksInputSchema,
+  listPhotoShareLinksInputSchema,
+  revokeShareLinkInputSchema,
+  shareLinkListItemSchema,
 } from './share-link.schema.js';
 import type { AuthContext } from '../trpc/context.js';
 import { mapToTRPCError } from '../trpc/map-to-trpc.js';
@@ -68,6 +73,59 @@ export class ShareLinkRouter {
         data.expiresAt,
         data.password,
       );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Query({
+    input: listFolderShareLinksInputSchema,
+    output: z.array(shareLinkListItemSchema),
+  })
+  @UseMiddlewares(AuthMiddleware)
+  async listFolderShareLinks(
+    @Ctx() ctx: AuthContext,
+    @Input() data: { folderId: string },
+  ) {
+    try {
+      return await this.shareLinkService.listLinksForFolder(
+        ctx.user.id,
+        data.folderId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Query({
+    input: listPhotoShareLinksInputSchema,
+    output: z.array(shareLinkListItemSchema),
+  })
+  @UseMiddlewares(AuthMiddleware)
+  async listPhotoShareLinks(
+    @Ctx() ctx: AuthContext,
+    @Input() data: { photoId: string },
+  ) {
+    try {
+      return await this.shareLinkService.listLinksForPhoto(
+        ctx.user.id,
+        data.photoId,
+      );
+    } catch (err) {
+      mapToTRPCError(err);
+    }
+  }
+
+  @Mutation({
+    input: revokeShareLinkInputSchema,
+  })
+  @UseMiddlewares(AuthMiddleware)
+  async revokeShareLink(
+    @Ctx() ctx: AuthContext,
+    @Input() data: { token: string },
+  ) {
+    try {
+      return await this.shareLinkService.revokeLink(ctx.user.id, data.token);
     } catch (err) {
       mapToTRPCError(err);
     }
