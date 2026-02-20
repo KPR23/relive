@@ -1,4 +1,4 @@
-import { randomBytes, scrypt } from 'node:crypto';
+import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 
 const scryptAsync = promisify(scrypt);
@@ -19,5 +19,9 @@ export async function verifyPassword(
   const [salt, key] = storedHash.split(':');
   if (!salt || !key) return false;
   const derivedKey = (await scryptAsync(password, salt, KEY_LENGTH)) as Buffer;
-  return key === derivedKey.toString('hex');
+  const keyBuffer = Buffer.from(key, 'hex');
+  return (
+    derivedKey.length === keyBuffer.length &&
+    timingSafeEqual(derivedKey, keyBuffer)
+  );
 }
