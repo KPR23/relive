@@ -85,13 +85,7 @@ export const AllPhotosList = () => {
         {sharedPhotosWithMe && sharedPhotosWithMe.photos.length > 0 ? (
           <div className="flex flex-wrap gap-1">
             {sharedPhotosWithMe.photos.map((photo) => (
-              <PhotoItem
-                key={photo.photoId}
-                photo={photo}
-                source="shared"
-                selected={selected}
-                setSelected={setSelected}
-              />
+              <PhotoItem key={photo.photoId} photo={photo} source="shared" />
             ))}
           </div>
         ) : (
