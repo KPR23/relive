@@ -152,11 +152,12 @@ export function useUploadProgress() {
   const [progress, setProgress] = useState(0);
   const progressByFile = useRef<number[]>([]);
 
-  const getProgressCallback = (index: number, totalCount: number) => (percent: number) => {
-    progressByFile.current[index] = percent;
-    const total = progressByFile.current.reduce((a, b) => a + b, 0);
-    setProgress(total / totalCount);
-  };
+  const getProgressCallback =
+    (index: number, totalCount: number) => (percent: number) => {
+      progressByFile.current[index] = percent;
+      const total = progressByFile.current.reduce((a, b) => a + b, 0);
+      setProgress(totalCount > 0 ? total / totalCount : 0);
+    };
 
   const reset = (count: number) => {
     progressByFile.current = new Array(count).fill(0);

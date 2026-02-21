@@ -18,7 +18,7 @@ export function UploadButton({ folderId }: { folderId: string }) {
     setUploading(true);
 
     try {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         photos.map((photo, index) =>
           startUpload({
             photo,
@@ -30,11 +30,20 @@ export function UploadButton({ folderId }: { folderId: string }) {
           }),
         ),
       );
+      const failed = results.filter((r) => r.status === 'rejected');
+
+      if (failed.length > 0) {
+        failed.forEach((r) =>
+          console.error((r as PromiseRejectedResult).reason),
+        );
+        alert(`${failed.length} of ${photos.length} upload(s) failed`);
+      }
     } catch (err) {
       console.error(err);
       alert('Upload failed');
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -49,11 +58,7 @@ export function UploadButton({ folderId }: { folderId: string }) {
         onChange={onFileChange}
       />
 
-      {uploading && (
-        <>
-          <progress value={progress} max={100} />
-        </>
-      )}
+      {uploading && <progress value={progress} max={100} />}
     </div>
   );
 }
