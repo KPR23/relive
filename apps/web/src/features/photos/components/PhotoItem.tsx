@@ -18,22 +18,28 @@ export function PhotoItem({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const safeWidth = Math.max(photo.width ?? 0, 1);
-  const safeHeight = Math.max(photo.height ?? 0, 1);
-  const calculatedWidth = Math.round(ROW_HEIGHT * (safeWidth / safeHeight));
+  const calculatedWidth =
+    photo.height && photo.height > 0
+      ? Math.round((ROW_HEIGHT * (photo.width ?? ROW_HEIGHT)) / photo.height)
+      : ROW_HEIGHT;
+
+  const style: React.CSSProperties = {
+    height: ROW_HEIGHT,
+    width: calculatedWidth,
+  };
 
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
         className="cursor-pointer overflow-hidden rounded transition-opacity hover:opacity-90 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        style={{ height: ROW_HEIGHT, width: calculatedWidth }}
+        style={style}
       >
         <Image
           src={photo.thumbnailUrl}
           alt={photo.originalName}
-          width={calculatedWidth}
-          height={ROW_HEIGHT}
+          width={style.width as number}
+          height={style.height as number}
           className="h-full w-full object-cover"
           loading="lazy"
           unoptimized

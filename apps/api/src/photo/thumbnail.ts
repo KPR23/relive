@@ -8,6 +8,7 @@ import { ExifSchema } from './photo.schema.js';
 
 function createThumbnailStream() {
   return sharp()
+    .rotate()
     .resize({
       width: 300,
       withoutEnlargement: true,
@@ -49,8 +50,8 @@ export async function generateAndUploadThumbnail({
   const [metadata, exif] = await Promise.all([metadataPromise, exifPromise]);
 
   return {
-    width: metadata.width ?? 0,
-    height: metadata.height ?? 0,
+    width: metadata.autoOrient?.width ?? metadata.width ?? 0,
+    height: metadata.autoOrient?.height ?? metadata.height ?? 0,
     exif,
   };
 }
