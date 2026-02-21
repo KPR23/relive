@@ -26,7 +26,7 @@ export function UploadButton({ folderId }: { folderId: string }) {
             requestUpload,
             confirmUpload,
             utils,
-            onProgress: getProgressCallback(index, photos.length),
+            onProgress: getProgressCallback(index),
           }),
         ),
       );
@@ -48,7 +48,7 @@ export function UploadButton({ folderId }: { folderId: string }) {
   };
 
   return (
-    <div>
+    <div className="flex">
       <input
         type="file"
         multiple
@@ -58,7 +58,12 @@ export function UploadButton({ folderId }: { folderId: string }) {
         onChange={onFileChange}
       />
 
-      {uploading && <progress value={progress} max={100} />}
+      {uploading && (
+        <div className="mt-2 flex items-center gap-2">
+          <progress value={progress} max={100} />
+          <span>{Math.round(progress)}%</span>
+        </div>
+      )}
     </div>
   );
 }
