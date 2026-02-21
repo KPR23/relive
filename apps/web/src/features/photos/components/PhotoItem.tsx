@@ -1,11 +1,10 @@
 'use client';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Photo, SharedPhoto } from '../../../lib/types';
 import { PhotoLightbox } from './PhotoLightbox';
-import { CheckIcon } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
 
 const ROW_HEIGHT = 120;
 
