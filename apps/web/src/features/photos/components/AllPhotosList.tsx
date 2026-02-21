@@ -30,9 +30,11 @@ export const AllPhotosList = () => {
           Photos shared with me
         </h2>
         {sharedPhotosWithMe && sharedPhotosWithMe.photos.length > 0 ? (
-          sharedPhotosWithMe.photos.map((photo) => (
-            <PhotoItem key={photo.photoId} photo={photo} source="shared" />
-          ))
+          <div className="flex flex-wrap gap-1">
+            {sharedPhotosWithMe.photos.map((photo) => (
+              <PhotoItem key={photo.photoId} photo={photo} source="shared" />
+            ))}
+          </div>
         ) : (
           <p>No shared photos found</p>
         )}

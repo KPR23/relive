@@ -18,9 +18,10 @@ export function PhotoItem({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const calculatedWidth = Math.round(
-    (ROW_HEIGHT * (photo.width ?? 0)) / (photo.height ?? 0),
-  );
+  const calculatedWidth =
+    photo.height && photo.height > 0
+      ? Math.round((ROW_HEIGHT * (photo.width ?? ROW_HEIGHT)) / photo.height)
+      : ROW_HEIGHT;
 
   const style: React.CSSProperties = {
     height: ROW_HEIGHT,
