@@ -1,27 +1,22 @@
 import { passkey } from '@better-auth/passkey';
-import { betterAuth } from 'better-auth';
+import { betterAuth, CookieOptions } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '../db/index.js';
 import * as schema from '../db/schema.js';
 import { env } from '../env.server.js';
 
+const crossSiteCookieAttributes: CookieOptions = {
+  sameSite: 'none',
+  secure: true,
+} as const;
+
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.FRONTEND_URL,
-  trustedOrigins: [
-    env.FRONTEND_URL,
-    'https://github.com', // GitHub OAuth callback - redirect origin
-    'https://accounts.google.com', // Google OAuth callback - redirect origin
-  ],
+  trustedOrigins: [env.FRONTEND_URL],
   advanced: {
-    storeStateStrategy: 'database',
-    defaultCookieAttributes: (() => {
-      const isHttps = env.FRONTEND_URL.startsWith('https');
-      return {
-        sameSite: (isHttps ? 'none' : 'lax') as 'none' | 'lax',
-        secure: isHttps,
-      };
-    })(),
+    useSecureCookies: true,
+    defaultCookieAttributes: crossSiteCookieAttributes,
   },
   database: drizzleAdapter(db, {
     provider: 'pg',
